@@ -19,6 +19,9 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private SpriteRenderer hoverHighlightRenderer;
     private bool suppressHoverUntilTileChange;
     private Vector2Int suppressedHoverTile;
+    private bool hasPointerTile;
+    private Vector2Int pointerGridPosition;
+    private Vector3 pointerWorldPoint;
 
     private void Reset()
     {
@@ -28,29 +31,44 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
     }
 
+    private void Awake()
+    {
+        if (worldCamera == null)
+        {
+            worldCamera = Camera.main;
+        }
+
+        if (hoverHighlight != null)
+        {
+            hoverHighlightRenderer = hoverHighlight.GetComponent<SpriteRenderer>();
+        }
+    }
+
     private void Update()
     {
         Mouse mouse = Mouse.current;
         if (mouse == null)
         {
+            hasPointerTile = false;
             SetHoverHighlightVisible(false);
             return;
         }
 
+        RefreshPointerState(mouse);
         UpdateHoverHighlight();
 
         if (mouse.leftButton.wasPressedThisFrame)
         {
-            bool didPlace = TryPlaceAtMouse();
+            bool didPlace = TryPlaceAtPointer();
             if (didPlace)
             {
-                SuppressHoverAtCurrentTile();
+                SuppressHoverAtPointerTile();
             }
         }
 
         if (mouse.rightButton.wasPressedThisFrame)
         {
-            TryRemoveAtMouse();
+            TryRemoveAtPointer();
         }
     }
 
@@ -61,14 +79,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return;
         }
 
-        if (!TryGetMouseHitPoint(out Vector3 hitPoint))
-        {
-            SetHoverHighlightVisible(false);
-            return;
-        }
-
-        Vector2Int gridPosition = tileManager.WorldToGrid(hitPoint);
-        if (!tileManager.IsInBounds(gridPosition))
+        if (!hasPointerTile)
         {
             SetHoverHighlightVisible(false);
             return;
@@ -76,7 +87,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (suppressHoverUntilTileChange)
         {
-            if (gridPosition == suppressedHoverTile)
+            if (pointerGridPosition == suppressedHoverTile)
             {
                 SetHoverHighlightVisible(false);
                 return;
@@ -85,20 +96,15 @@ public class FactoryBuildingPlacer : MonoBehaviour
             suppressHoverUntilTileChange = false;
         }
 
-        Vector3 center = tileManager.GridToWorld(gridPosition);
+        Vector3 center = tileManager.GridToWorld(pointerGridPosition);
         center.z = tileManager.GridPlaneZ + hoverZOffset;
 
         hoverHighlight.position = center;
         hoverHighlight.localScale = new Vector3(tileManager.TileSize, tileManager.TileSize, 1f);
 
-        if (hoverHighlightRenderer == null)
-        {
-            hoverHighlightRenderer = hoverHighlight.GetComponent<SpriteRenderer>();
-        }
-
         if (hoverHighlightRenderer != null)
         {
-            hoverHighlightRenderer.color = tileManager.IsOccupied(gridPosition)
+            hoverHighlightRenderer.color = tileManager.IsOccupied(pointerGridPosition)
                 ? blockedHoverColor
                 : validHoverColor;
         }
@@ -106,20 +112,14 @@ public class FactoryBuildingPlacer : MonoBehaviour
         SetHoverHighlightVisible(true);
     }
 
-    private void SuppressHoverAtCurrentTile()
+    private void SuppressHoverAtPointerTile()
     {
-        if (!TryGetMouseHitPoint(out Vector3 hitPoint))
+        if (!hasPointerTile)
         {
             return;
         }
 
-        Vector2Int gridPosition = tileManager.WorldToGrid(hitPoint);
-        if (!tileManager.IsInBounds(gridPosition))
-        {
-            return;
-        }
-
-        suppressedHoverTile = gridPosition;
+        suppressedHoverTile = pointerGridPosition;
         suppressHoverUntilTileChange = true;
         SetHoverHighlightVisible(false);
     }
@@ -137,14 +137,14 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
     }
 
-    private bool TryPlaceAtMouse()
+    private bool TryPlaceAtPointer()
     {
-        if (!TryGetMouseHitPoint(out Vector3 hitPoint))
+        if (!CanInteractAtPointer())
         {
             return false;
         }
 
-        Vector2Int gridPosition = tileManager.WorldToGrid(hitPoint);
+        Vector2Int gridPosition = pointerGridPosition;
         if (spawnedByCell.TryGetValue(gridPosition, out GameObject existing) && existing != null)
         {
             return false;
@@ -155,9 +155,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             spawnedByCell.Remove(gridPosition);
         }
 
-        string occupantId = $"{gridPosition.x}_{gridPosition.y}";
-
-        if (!tileManager.TryOccupyTile(gridPosition, occupantId))
+        if (!tileManager.TryOccupyTile(gridPosition, buildingPrefab.name))
         {
             return false;
         }
@@ -168,14 +166,14 @@ public class FactoryBuildingPlacer : MonoBehaviour
         return true;
     }
 
-    private void TryRemoveAtMouse()
+    private void TryRemoveAtPointer()
     {
-        if (!TryGetMouseHitPoint(out Vector3 hitPoint))
+        if (!CanInteractAtPointer())
         {
             return;
         }
 
-        Vector2Int gridPosition = tileManager.WorldToGrid(hitPoint);
+        Vector2Int gridPosition = pointerGridPosition;
         if (!spawnedByCell.TryGetValue(gridPosition, out GameObject spawned))
         {
             return;
@@ -195,17 +193,30 @@ public class FactoryBuildingPlacer : MonoBehaviour
         suppressHoverUntilTileChange = false;
     }
 
-    private bool TryGetMouseHitPoint(out Vector3 hitPoint)
+    private bool CanInteractAtPointer()
+    {
+        return hasPointerTile && tileManager != null && buildingPrefab != null;
+    }
+
+    private void RefreshPointerState(Mouse mouse)
+    {
+        hasPointerTile = TryGetPointerHitPoint(mouse, out pointerWorldPoint)
+            && tileManager != null;
+
+        if (!hasPointerTile)
+        {
+            return;
+        }
+
+        pointerGridPosition = tileManager.WorldToGrid(pointerWorldPoint);
+        hasPointerTile = tileManager.IsInBounds(pointerGridPosition);
+    }
+
+    private bool TryGetPointerHitPoint(Mouse mouse, out Vector3 hitPoint)
     {
         hitPoint = default;
 
         if (tileManager == null || worldCamera == null || buildingPrefab == null)
-        {
-            return false;
-        }
-
-        Mouse mouse = Mouse.current;
-        if (mouse == null)
         {
             return false;
         }

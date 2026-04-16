@@ -29,9 +29,10 @@ public class TileManager : MonoBehaviour
     [ContextMenu("Rebuild Grid")]
     public void InitializeGrid()
     {
-        if (gridWidth <= 0 || gridHeight <= 0)
+        if (gridWidth <= 0 || gridHeight <= 0 || tileSize <= 0f)
         {
-            Debug.LogWarning("Grid size must be greater than zero.", this);
+            Debug.LogWarning("Grid dimensions and tile size must be greater than zero.", this);
+            tiles = null;
             return;
         }
 
@@ -56,22 +57,21 @@ public class TileManager : MonoBehaviour
 
     public bool IsOccupied(Vector2Int gridPosition)
     {
-        if (!IsInBounds(gridPosition))
+        if (!TryGetTileCell(gridPosition, out TileCell tile))
         {
             return false;
         }
 
-        return tiles[gridPosition.x, gridPosition.y].IsOccupied;
+        return tile.IsOccupied;
     }
 
     public bool TryOccupyTile(Vector2Int gridPosition, string occupantId)
     {
-        if (!IsInBounds(gridPosition))
+        if (!TryGetTileCell(gridPosition, out TileCell tile))
         {
             return false;
         }
 
-        TileCell tile = tiles[gridPosition.x, gridPosition.y];
         if (tile.IsOccupied)
         {
             return false;
@@ -83,12 +83,11 @@ public class TileManager : MonoBehaviour
 
     public bool ClearTile(Vector2Int gridPosition)
     {
-        if (!IsInBounds(gridPosition))
+        if (!TryGetTileCell(gridPosition, out TileCell tile))
         {
             return false;
         }
 
-        TileCell tile = tiles[gridPosition.x, gridPosition.y];
         if (!tile.IsOccupied)
         {
             return false;
@@ -108,6 +107,11 @@ public class TileManager : MonoBehaviour
 
     public Vector2Int WorldToGrid(Vector3 worldPosition)
     {
+        if (tileSize <= 0f)
+        {
+            return new Vector2Int(-1, -1);
+        }
+
         Vector3 localPosition = worldPosition - gridOrigin;
         int x = Mathf.FloorToInt(localPosition.x / tileSize);
         int y = Mathf.FloorToInt(localPosition.y / tileSize);
@@ -116,15 +120,7 @@ public class TileManager : MonoBehaviour
 
     public bool TryGetTile(Vector2Int gridPosition, out TileCell tile)
     {
-        tile = null;
-
-        if (!IsInBounds(gridPosition))
-        {
-            return false;
-        }
-
-        tile = tiles[gridPosition.x, gridPosition.y];
-        return true;
+        return TryGetTileCell(gridPosition, out tile);
     }
 
     private void OnDrawGizmos()
@@ -134,17 +130,22 @@ public class TileManager : MonoBehaviour
             return;
         }
 
+        int tileColumns = tiles?.GetLength(0) ?? 0;
+        int tileRows = tiles?.GetLength(1) ?? 0;
+        float halfTileSize = tileSize * 0.5f;
+        Vector3 size = new Vector3(tileSize, tileSize, 0.02f);
+
         for (int x = 0; x < gridWidth; x++)
         {
             for (int y = 0; y < gridHeight; y++)
             {
-                Vector2Int gridPosition = new Vector2Int(x, y);
-                Vector3 center = GridToWorld(gridPosition);
-                Vector3 size = new Vector3(tileSize, tileSize, 0.02f);
+                Vector3 center = new Vector3(
+                    gridOrigin.x + x * tileSize + halfTileSize,
+                    gridOrigin.y + y * tileSize + halfTileSize,
+                    gridOrigin.z);
 
-                bool occupied = tiles != null
-                    && x < tiles.GetLength(0)
-                    && y < tiles.GetLength(1)
+                bool occupied = x < tileColumns
+                    && y < tileRows
                     && tiles[x, y] != null
                     && tiles[x, y].IsOccupied;
 
@@ -155,6 +156,19 @@ public class TileManager : MonoBehaviour
                 Gizmos.DrawWireCube(center, size);
             }
         }
+    }
+
+    private bool TryGetTileCell(Vector2Int gridPosition, out TileCell tile)
+    {
+        tile = null;
+
+        if (tiles == null || !IsInBounds(gridPosition))
+        {
+            return false;
+        }
+
+        tile = tiles[gridPosition.x, gridPosition.y];
+        return tile != null;
     }
 
     [System.Serializable]

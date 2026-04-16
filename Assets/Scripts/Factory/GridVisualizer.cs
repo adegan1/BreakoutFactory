@@ -19,13 +19,18 @@ public class GridVisualizer : MonoBehaviour
     private MeshRenderer meshRenderer;
     private MeshFilter borderMeshFilter;
     private MeshRenderer borderMeshRenderer;
+    private Mesh gridMesh;
+    private Mesh borderMesh;
+    private Material lineMaterial;
+    private Material borderMaterial;
 
     private void Awake()
     {
         meshFilter = GetComponent<MeshFilter>();
         meshRenderer = GetComponent<MeshRenderer>();
 
-        meshRenderer.material = CreateLineMaterial();
+        lineMaterial = CreateMaterial(lineColor);
+        meshRenderer.sharedMaterial = lineMaterial;
         meshRenderer.sortingLayerName = "Default";
         meshRenderer.sortingOrder = 1;
 
@@ -33,11 +38,35 @@ public class GridVisualizer : MonoBehaviour
         borderChild.transform.SetParent(transform, false);
         borderMeshFilter = borderChild.AddComponent<MeshFilter>();
         borderMeshRenderer = borderChild.AddComponent<MeshRenderer>();
-        borderMeshRenderer.material = CreateBorderMaterial();
+        borderMaterial = CreateMaterial(borderColor);
+        borderMeshRenderer.sharedMaterial = borderMaterial;
         borderMeshRenderer.sortingLayerName = "Default";
         borderMeshRenderer.sortingOrder = 1;
 
         BuildGridMesh();
+    }
+
+    private void OnDestroy()
+    {
+        if (gridMesh != null)
+        {
+            Destroy(gridMesh);
+        }
+
+        if (borderMesh != null)
+        {
+            Destroy(borderMesh);
+        }
+
+        if (lineMaterial != null)
+        {
+            Destroy(lineMaterial);
+        }
+
+        if (borderMaterial != null)
+        {
+            Destroy(borderMaterial);
+        }
     }
 
     [ContextMenu("Rebuild Grid Mesh")]
@@ -112,13 +141,13 @@ public class GridVisualizer : MonoBehaviour
             ii += 6;
         }
 
-        Mesh mesh = new Mesh();
-        mesh.name = "GridMesh";
-        mesh.vertices = vertices;
-        mesh.triangles = indices;
-        mesh.RecalculateBounds();
+        EnsureMeshesCreated();
+        gridMesh.Clear();
+        gridMesh.vertices = vertices;
+        gridMesh.triangles = indices;
+        gridMesh.RecalculateBounds();
 
-        meshFilter.mesh = mesh;
+        meshFilter.sharedMesh = gridMesh;
 
         UpdateLineColor();
         BuildBorderMesh(width, height, tileSize, origin);
@@ -182,28 +211,47 @@ public class GridVisualizer : MonoBehaviour
             new Vector3(right + half, top    - half, z),
             new Vector3(right + half, bottom + half, z));
 
-        Mesh borderMesh = new Mesh();
-        borderMesh.name = "GridBorderMesh";
+        EnsureMeshesCreated();
+        borderMesh.Clear();
         borderMesh.vertices = vertices;
         borderMesh.triangles = indices;
         borderMesh.RecalculateBounds();
-        borderMeshFilter.mesh = borderMesh;
+        borderMeshFilter.sharedMesh = borderMesh;
 
-        if (borderMeshRenderer != null && borderMeshRenderer.material != null)
+        if (borderMaterial != null)
         {
-            borderMeshRenderer.material.color = borderColor;
+            borderMaterial.color = borderColor;
         }
     }
 
     private void UpdateLineColor()
     {
-        if (meshRenderer != null && meshRenderer.material != null)
+        if (lineMaterial != null)
         {
-            meshRenderer.material.color = lineColor;
+            lineMaterial.color = lineColor;
         }
     }
 
-    private Material CreateLineMaterial()
+    private void EnsureMeshesCreated()
+    {
+        if (gridMesh == null)
+        {
+            gridMesh = new Mesh
+            {
+                name = "GridMesh"
+            };
+        }
+
+        if (borderMesh == null)
+        {
+            borderMesh = new Mesh
+            {
+                name = "GridBorderMesh"
+            };
+        }
+    }
+
+    private Material CreateMaterial(Color color)
     {
         Shader shader = Shader.Find("Sprites/Default");
         if (shader == null)
@@ -212,20 +260,7 @@ public class GridVisualizer : MonoBehaviour
         }
 
         Material mat = new Material(shader);
-        mat.color = lineColor;
-        return mat;
-    }
-
-    private Material CreateBorderMaterial()
-    {
-        Shader shader = Shader.Find("Sprites/Default");
-        if (shader == null)
-        {
-            shader = Shader.Find("UI/Default");
-        }
-
-        Material mat = new Material(shader);
-        mat.color = borderColor;
+        mat.color = color;
         return mat;
     }
 }

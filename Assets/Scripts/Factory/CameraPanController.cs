@@ -31,15 +31,17 @@ public class CameraPanController : MonoBehaviour
 
     private void Update()
     {
-        HandleKeyboardPan();
-        HandleMiddleMouseDrag();
-        HandleScrollZoom();
+        Keyboard keyboard = Keyboard.current;
+        Mouse mouse = Mouse.current;
+
+        HandleKeyboardPan(keyboard);
+        HandleMiddleMouseDrag(mouse);
+        HandleScrollZoom(mouse);
         ApplyBoundsClamp();
     }
 
-    private void HandleKeyboardPan()
+    private void HandleKeyboardPan(Keyboard keyboard)
     {
-        Keyboard keyboard = Keyboard.current;
         if (keyboard == null)
         {
             return;
@@ -47,22 +49,22 @@ public class CameraPanController : MonoBehaviour
 
         Vector2 movementInput = Vector2.zero;
 
-        if (keyboard.wKey.isPressed)
+        if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed)
         {
             movementInput.y += 1f;
         }
 
-        if (keyboard.sKey.isPressed)
+        if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed)
         {
             movementInput.y -= 1f;
         }
 
-        if (keyboard.dKey.isPressed)
+        if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
         {
             movementInput.x += 1f;
         }
 
-        if (keyboard.aKey.isPressed)
+        if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
         {
             movementInput.x -= 1f;
         }
@@ -77,9 +79,8 @@ public class CameraPanController : MonoBehaviour
         transform.position += movement;
     }
 
-    private void HandleMiddleMouseDrag()
+    private void HandleMiddleMouseDrag(Mouse mouse)
     {
-        Mouse mouse = Mouse.current;
         if (mouse == null || controlledCamera == null)
         {
             return;
@@ -107,11 +108,12 @@ public class CameraPanController : MonoBehaviour
 
         if (screenDelta.sqrMagnitude < 0.01f)
         {
+            previousDragScreenPoint = currentScreenPoint;
             return;
         }
 
-        float pixelsPerWorldUnit = controlledCamera.orthographicSize * 2f / Screen.height;
-        Vector3 worldDelta = new Vector3(screenDelta.x * pixelsPerWorldUnit, screenDelta.y * pixelsPerWorldUnit, 0f);
+        float worldUnitsPerPixel = controlledCamera.orthographicSize * 2f / Mathf.Max(Screen.height, 1);
+        Vector3 worldDelta = new Vector3(screenDelta.x * worldUnitsPerPixel, screenDelta.y * worldUnitsPerPixel, 0f);
         transform.position += worldDelta * dragPanMultiplier;
 
         previousDragScreenPoint = currentScreenPoint;
@@ -119,9 +121,8 @@ public class CameraPanController : MonoBehaviour
 
 
 
-    private void HandleScrollZoom()
+    private void HandleScrollZoom(Mouse mouse)
     {
-        Mouse mouse = Mouse.current;
         if (mouse == null || controlledCamera == null || !controlledCamera.orthographic)
         {
             return;
