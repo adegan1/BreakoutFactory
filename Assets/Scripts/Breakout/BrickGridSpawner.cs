@@ -16,12 +16,22 @@ public class BrickGridSpawner : MonoBehaviour
             return;
         }
 
+        if (rows <= 0 || columns <= 0)
+        {
+            return;
+        }
+
+        Transform parent = transform;
+        Vector3 origin = parent.position + (Vector3)startOffset;
+
         for (int row = 0; row < rows; row++)
         {
+            float rowY = origin.y - row * spacing.y;
+
             for (int col = 0; col < columns; col++)
             {
-                Vector3 position = transform.position + new Vector3(startOffset.x + col * spacing.x, startOffset.y - row * spacing.y, 0f);
-                Instantiate(brickPrefab, position, Quaternion.identity, transform);
+                Vector3 position = new Vector3(origin.x + col * spacing.x, rowY, origin.z);
+                Instantiate(brickPrefab, position, Quaternion.identity, parent);
             }
         }
     }

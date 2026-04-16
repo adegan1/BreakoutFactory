@@ -37,22 +37,10 @@ public class PaddleController : MonoBehaviour
 
     private void MoveWithKeyboard()
     {
-        float horizontal = 0f;
-        Keyboard keyboard = Keyboard.current;
-
-        if (keyboard == null)
+        float horizontal = GetKeyboardDirection();
+        if (Mathf.Approximately(horizontal, 0f))
         {
             return;
-        }
-
-        if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
-        {
-            horizontal -= 1f;
-        }
-
-        if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
-        {
-            horizontal += 1f;
         }
 
         float targetX = transform.position.x + horizontal * moveSpeed * Time.deltaTime;
@@ -61,13 +49,9 @@ public class PaddleController : MonoBehaviour
 
     private void MoveWithMouse()
     {
-        if (mainCamera == null)
+        if (!TryEnsureCamera())
         {
-            mainCamera = Camera.main;
-            if (mainCamera == null)
-            {
-                return;
-            }
+            return;
         }
 
         Mouse mouse = Mouse.current;
@@ -80,6 +64,39 @@ public class PaddleController : MonoBehaviour
         mousePosition.z = Mathf.Abs(mainCamera.transform.position.z - transform.position.z);
         Vector3 worldPosition = mainCamera.ScreenToWorldPoint(mousePosition);
         SetPositionX(worldPosition.x);
+    }
+
+    private float GetKeyboardDirection()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null)
+        {
+            return 0f;
+        }
+
+        float horizontal = 0f;
+
+        if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
+        {
+            horizontal -= 1f;
+        }
+
+        if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
+        {
+            horizontal += 1f;
+        }
+
+        return horizontal;
+    }
+
+    private bool TryEnsureCamera()
+    {
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+        }
+
+        return mainCamera != null;
     }
 
     private void SetPositionX(float x)

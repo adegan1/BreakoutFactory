@@ -74,9 +74,7 @@ public class InventoryManager : MonoBehaviour
             return 0;
         }
 
-        return itemsById.TryGetValue(normalizedItemId, out InventoryEntry entry)
-            ? entry.Quantity
-            : 0;
+        return TryGetQuantityInternal(normalizedItemId, out int quantity) ? quantity : 0;
     }
 
     public bool HasItem(string itemId, int quantity = 1)
@@ -104,7 +102,7 @@ public class InventoryManager : MonoBehaviour
             return;
         }
 
-        int currentQuantity = GetQuantity(normalizedItemId);
+        TryGetQuantityInternal(normalizedItemId, out int currentQuantity);
         SetQuantityInternal(normalizedItemId, currentQuantity + quantity, true);
     }
 
@@ -122,7 +120,7 @@ public class InventoryManager : MonoBehaviour
             return false;
         }
 
-        int currentQuantity = GetQuantity(normalizedItemId);
+        TryGetQuantityInternal(normalizedItemId, out int currentQuantity);
         if (currentQuantity < quantity)
         {
             return false;
@@ -212,11 +210,24 @@ public class InventoryManager : MonoBehaviour
                 continue;
             }
 
-            int combinedQuantity = GetQuantity(normalizedItemId) + entry.Quantity;
+            TryGetQuantityInternal(normalizedItemId, out int currentQuantity);
+            int combinedQuantity = currentQuantity + entry.Quantity;
             SetQuantityInternal(normalizedItemId, combinedQuantity, false);
         }
 
         isInitialized = true;
+    }
+
+    private bool TryGetQuantityInternal(string itemId, out int quantity)
+    {
+        if (itemsById.TryGetValue(itemId, out InventoryEntry entry))
+        {
+            quantity = entry.Quantity;
+            return true;
+        }
+
+        quantity = 0;
+        return false;
     }
 
     private void SetQuantityInternal(string itemId, int quantity, bool notifyListeners)

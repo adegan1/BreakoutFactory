@@ -29,7 +29,7 @@ public class BreakoutGameController : MonoBehaviour
 
     private void Update()
     {
-        if (ballsRemaining <= 0)
+        if (!CanDispenseBall())
         {
             return;
         }
@@ -38,6 +38,22 @@ public class BreakoutGameController : MonoBehaviour
         {
             DispenseBall();
         }
+    }
+
+    private void OnDestroy()
+    {
+        foreach (BallController activeBall in activeBalls)
+        {
+            if (activeBall != null)
+            {
+                activeBall.BallLost -= HandleBallLost;
+            }
+        }
+    }
+
+    private bool CanDispenseBall()
+    {
+        return ballsRemaining > 0 && ballPrefab != null;
     }
 
     private bool IsDispensePressed()
@@ -69,11 +85,7 @@ public class BreakoutGameController : MonoBehaviour
         spawnedBall.Launch(initialLaunchDirection);
 
         ballsRemaining--;
-
-        if (ballsRemaining <= 0 && activeBalls.Count == 0)
-        {
-            onOutOfBalls?.Invoke();
-        }
+        TryInvokeOutOfBalls();
     }
 
     private void HandleBallLost(BallController lostBall)
@@ -84,6 +96,11 @@ public class BreakoutGameController : MonoBehaviour
             activeBalls.Remove(lostBall);
         }
 
+        TryInvokeOutOfBalls();
+    }
+
+    private void TryInvokeOutOfBalls()
+    {
         if (ballsRemaining <= 0 && activeBalls.Count == 0)
         {
             onOutOfBalls?.Invoke();

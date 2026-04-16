@@ -6,7 +6,7 @@ public class BrickController : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (!collision.gameObject.GetComponent<BallController>())
+        if (!collision.gameObject.TryGetComponent<BallController>(out _))
         {
             return;
         }

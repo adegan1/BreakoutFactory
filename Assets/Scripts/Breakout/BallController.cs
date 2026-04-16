@@ -62,7 +62,7 @@ public class BallController : MonoBehaviour
             travelDirection = Vector2.up;
         }
 
-        rb.linearVelocity = travelDirection * speed;
+        ApplyVelocity();
     }
 
     public void Launch(Vector2 direction)
@@ -72,17 +72,8 @@ public class BallController : MonoBehaviour
             return;
         }
 
-        Vector2 launchDirection = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.up;
-        if (Mathf.Abs(launchDirection.y) < minimumVerticalDirection)
-        {
-            launchDirection.y = Mathf.Sign(launchDirection.y == 0f ? 1f : launchDirection.y) * minimumVerticalDirection;
-            launchDirection.Normalize();
-        }
-
         launched = true;
-        travelDirection = launchDirection;
-        rb.linearVelocity = travelDirection * speed;
-        lastVelocity = rb.linearVelocity;
+        SetTravelDirection(direction, defaultYSign: 1f);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -106,9 +97,7 @@ public class BallController : MonoBehaviour
                 bounceDirection.y = minimumVerticalDirection;
             }
 
-            travelDirection = bounceDirection.normalized;
-            rb.linearVelocity = travelDirection * speed;
-            lastVelocity = rb.linearVelocity;
+            SetTravelDirection(bounceDirection, defaultYSign: 1f);
             return;
         }
 
@@ -120,12 +109,9 @@ public class BallController : MonoBehaviour
         {
             float ySign = Mathf.Sign(reflected.y == 0f ? -contact.normal.y : reflected.y);
             reflected.y = ySign * minimumVerticalDirection;
-            reflected.Normalize();
         }
 
-        travelDirection = reflected.normalized;
-        rb.linearVelocity = travelDirection * speed;
-        lastVelocity = rb.linearVelocity;
+        SetTravelDirection(reflected, defaultYSign: -contact.normal.y);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -146,5 +132,36 @@ public class BallController : MonoBehaviour
         hasBeenLost = true;
         BallLost?.Invoke(this);
         Destroy(gameObject);
+    }
+
+    private void SetTravelDirection(Vector2 direction, float defaultYSign)
+    {
+        travelDirection = NormalizeDirection(direction, defaultYSign);
+        ApplyVelocity();
+    }
+
+    private Vector2 NormalizeDirection(Vector2 direction, float defaultYSign)
+    {
+        Vector2 normalizedDirection = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.up;
+
+        if (Mathf.Abs(normalizedDirection.y) < minimumVerticalDirection)
+        {
+            float ySign = Mathf.Sign(normalizedDirection.y == 0f ? defaultYSign : normalizedDirection.y);
+            if (Mathf.Approximately(ySign, 0f))
+            {
+                ySign = 1f;
+            }
+
+            normalizedDirection.y = ySign * minimumVerticalDirection;
+            normalizedDirection.Normalize();
+        }
+
+        return normalizedDirection;
+    }
+
+    private void ApplyVelocity()
+    {
+        rb.linearVelocity = travelDirection * speed;
+        lastVelocity = rb.linearVelocity;
     }
 }
