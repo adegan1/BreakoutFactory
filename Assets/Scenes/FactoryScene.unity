@@ -379,10 +379,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FactoryBuildingPlacer
   tileManager: {fileID: 1143339329}
   worldCamera: {fileID: 1332879926}
-  buildingPrefab: {fileID: 1276502763047268258, guid: 4f1855806b1d9574c9d28be9647eb577, type: 3}
+  defaultBuildingPrefab: {fileID: 1276502763047268258, guid: 4f1855806b1d9574c9d28be9647eb577, type: 3}
   placementSurfaceMask:
     serializedVersion: 2
     m_Bits: 64
+  availableBuildingPrefabs:
+  - {fileID: 1276502763047268258, guid: 4f1855806b1d9574c9d28be9647eb577, type: 3}
+  - {fileID: 1276502763047268258, guid: 87d9011fa25b2f94caf0a670e611f05c, type: 3}
+  - {fileID: 1276502763047268258, guid: eeee4d63e23fd7e4ca8f77a3e0d8496f, type: 3}
+  selectedBuildingIndex: 0
+  enableNumberKeySelection: 1
   hoverHighlight: {fileID: 274698123}
   validHoverColor: {r: 0.25, g: 1, b: 0.45, a: 0.5}
   blockedHoverColor: {r: 1, g: 0.3, b: 0.3, a: 0.5}

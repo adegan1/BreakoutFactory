@@ -7,12 +7,17 @@ public class BallController : MonoBehaviour
     [SerializeField] private float speed = 8f;
     [SerializeField] private float minimumVerticalDirection = 0.2f;
 
+    [Header("Paddle Bounce")]
+    [SerializeField] private float paddleHorizontalInfluence = 0.7f;
+
     [Header("Loss Rules")]
     [SerializeField] private float bottomKillY = -6f;
 
     private Rigidbody2D rb;
     private bool launched;
     private bool hasBeenLost;
+    private Vector2 travelDirection = Vector2.up;
+    private Vector2 lastVelocity;
 
     public System.Action<BallController> BallLost;
 
@@ -27,6 +32,7 @@ public class BallController : MonoBehaviour
     {
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
     }
 
     private void Update()
@@ -45,12 +51,18 @@ public class BallController : MonoBehaviour
         }
 
         Vector2 currentVelocity = rb.linearVelocity;
-        if (currentVelocity.sqrMagnitude < 0.001f)
+
+        if (currentVelocity.sqrMagnitude > 0.001f)
         {
-            currentVelocity = Vector2.up;
+            travelDirection = currentVelocity.normalized;
+            lastVelocity = currentVelocity;
+        }
+        else if (travelDirection.sqrMagnitude < 0.001f)
+        {
+            travelDirection = Vector2.up;
         }
 
-        rb.linearVelocity = currentVelocity.normalized * speed;
+        rb.linearVelocity = travelDirection * speed;
     }
 
     public void Launch(Vector2 direction)
@@ -68,26 +80,52 @@ public class BallController : MonoBehaviour
         }
 
         launched = true;
-        rb.linearVelocity = launchDirection * speed;
+        travelDirection = launchDirection;
+        rb.linearVelocity = travelDirection * speed;
+        lastVelocity = rb.linearVelocity;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (!collision.gameObject.CompareTag("Paddle"))
+        if (collision.contactCount == 0)
         {
             return;
         }
 
-        ContactPoint2D contact = collision.GetContact(0);
-        float offset = transform.position.x - contact.collider.bounds.center.x;
-        Vector2 bounceDirection = new Vector2(offset, Mathf.Abs(rb.linearVelocity.y));
-
-        if (Mathf.Abs(bounceDirection.y) < minimumVerticalDirection)
+        if (collision.gameObject.CompareTag("Paddle"))
         {
-            bounceDirection.y = minimumVerticalDirection;
+            ContactPoint2D paddleContact = collision.GetContact(0);
+            float halfWidth = Mathf.Max(paddleContact.collider.bounds.extents.x, 0.01f);
+            float offset = transform.position.x - paddleContact.collider.bounds.center.x;
+            float normalizedOffset = Mathf.Clamp(offset / halfWidth, -1f, 1f);
+            float horizontal = normalizedOffset * paddleHorizontalInfluence;
+            Vector2 bounceDirection = new Vector2(horizontal, 1f);
+
+            if (Mathf.Abs(bounceDirection.y) < minimumVerticalDirection)
+            {
+                bounceDirection.y = minimumVerticalDirection;
+            }
+
+            travelDirection = bounceDirection.normalized;
+            rb.linearVelocity = travelDirection * speed;
+            lastVelocity = rb.linearVelocity;
+            return;
         }
 
-        rb.linearVelocity = bounceDirection.normalized * speed;
+        ContactPoint2D contact = collision.GetContact(0);
+        Vector2 incoming = lastVelocity.sqrMagnitude > 0.001f ? lastVelocity.normalized : travelDirection;
+        Vector2 reflected = Vector2.Reflect(incoming, contact.normal);
+
+        if (Mathf.Abs(reflected.y) < minimumVerticalDirection)
+        {
+            float ySign = Mathf.Sign(reflected.y == 0f ? -contact.normal.y : reflected.y);
+            reflected.y = ySign * minimumVerticalDirection;
+            reflected.Normalize();
+        }
+
+        travelDirection = reflected.normalized;
+        rb.linearVelocity = travelDirection * speed;
+        lastVelocity = rb.linearVelocity;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
