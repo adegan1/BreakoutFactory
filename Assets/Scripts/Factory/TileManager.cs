@@ -17,6 +17,9 @@ public class TileManager : MonoBehaviour
 
     public float GridPlaneZ => gridOrigin.z;
     public float TileSize => tileSize;
+    public int GridWidth => gridWidth;
+    public int GridHeight => gridHeight;
+    public Vector3 GridOrigin => gridOrigin;
 
     private void Awake()
     {

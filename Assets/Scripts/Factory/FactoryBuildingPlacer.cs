@@ -51,7 +51,6 @@ public class FactoryBuildingPlacer : MonoBehaviour
         if (mouse.rightButton.wasPressedThisFrame)
         {
             TryRemoveAtMouse();
-            SuppressHoverAtCurrentTile();
         }
     }
 
@@ -193,6 +192,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         spawnedByCell.Remove(gridPosition);
+        suppressHoverUntilTileChange = false;
     }
 
     private bool TryGetMouseHitPoint(out Vector3 hitPoint)
