@@ -85,7 +85,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 1, g: 0.3726415, b: 0.3726415, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -169,11 +169,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 0}
   speed: 6
   minimumVerticalDirection: 0.2
   ignoreOtherBallCollisions: 0
   stuckRecoveryDelay: 0.2
   minimumMovementPerFixedStep: 0.001
   unstuckNudgeDistance: 0.05
+  axisStuckDelay: 5
+  minimumAxisSpeed: 0.05
+  horizontalNudgeStrength: 0.25
+  verticalNudgeStrength: 0.25
   paddleHorizontalInfluence: 0.7
   bottomKillY: -6

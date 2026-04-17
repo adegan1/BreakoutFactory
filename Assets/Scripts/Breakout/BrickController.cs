@@ -12,6 +12,7 @@ public class BrickController : MonoBehaviour
     [SerializeField] private float downwardSpeed;
 
     private int currentHitPoints;
+    private int maxHitPoints;
     private SpriteRenderer spriteRenderer;
     private Vector3 targetScale;
     private bool isGrowing;
@@ -84,16 +85,21 @@ public class BrickController : MonoBehaviour
         if (typeData == null)
         {
             Debug.LogWarning("BrickTypeData not assigned on " + gameObject.name);
+            maxHitPoints = 1;
             currentHitPoints = 1;
+            UpdateHealthAlpha();
             return;
         }
 
-        currentHitPoints = typeData.HitPoints;
+        maxHitPoints = Mathf.Max(1, typeData.HitPoints);
+        currentHitPoints = maxHitPoints;
 
         if (spriteRenderer != null)
         {
             spriteRenderer.color = typeData.DisplayColor;
         }
+
+        UpdateHealthAlpha();
     }
 
     public void ApplyBallHit(BallController ball)
@@ -123,6 +129,11 @@ public class BrickController : MonoBehaviour
             return;
         }
 
+        if (ball.TypeData != null && !ball.TypeData.CollideWithBricks)
+        {
+            return;
+        }
+
         HandleBallHit(ball);
     }
 
@@ -145,11 +156,27 @@ public class BrickController : MonoBehaviour
     protected virtual void ApplyDamage(int amount)
     {
         currentHitPoints -= Mathf.Max(0, amount);
+
+        UpdateHealthAlpha();
+
         if (currentHitPoints <= 0)
         {
             OnBrickDestroyed();
             Destroy(gameObject);
         }
+    }
+
+    private void UpdateHealthAlpha()
+    {
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        float ratio = Mathf.Clamp01((float)currentHitPoints / Mathf.Max(1, maxHitPoints));
+        Color color = spriteRenderer.color;
+        color.a = ratio;
+        spriteRenderer.color = color;
     }
 
     protected virtual void OnBrickDestroyed()

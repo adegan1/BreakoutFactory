@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Wind Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallTypeData
   displayColor: {r: 0.39215687, g: 1, b: 0.654902, a: 1}
-  movementSpeed: 8
-  collideWithBricks: 1
+  movementSpeed: 6
+  collideWithBricks: 0
   elements: 06000000
   strongAgainst: 0300000001000000

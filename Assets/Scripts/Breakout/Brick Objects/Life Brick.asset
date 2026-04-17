@@ -15,4 +15,4 @@ MonoBehaviour:
   hitPoints: 2
   displayColor: {r: 0.17598087, g: 0.6698113, b: 0.12953897, a: 1}
   scoreValue: 10
-  type: 0
+  type: 4
