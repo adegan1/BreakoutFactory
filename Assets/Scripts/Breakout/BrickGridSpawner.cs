@@ -1,38 +1,245 @@
 using UnityEngine;
+using UnityEngine.Events;
+using System.Collections.Generic;
 
 public class BrickGridSpawner : MonoBehaviour
 {
-    [SerializeField] private BrickController brickPrefab;
-    [SerializeField] private int rows = 5;
+    [System.Serializable]
+    private class WeightedBrickEntry
+    {
+        public BrickController prefab;
+        [Min(0f)] public float weight = 1f;
+    }
+
+    [Header("Layout")]
     [SerializeField] private int columns = 8;
+    [SerializeField] private int initialRows = 5;
     [SerializeField] private Vector2 spacing = new Vector2(1.2f, 0.6f);
     [SerializeField] private Vector2 startOffset = new Vector2(-4.2f, 3f);
 
+    [Header("Row Spawning")]
+    [SerializeField] private bool spawnRowsOverTime = true;
+    [SerializeField] private float rowSpawnInterval = 3f;
+    [SerializeField, Min(0)] private int totalRowsToSpawn = 12;
+    [SerializeField] private bool randomizeEmptySlots;
+    [SerializeField, Range(0f, 1f)] private float emptySlotChance = 0f;
+
+    [Header("Weighted Brick Types")]
+    [SerializeField] private List<WeightedBrickEntry> weightedBrickPrefabs = new List<WeightedBrickEntry>();
+
+    [Header("External Settings")]
+    [SerializeField] private LevelSettings levelSettings;
+
+    [Header("Downward Movement")]
+    [SerializeField] private bool moveDownward = true;
+    [SerializeField] private float downwardSpeed = 0.15f;
+    [SerializeField] private float bottomDangerY = -4.5f;
+
+    [Header("Events")]
+    [SerializeField] private UnityEvent onBricksReachedBottom;
+
+    private float spawnTimer;
+    private bool bottomEventFired;
+    private int rowsSpawned;
+
+    public int RowsSpawned => rowsSpawned;
+    public int TotalRowsToSpawn => totalRowsToSpawn;
+
     private void Start()
     {
-        if (brickPrefab == null)
+        rowsSpawned = 0;
+        ResolveAndApplyLevelSettings();
+
+        if (!HasSpawnableBrick())
         {
-            Debug.LogError("Brick prefab is not assigned on BrickGridSpawner.");
+            Debug.LogError("No valid weighted brick entries assigned on BrickGridSpawner.");
             return;
         }
 
-        if (rows <= 0 || columns <= 0)
+        if (columns <= 0 || initialRows < 0)
         {
             return;
         }
 
-        Transform parent = transform;
-        Vector3 origin = parent.position + (Vector3)startOffset;
+        SpawnInitialRows();
+    }
 
-        for (int row = 0; row < rows; row++)
+    private void Update()
+    {
+        if (spawnRowsOverTime && CanSpawnMoreRows())
         {
-            float rowY = origin.y - row * spacing.y;
-
-            for (int col = 0; col < columns; col++)
+            spawnTimer += Time.deltaTime;
+            if (spawnTimer >= rowSpawnInterval)
             {
-                Vector3 position = new Vector3(origin.x + col * spacing.x, rowY, origin.z);
-                Instantiate(brickPrefab, position, Quaternion.identity, parent);
+                spawnTimer -= rowSpawnInterval;
+                SpawnSingleRow(0);
+                rowsSpawned++;
             }
         }
+
+        CheckBottomDanger();
+    }
+
+    private void SpawnInitialRows()
+    {
+        for (int row = 0; row < initialRows && CanSpawnMoreRows(); row++)
+        {
+            SpawnSingleRow(row);
+            rowsSpawned++;
+        }
+    }
+
+    private bool CanSpawnMoreRows()
+    {
+        return rowsSpawned < totalRowsToSpawn;
+    }
+
+    private void SpawnSingleRow(int rowIndex)
+    {
+        Vector3 origin = transform.position + (Vector3)startOffset;
+        float rowY = origin.y - rowIndex * spacing.y;
+
+        for (int col = 0; col < columns; col++)
+        {
+            if (randomizeEmptySlots && Random.value < emptySlotChance)
+            {
+                continue;
+            }
+
+            BrickController prefab = ChooseBrickPrefab();
+            if (prefab == null)
+            {
+                continue;
+            }
+
+            Vector3 position = new Vector3(origin.x + col * spacing.x, rowY, origin.z);
+            BrickController spawnedBrick = Instantiate(prefab, position, Quaternion.identity, transform);
+            if (spawnedBrick != null)
+            {
+                spawnedBrick.SetDownwardMotion(moveDownward, downwardSpeed);
+            }
+        }
+    }
+
+    private BrickController ChooseBrickPrefab()
+    {
+        float totalWeight = 0f;
+        for (int i = 0; i < weightedBrickPrefabs.Count; i++)
+        {
+            WeightedBrickEntry entry = weightedBrickPrefabs[i];
+            if (entry != null && entry.prefab != null && entry.weight > 0f)
+            {
+                totalWeight += entry.weight;
+            }
+        }
+
+        if (totalWeight <= 0f)
+        {
+            return null;
+        }
+
+        float roll = Random.value * totalWeight;
+        float cumulative = 0f;
+        for (int i = 0; i < weightedBrickPrefabs.Count; i++)
+        {
+            WeightedBrickEntry entry = weightedBrickPrefabs[i];
+            if (entry == null || entry.prefab == null || entry.weight <= 0f)
+            {
+                continue;
+            }
+
+            cumulative += entry.weight;
+            if (roll <= cumulative)
+            {
+                return entry.prefab;
+            }
+        }
+
+        return null;
+    }
+
+    private bool HasSpawnableBrick()
+    {
+        for (int i = 0; i < weightedBrickPrefabs.Count; i++)
+        {
+            WeightedBrickEntry entry = weightedBrickPrefabs[i];
+            if (entry != null && entry.prefab != null && entry.weight > 0f)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void CheckBottomDanger()
+    {
+        if (bottomEventFired)
+        {
+            return;
+        }
+
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform child = transform.GetChild(i);
+            if (child.position.y <= bottomDangerY)
+            {
+                bottomEventFired = true;
+                onBricksReachedBottom?.Invoke();
+                return;
+            }
+        }
+    }
+
+    private void ResolveAndApplyLevelSettings()
+    {
+        if (levelSettings == null)
+        {
+            levelSettings = LevelSettings.Instance;
+        }
+
+        if (levelSettings == null)
+        {
+            levelSettings = FindAnyObjectByType<LevelSettings>();
+        }
+
+        if (levelSettings == null)
+        {
+            return;
+        }
+
+        totalRowsToSpawn = Mathf.Max(0, levelSettings.NextLevelRowsToSpawn);
+        ApplyOddsFromSettings(levelSettings.NextLevelBrickOdds);
+    }
+
+    private void ApplyOddsFromSettings(IReadOnlyList<LevelSettings.BrickSpawnOddsEntry> odds)
+    {
+        if (odds == null || odds.Count == 0)
+        {
+            return;
+        }
+
+        List<WeightedBrickEntry> mappedEntries = new List<WeightedBrickEntry>();
+        for (int i = 0; i < odds.Count; i++)
+        {
+            LevelSettings.BrickSpawnOddsEntry odd = odds[i];
+            if (odd == null || odd.prefab == null || odd.weight <= 0f)
+            {
+                continue;
+            }
+
+            mappedEntries.Add(new WeightedBrickEntry
+            {
+                prefab = odd.prefab,
+                weight = odd.weight
+            });
+        }
+
+        if (mappedEntries.Count == 0)
+        {
+            return;
+        }
+
+        weightedBrickPrefabs = mappedEntries;
     }
 }

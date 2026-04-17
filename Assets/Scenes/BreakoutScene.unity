@@ -119,6 +119,52 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &279415085
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 279415087}
+  - component: {fileID: 279415086}
+  m_Layer: 0
+  m_Name: Player Inventory
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &279415086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 279415085}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32ee9ebbc53e5b94d9f790dc8a02a1c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
+  startingItems: []
+  inventoryItems: []
+--- !u!4 &279415087
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 279415085}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 8.74747, y: 7.4563, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &360282853
 GameObject:
   m_ObjectHideFlags: 0
@@ -148,11 +194,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0266fc2e1f202054cb2f7cbde73d6a48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BrickGridSpawner
-  brickPrefab: {fileID: -4888631261011733178, guid: 59cfc3f131956664e82e8dcd763a4372, type: 3}
-  rows: 6
   columns: 11
+  initialRows: 5
   spacing: {x: 1.2, y: 0.6}
   startOffset: {x: -6, y: 3}
+  spawnRowsOverTime: 1
+  rowSpawnInterval: 6
+  totalRowsToSpawn: 12
+  randomizeEmptySlots: 1
+  emptySlotChance: 0.122
+  weightedBrickPrefabs:
+  - prefab: {fileID: -4888631261011733178, guid: 59cfc3f131956664e82e8dcd763a4372, type: 3}
+    weight: 100
+  levelSettings: {fileID: 2017643838}
+  moveDownward: 1
+  downwardSpeed: 0.1
+  bottomDangerY: -4.5
+  onBricksReachedBottom:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!4 &360282855
 Transform:
   m_ObjectHideFlags: 0
@@ -162,7 +222,7 @@ Transform:
   m_GameObject: {fileID: 360282853}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 2.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -783,6 +843,54 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2017643837
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2017643839}
+  - component: {fileID: 2017643838}
+  m_Layer: 0
+  m_Name: Level Data
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2017643838
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2017643837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ddf8f2a4ea1090468937792b28d1ca5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelSettings
+  nextLevelRowsToSpawn: 12
+  nextLevelBrickOdds:
+  - prefab: {fileID: -4888631261011733178, guid: 59cfc3f131956664e82e8dcd763a4372, type: 3}
+    weight: 100
+--- !u!4 &2017643839
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2017643837}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.23192, y: 1.40194, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2083054286
 GameObject:
   m_ObjectHideFlags: 0
@@ -810,7 +918,7 @@ Transform:
   m_GameObject: {fileID: 2083054286}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.2656, y: 4.17, z: 0}
+  m_LocalPosition: {x: -0.2656, y: 4.648, z: 0}
   m_LocalScale: {x: 18, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1068,3 +1176,5 @@ SceneRoots:
   - {fileID: 700816547}
   - {fileID: 1781705086}
   - {fileID: 360282855}
+  - {fileID: 279415087}
+  - {fileID: 2017643839}

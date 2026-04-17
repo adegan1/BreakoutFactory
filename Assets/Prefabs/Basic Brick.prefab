@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: -1914448042046326463}
   - component: {fileID: -4888631261011733178}
   m_Layer: 0
-  m_Name: Brick
+  m_Name: Basic Brick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -84,7 +84,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.5093005, g: 0.9312767, b: 0.990566, a: 1}
+  m_Color: {r: 0.8113208, g: 0.8113208, b: 0.8113208, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -152,3 +152,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BrickController
   hitPoints: 1
+  moveDownward: 1
+  downwardSpeed: 0.1
