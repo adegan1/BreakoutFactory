@@ -2,11 +2,21 @@ using UnityEngine;
 
 public class BrickController : MonoBehaviour
 {
-    [SerializeField] private int hitPoints = 1;
+    [SerializeField] private BrickTypeData typeData;
     [SerializeField] private bool moveDownward;
     [SerializeField] private float downwardSpeed;
 
-    public int CurrentHitPoints => hitPoints;
+    private int currentHitPoints;
+    private SpriteRenderer spriteRenderer;
+
+    public int CurrentHitPoints => currentHitPoints;
+    public BrickTypeData TypeData => typeData;
+
+    private void Awake()
+    {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        ApplyTypeData();
+    }
 
     private void Update()
     {
@@ -22,6 +32,29 @@ public class BrickController : MonoBehaviour
     {
         moveDownward = enabled;
         downwardSpeed = Mathf.Max(0f, speed);
+    }
+
+    public void SetTypeData(BrickTypeData newTypeData)
+    {
+        typeData = newTypeData;
+        ApplyTypeData();
+    }
+
+    private void ApplyTypeData()
+    {
+        if (typeData == null)
+        {
+            Debug.LogWarning("BrickTypeData not assigned on " + gameObject.name);
+            currentHitPoints = 1;
+            return;
+        }
+
+        currentHitPoints = typeData.HitPoints;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = typeData.DisplayColor;
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -41,8 +74,8 @@ public class BrickController : MonoBehaviour
 
     protected virtual void ApplyDamage(int amount)
     {
-        hitPoints -= Mathf.Max(0, amount);
-        if (hitPoints <= 0)
+        currentHitPoints -= Mathf.Max(0, amount);
+        if (currentHitPoints <= 0)
         {
             OnBrickDestroyed();
             Destroy(gameObject);

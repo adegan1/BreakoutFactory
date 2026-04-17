@@ -6,7 +6,7 @@ public class LevelSettings : MonoBehaviour
     [System.Serializable]
     public class BrickSpawnOddsEntry
     {
-        public BrickController prefab;
+        public BrickTypeData typeData;
         [Min(0f)] public float weight = 1f;
     }
 
@@ -53,14 +53,14 @@ public class LevelSettings : MonoBehaviour
         for (int i = 0; i < brickOdds.Count; i++)
         {
             BrickSpawnOddsEntry source = brickOdds[i];
-            if (source == null || source.prefab == null || source.weight <= 0f)
+            if (source == null || source.typeData == null || source.weight <= 0f)
             {
                 continue;
             }
 
             nextLevelBrickOdds.Add(new BrickSpawnOddsEntry
             {
-                prefab = source.prefab,
+                typeData = source.typeData,
                 weight = source.weight
             });
         }

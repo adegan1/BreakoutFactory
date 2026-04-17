@@ -7,9 +7,12 @@ public class BrickGridSpawner : MonoBehaviour
     [System.Serializable]
     private class WeightedBrickEntry
     {
-        public BrickController prefab;
+        public BrickTypeData typeData;
         [Min(0f)] public float weight = 1f;
     }
+
+    [Header("References")]
+    [SerializeField] private BrickController brickPrefab;
 
     [Header("Layout")]
     [SerializeField] private int columns = 8;
@@ -24,9 +27,6 @@ public class BrickGridSpawner : MonoBehaviour
     [SerializeField] private bool randomizeEmptySlots;
     [SerializeField, Range(0f, 1f)] private float emptySlotChance = 0f;
 
-    [Header("Weighted Brick Types")]
-    [SerializeField] private List<WeightedBrickEntry> weightedBrickPrefabs = new List<WeightedBrickEntry>();
-
     [Header("External Settings")]
     [SerializeField] private LevelSettings levelSettings;
 
@@ -38,6 +38,7 @@ public class BrickGridSpawner : MonoBehaviour
     [Header("Events")]
     [SerializeField] private UnityEvent onBricksReachedBottom;
 
+    private List<WeightedBrickEntry> weightedBrickPrefabs = new List<WeightedBrickEntry>();
     private float spawnTimer;
     private bool bottomEventFired;
     private int rowsSpawned;
@@ -48,11 +49,18 @@ public class BrickGridSpawner : MonoBehaviour
     private void Start()
     {
         rowsSpawned = 0;
+
+        if (brickPrefab == null)
+        {
+            Debug.LogError("Brick prefab is not assigned on BrickGridSpawner.");
+            return;
+        }
+
         ResolveAndApplyLevelSettings();
 
-        if (!HasSpawnableBrick())
+        if (!HasSpawnableBrickType())
         {
-            Debug.LogError("No valid weighted brick entries assigned on BrickGridSpawner.");
+            Debug.LogError("No valid weighted brick types assigned on BrickGridSpawner.");
             return;
         }
 
@@ -106,28 +114,29 @@ public class BrickGridSpawner : MonoBehaviour
                 continue;
             }
 
-            BrickController prefab = ChooseBrickPrefab();
-            if (prefab == null)
+            BrickTypeData chosenType = ChooseBrickType();
+            if (chosenType == null)
             {
                 continue;
             }
 
             Vector3 position = new Vector3(origin.x + col * spacing.x, rowY, origin.z);
-            BrickController spawnedBrick = Instantiate(prefab, position, Quaternion.identity, transform);
+            BrickController spawnedBrick = Instantiate(brickPrefab, position, Quaternion.identity, transform);
             if (spawnedBrick != null)
             {
                 spawnedBrick.SetDownwardMotion(moveDownward, downwardSpeed);
+                spawnedBrick.SetTypeData(chosenType);
             }
         }
     }
 
-    private BrickController ChooseBrickPrefab()
+    private BrickTypeData ChooseBrickType()
     {
         float totalWeight = 0f;
         for (int i = 0; i < weightedBrickPrefabs.Count; i++)
         {
             WeightedBrickEntry entry = weightedBrickPrefabs[i];
-            if (entry != null && entry.prefab != null && entry.weight > 0f)
+            if (entry != null && entry.typeData != null && entry.weight > 0f)
             {
                 totalWeight += entry.weight;
             }
@@ -143,7 +152,7 @@ public class BrickGridSpawner : MonoBehaviour
         for (int i = 0; i < weightedBrickPrefabs.Count; i++)
         {
             WeightedBrickEntry entry = weightedBrickPrefabs[i];
-            if (entry == null || entry.prefab == null || entry.weight <= 0f)
+            if (entry == null || entry.typeData == null || entry.weight <= 0f)
             {
                 continue;
             }
@@ -151,19 +160,19 @@ public class BrickGridSpawner : MonoBehaviour
             cumulative += entry.weight;
             if (roll <= cumulative)
             {
-                return entry.prefab;
+                return entry.typeData;
             }
         }
 
         return null;
     }
 
-    private bool HasSpawnableBrick()
+    private bool HasSpawnableBrickType()
     {
         for (int i = 0; i < weightedBrickPrefabs.Count; i++)
         {
             WeightedBrickEntry entry = weightedBrickPrefabs[i];
-            if (entry != null && entry.prefab != null && entry.weight > 0f)
+            if (entry != null && entry.typeData != null && entry.weight > 0f)
             {
                 return true;
             }
@@ -223,14 +232,14 @@ public class BrickGridSpawner : MonoBehaviour
         for (int i = 0; i < odds.Count; i++)
         {
             LevelSettings.BrickSpawnOddsEntry odd = odds[i];
-            if (odd == null || odd.prefab == null || odd.weight <= 0f)
+            if (odd == null || odd.typeData == null || odd.weight <= 0f)
             {
                 continue;
             }
 
             mappedEntries.Add(new WeightedBrickEntry
             {
-                prefab = odd.prefab,
+                typeData = odd.typeData,
                 weight = odd.weight
             });
         }
