@@ -41,7 +41,7 @@ public class BrickGridSpawner : MonoBehaviour
     [Header("Events")]
     [SerializeField] private UnityEvent onBricksReachedBottom;
 
-    private List<WeightedBrickEntry> weightedBrickPrefabs = new List<WeightedBrickEntry>();
+    [SerializeField] private List<WeightedBrickEntry> weightedBrickPrefabs = new List<WeightedBrickEntry>();
     private bool bottomEventFired;
     private int rowsSpawned;
     private float currentDownwardSpeed;

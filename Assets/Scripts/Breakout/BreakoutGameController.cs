@@ -19,12 +19,15 @@ public class BreakoutGameController : MonoBehaviour
 
     private int nextBallIndex;
     private readonly HashSet<BallController> activeBalls = new HashSet<BallController>();
+    private bool outOfBallsInvoked;
 
     public int BallsRemaining => Mathf.Max(0, ballsToDispense.Count - nextBallIndex);
 
     private void Start()
     {
         nextBallIndex = 0;
+        outOfBallsInvoked = false;
+        TryInvokeOutOfBalls();
     }
 
     private void Update()
@@ -53,7 +56,7 @@ public class BreakoutGameController : MonoBehaviour
 
     private bool CanDispenseBall()
     {
-        return BallsRemaining > 0 && ballPrefab != null;
+        return ballPrefab != null && nextBallIndex < ballsToDispense.Count;
     }
 
     private bool IsDispensePressed()
@@ -69,9 +72,13 @@ public class BreakoutGameController : MonoBehaviour
 
     private void DispenseBall()
     {
-        if (ballPrefab == null)
+        if (!CanDispenseBall())
         {
-            Debug.LogError("Ball prefab is not assigned on BreakoutGameController.");
+            if (ballPrefab == null)
+            {
+                Debug.LogError("Ball prefab is not assigned on BreakoutGameController.");
+            }
+
             return;
         }
 
@@ -85,10 +92,13 @@ public class BreakoutGameController : MonoBehaviour
         BallController spawnedBall = Instantiate(ballPrefab, spawnPosition, Quaternion.identity);
         spawnedBall.BallLost += HandleBallLost;
         activeBalls.Add(spawnedBall);
+        outOfBallsInvoked = false;
+
         if (nextBallType != null)
         {
             spawnedBall.SetTypeData(nextBallType);
         }
+
         spawnedBall.Launch(initialLaunchDirection);
 
         TryInvokeOutOfBalls();
@@ -107,9 +117,49 @@ public class BreakoutGameController : MonoBehaviour
 
     private void TryInvokeOutOfBalls()
     {
-        if (BallsRemaining <= 0 && activeBalls.Count == 0)
+        CleanupInactiveBalls();
+
+        bool isOutOfBalls = BallsRemaining <= 0 && activeBalls.Count == 0;
+        if (!isOutOfBalls)
         {
+            outOfBallsInvoked = false;
+            return;
+        }
+
+        if (!outOfBallsInvoked)
+        {
+            outOfBallsInvoked = true;
             onOutOfBalls?.Invoke();
+        }
+    }
+
+    private void CleanupInactiveBalls()
+    {
+        if (activeBalls.Count == 0)
+        {
+            return;
+        }
+
+        List<BallController> staleBalls = null;
+        foreach (BallController activeBall in activeBalls)
+        {
+            if (activeBall != null)
+            {
+                continue;
+            }
+
+            staleBalls ??= new List<BallController>();
+            staleBalls.Add(activeBall);
+        }
+
+        if (staleBalls == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < staleBalls.Count; i++)
+        {
+            activeBalls.Remove(staleBalls[i]);
         }
     }
 }

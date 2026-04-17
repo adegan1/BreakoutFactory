@@ -4,6 +4,10 @@ using System.Collections.Generic;
 [RequireComponent(typeof(Rigidbody2D))]
 public class BallController : MonoBehaviour
 {
+    private const float DirectionEpsilon = 0.0001f;
+    private const float VelocitySqrThreshold = 0.001f;
+    private const float SideWallNormalThreshold = 0.7f;
+
     [Header("Type")]
     [SerializeField] private BallTypeData typeData;
 
@@ -17,9 +21,11 @@ public class BallController : MonoBehaviour
     [SerializeField] private float minimumMovementPerFixedStep = 0.001f;
     [SerializeField] private float unstuckNudgeDistance = 0.05f;
     [SerializeField] private float axisStuckDelay = 5f;
+    [SerializeField] private float wallStickRecoveryDelay = 0.15f;
     [SerializeField] private float minimumAxisSpeed = 0.05f;
-    [SerializeField] private float horizontalNudgeStrength = 0.25f;
     [SerializeField] private float verticalNudgeStrength = 0.25f;
+    [SerializeField] private float minimumHorizontalDirection = 0.2f;
+    [SerializeField] private bool logWallRecovery;
 
     [Header("Paddle Bounce")]
     [SerializeField] private float paddleHorizontalInfluence = 0.7f;
@@ -37,8 +43,9 @@ public class BallController : MonoBehaviour
     private Vector2 lastVelocity;
     private Vector2 previousPosition;
     private float stagnantTime;
-    private float noHorizontalMovementTime;
     private float noVerticalMovementTime;
+    private float wallStickTime;
+    private Vector2 lastWallNormal;
     private readonly HashSet<Collider2D> brickTriggersInside = new HashSet<Collider2D>();
 
     public System.Action<BallController> BallLost;
@@ -81,17 +88,17 @@ public class BallController : MonoBehaviour
 
         Vector2 currentVelocity = rb.linearVelocity;
 
-        if (currentVelocity.sqrMagnitude > 0.001f)
+        if (currentVelocity.sqrMagnitude > VelocitySqrThreshold)
         {
             travelDirection = currentVelocity.normalized;
             lastVelocity = currentVelocity;
         }
-        else if (travelDirection.sqrMagnitude < 0.001f)
+        else if (travelDirection.sqrMagnitude < VelocitySqrThreshold)
         {
             travelDirection = Vector2.up;
         }
 
-        UpdateAxisLockRecovery(currentVelocity);
+        UpdateVerticalAxisRecovery(currentVelocity);
 
         ApplyVelocity();
     }
@@ -114,58 +121,66 @@ public class BallController : MonoBehaviour
             return;
         }
 
-        if (ignoreOtherBallCollisions && collision.gameObject.TryGetComponent<BallController>(out _))
+        if (TryIgnoreOtherBallCollision(collision))
         {
-            if (ballCollider != null)
-            {
-                Physics2D.IgnoreCollision(ballCollider, collision.collider, true);
-            }
-
             return;
         }
 
-        if (collision.gameObject.TryGetComponent<BrickController>(out BrickController brick))
+        if (ShouldIgnoreBrickCollision(collision))
         {
-            if (!collideWithBricks)
-            {
-                if (ballCollider != null)
-                {
-                    Physics2D.IgnoreCollision(ballCollider, collision.collider, true);
-                }
-
-                return;
-            }
+            return;
         }
 
         if (collision.gameObject.CompareTag("Paddle"))
         {
             ContactPoint2D paddleContact = collision.GetContact(0);
-            float halfWidth = Mathf.Max(paddleContact.collider.bounds.extents.x, 0.01f);
-            float offset = transform.position.x - paddleContact.collider.bounds.center.x;
-            float normalizedOffset = Mathf.Clamp(offset / halfWidth, -1f, 1f);
-            float horizontal = normalizedOffset * paddleHorizontalInfluence;
-            Vector2 bounceDirection = new Vector2(horizontal, 1f);
-
-            if (Mathf.Abs(bounceDirection.y) < minimumVerticalDirection)
-            {
-                bounceDirection.y = minimumVerticalDirection;
-            }
-
-            SetTravelDirection(bounceDirection, defaultYSign: 1f);
+            ApplyPaddleBounce(paddleContact.collider.bounds);
             return;
         }
 
         ContactPoint2D contact = collision.GetContact(0);
-        Vector2 incoming = lastVelocity.sqrMagnitude > 0.001f ? lastVelocity.normalized : travelDirection;
-        Vector2 reflected = Vector2.Reflect(incoming, contact.normal);
+        UpdateWallStickState(contact.normal, collision.gameObject);
+        ReflectAndSetDirection(contact.normal);
+    }
 
-        if (Mathf.Abs(reflected.y) < minimumVerticalDirection)
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.contactCount == 0)
         {
-            float ySign = Mathf.Sign(reflected.y == 0f ? -contact.normal.y : reflected.y);
-            reflected.y = ySign * minimumVerticalDirection;
+            return;
         }
 
-        SetTravelDirection(reflected, defaultYSign: -contact.normal.y);
+        if (!IsEligibleForWallRecovery(collision.gameObject))
+        {
+            return;
+        }
+
+        ContactPoint2D contact = collision.GetContact(0);
+        if (!IsSideWall(contact.normal))
+        {
+            return;
+        }
+
+        bool isVerticallyLocked = Mathf.Abs(rb.linearVelocity.x) <= minimumAxisSpeed;
+        if (!isVerticallyLocked)
+        {
+            wallStickTime = 0f;
+            return;
+        }
+
+        wallStickTime += Time.fixedDeltaTime;
+        lastWallNormal = contact.normal;
+
+        if (wallStickTime >= wallStickRecoveryDelay)
+        {
+            RecoverFromWallStick(lastWallNormal);
+            wallStickTime = 0f;
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        wallStickTime = 0f;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -231,7 +246,7 @@ public class BallController : MonoBehaviour
 
     private Vector2 NormalizeDirection(Vector2 direction, float defaultYSign)
     {
-        Vector2 normalizedDirection = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.up;
+        Vector2 normalizedDirection = direction.sqrMagnitude > DirectionEpsilon ? direction.normalized : Vector2.up;
 
         if (Mathf.Abs(normalizedDirection.y) < minimumVerticalDirection)
         {
@@ -285,17 +300,8 @@ public class BallController : MonoBehaviour
         SetTravelDirection(normalizedRecovery, ySign);
     }
 
-    private void UpdateAxisLockRecovery(Vector2 currentVelocity)
+    private void UpdateVerticalAxisRecovery(Vector2 currentVelocity)
     {
-        if (Mathf.Abs(currentVelocity.x) <= minimumAxisSpeed)
-        {
-            noHorizontalMovementTime += Time.fixedDeltaTime;
-        }
-        else
-        {
-            noHorizontalMovementTime = 0f;
-        }
-
         if (Mathf.Abs(currentVelocity.y) <= minimumAxisSpeed)
         {
             noVerticalMovementTime += Time.fixedDeltaTime;
@@ -305,36 +311,11 @@ public class BallController : MonoBehaviour
             noVerticalMovementTime = 0f;
         }
 
-        if (noHorizontalMovementTime >= axisStuckDelay)
-        {
-            ApplyHorizontalNudge();
-            noHorizontalMovementTime = 0f;
-            return;
-        }
-
         if (noVerticalMovementTime >= axisStuckDelay)
         {
             ApplyVerticalNudge();
             noVerticalMovementTime = 0f;
         }
-    }
-
-    private void ApplyHorizontalNudge()
-    {
-        float horizontalSign = Mathf.Sign(travelDirection.x);
-        if (Mathf.Approximately(horizontalSign, 0f))
-        {
-            horizontalSign = Random.value < 0.5f ? -1f : 1f;
-        }
-
-        float defaultYSign = Mathf.Sign(travelDirection.y);
-        if (Mathf.Approximately(defaultYSign, 0f))
-        {
-            defaultYSign = 1f;
-        }
-
-        Vector2 nudgedDirection = new Vector2(travelDirection.x + horizontalSign * horizontalNudgeStrength, travelDirection.y);
-        SetTravelDirection(nudgedDirection, defaultYSign);
     }
 
     private void ApplyVerticalNudge()
@@ -394,18 +375,7 @@ public class BallController : MonoBehaviour
 
         if (other.CompareTag("Paddle"))
         {
-            float halfWidth = Mathf.Max(other.bounds.extents.x, 0.01f);
-            float offset = transform.position.x - other.bounds.center.x;
-            float normalizedOffset = Mathf.Clamp(offset / halfWidth, -1f, 1f);
-            float horizontal = normalizedOffset * paddleHorizontalInfluence;
-            Vector2 bounceDirection = new Vector2(horizontal, 1f);
-
-            if (Mathf.Abs(bounceDirection.y) < minimumVerticalDirection)
-            {
-                bounceDirection.y = minimumVerticalDirection;
-            }
-
-            SetTravelDirection(bounceDirection, defaultYSign: 1f);
+            ApplyPaddleBounce(other.bounds);
             return;
         }
 
@@ -425,8 +395,9 @@ public class BallController : MonoBehaviour
             }
         }
 
-        Vector2 incoming = lastVelocity.sqrMagnitude > 0.001f ? lastVelocity.normalized : travelDirection;
+        Vector2 incoming = GetIncomingDirection();
         Vector2 reflected = Vector2.Reflect(incoming, normal.normalized);
+        ApplyWallEscapeBias(ref reflected, normal);
 
         if (Mathf.Abs(reflected.y) < minimumVerticalDirection)
         {
@@ -435,5 +406,144 @@ public class BallController : MonoBehaviour
         }
 
         SetTravelDirection(reflected, defaultYSign: -normal.y);
+    }
+
+    private void ApplyPaddleBounce(Bounds paddleBounds)
+    {
+        float halfWidth = Mathf.Max(paddleBounds.extents.x, 0.01f);
+        float offset = transform.position.x - paddleBounds.center.x;
+        float normalizedOffset = Mathf.Clamp(offset / halfWidth, -1f, 1f);
+        float horizontal = normalizedOffset * paddleHorizontalInfluence;
+        Vector2 bounceDirection = new Vector2(horizontal, 1f);
+
+        if (Mathf.Abs(bounceDirection.y) < minimumVerticalDirection)
+        {
+            bounceDirection.y = minimumVerticalDirection;
+        }
+
+        SetTravelDirection(bounceDirection, defaultYSign: 1f);
+    }
+
+    private void ApplyWallEscapeBias(ref Vector2 reflectedDirection, Vector2 surfaceNormal)
+    {
+        if (!IsSideWall(surfaceNormal))
+        {
+            return;
+        }
+
+        float awayFromWallSign = Mathf.Sign(surfaceNormal.x);
+        if (Mathf.Abs(reflectedDirection.x) < minimumHorizontalDirection)
+        {
+            reflectedDirection.x = awayFromWallSign * minimumHorizontalDirection;
+            reflectedDirection.Normalize();
+        }
+    }
+
+    private void UpdateWallStickState(Vector2 normal, GameObject collisionObject)
+    {
+        if (!IsEligibleForWallRecovery(collisionObject) || !IsSideWall(normal))
+        {
+            wallStickTime = 0f;
+            return;
+        }
+
+        lastWallNormal = normal;
+    }
+
+    private void RecoverFromWallStick(Vector2 wallNormal)
+    {
+        float ySign = Mathf.Sign(travelDirection.y);
+        if (Mathf.Approximately(ySign, 0f))
+        {
+            ySign = 1f;
+        }
+
+        Vector2 escapeDirection = new Vector2(Mathf.Sign(wallNormal.x) * minimumHorizontalDirection, ySign);
+        rb.position += wallNormal.normalized * unstuckNudgeDistance;
+        SetTravelDirection(escapeDirection, ySign);
+
+        if (logWallRecovery)
+        {
+            Debug.Log($"Wall recovery applied on {name}. normal={wallNormal}, dir={escapeDirection.normalized}", this);
+        }
+    }
+
+    private bool IsEligibleForWallRecovery(GameObject collisionObject)
+    {
+        if (collisionObject == null)
+        {
+            return false;
+        }
+
+        if (collisionObject.CompareTag("Paddle"))
+        {
+            return false;
+        }
+
+        if (collisionObject.TryGetComponent<BrickController>(out _))
+        {
+            return false;
+        }
+
+        if (collisionObject.TryGetComponent<BallController>(out _))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool TryIgnoreOtherBallCollision(Collision2D collision)
+    {
+        if (!ignoreOtherBallCollisions || !collision.gameObject.TryGetComponent<BallController>(out _))
+        {
+            return false;
+        }
+
+        if (ballCollider != null)
+        {
+            Physics2D.IgnoreCollision(ballCollider, collision.collider, true);
+        }
+
+        return true;
+    }
+
+    private bool ShouldIgnoreBrickCollision(Collision2D collision)
+    {
+        if (collideWithBricks || !collision.gameObject.TryGetComponent<BrickController>(out _))
+        {
+            return false;
+        }
+
+        if (ballCollider != null)
+        {
+            Physics2D.IgnoreCollision(ballCollider, collision.collider, true);
+        }
+
+        return true;
+    }
+
+    private void ReflectAndSetDirection(Vector2 normal)
+    {
+        Vector2 reflected = Vector2.Reflect(GetIncomingDirection(), normal);
+        ApplyWallEscapeBias(ref reflected, normal);
+
+        if (Mathf.Abs(reflected.y) < minimumVerticalDirection)
+        {
+            float ySign = Mathf.Sign(reflected.y == 0f ? -normal.y : reflected.y);
+            reflected.y = ySign * minimumVerticalDirection;
+        }
+
+        SetTravelDirection(reflected, defaultYSign: -normal.y);
+    }
+
+    private Vector2 GetIncomingDirection()
+    {
+        return lastVelocity.sqrMagnitude > VelocitySqrThreshold ? lastVelocity.normalized : travelDirection;
+    }
+
+    private bool IsSideWall(Vector2 normal)
+    {
+        return Mathf.Abs(normal.x) > SideWallNormalThreshold;
     }
 }
