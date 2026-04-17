@@ -15,4 +15,5 @@ MonoBehaviour:
   displayColor: {r: 0.99215686, g: 0.8901961, b: 0.26666668, a: 1}
   movementSpeed: 8
   collideWithBricks: 1
-  elements: 00000000
+  elements: 03000000
+  strongAgainst: 0200000005000000

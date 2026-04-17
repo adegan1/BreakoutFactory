@@ -26,8 +26,25 @@ public class BallTypeData : ScriptableObject
     [Header("Elements")]
     [SerializeField] private BallElement[] elements = new BallElement[] { BallElement.Basic };
 
+    [Header("Strong Against")]
+    [SerializeField] private BallElement[] strongAgainst = new BallElement[0];
+
     public Color DisplayColor => displayColor;
     public float MovementSpeed => movementSpeed;
     public bool CollideWithBricks => collideWithBricks;
     public BallElement[] Elements => elements;
+    public BallElement[] StrongAgainst => strongAgainst;
+
+    public bool IsStrongAgainst(BallElement brickType)
+    {
+        for (int i = 0; i < strongAgainst.Length; i++)
+        {
+            if (strongAgainst[i] == brickType)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

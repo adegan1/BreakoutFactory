@@ -33,8 +33,6 @@ public class BallController : MonoBehaviour
     private Vector2 previousPosition;
     private float stagnantTime;
 
-    private readonly RaycastHit2D[] brickCastHits = new RaycastHit2D[16];
-
     public System.Action<BallController> BallLost;
 
     public bool IsLaunched => launched;
@@ -284,10 +282,10 @@ public class BallController : MonoBehaviour
             return;
         }
 
-        int hitCount = Physics2D.LinecastNonAlloc(from, to, brickCastHits);
-        for (int i = 0; i < hitCount; i++)
+        RaycastHit2D[] brickHits = Physics2D.LinecastAll(from, to);
+        for (int i = 0; i < brickHits.Length; i++)
         {
-            Collider2D hitCollider = brickCastHits[i].collider;
+            Collider2D hitCollider = brickHits[i].collider;
             if (hitCollider == null)
             {
                 continue;

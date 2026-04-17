@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 480dd7a1a8a1d2b4eaaf06ac503642a9, type: 3}
   m_Name: Lightning Brick
   m_EditorClassIdentifier: Assembly-CSharp::BrickTypeData
-  hitPoints: 1
+  hitPoints: 2
   displayColor: {r: 0.990566, g: 0.88978994, b: 0.2663314, a: 1}
   scoreValue: 10
-  weaknessElements: []
+  type: 0

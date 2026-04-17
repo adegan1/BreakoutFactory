@@ -128,7 +128,18 @@ public class BrickController : MonoBehaviour
 
     protected virtual void HandleBallHit(BallController ball)
     {
-        ApplyDamage(1);
+        int damage = GetDamageFromBall(ball);
+        ApplyDamage(damage);
+    }
+
+    protected virtual int GetDamageFromBall(BallController ball)
+    {
+        if (typeData == null || ball == null || ball.TypeData == null)
+        {
+            return 1;
+        }
+
+        return ball.TypeData.IsStrongAgainst(typeData.Type) ? 2 : 1;
     }
 
     protected virtual void ApplyDamage(int amount)
