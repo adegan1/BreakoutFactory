@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Wind Brick
   m_EditorClassIdentifier: Assembly-CSharp::BrickTypeData
   hitPoints: 1
-  displayColor: {r: 0.72659314, g: 0.9811321, b: 0.88416487, a: 1}
+  displayColor: {r: 0.3915094, g: 1, b: 0.6534832, a: 1}
   scoreValue: 10
   weaknessElements: []

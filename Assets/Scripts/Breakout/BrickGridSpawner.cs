@@ -22,7 +22,8 @@ public class BrickGridSpawner : MonoBehaviour
 
     [Header("Row Spawning")]
     [SerializeField] private bool spawnRowsOverTime = true;
-    [SerializeField] private float rowSpawnInterval = 3f;
+    [SerializeField] private bool autoSpawnTriggerFromSpacing = true;
+    [SerializeField] private float topRowSpawnTriggerY = 2.4f;
     [SerializeField, Min(0)] private int totalRowsToSpawn = 12;
     [SerializeField] private bool randomizeEmptySlots;
     [SerializeField, Range(0f, 1f)] private float emptySlotChance = 0f;
@@ -39,7 +40,6 @@ public class BrickGridSpawner : MonoBehaviour
     [SerializeField] private UnityEvent onBricksReachedBottom;
 
     private List<WeightedBrickEntry> weightedBrickPrefabs = new List<WeightedBrickEntry>();
-    private float spawnTimer;
     private bool bottomEventFired;
     private int rowsSpawned;
 
@@ -69,21 +69,14 @@ public class BrickGridSpawner : MonoBehaviour
             return;
         }
 
+        ConfigureSpawnTrigger();
+
         SpawnInitialRows();
     }
 
     private void Update()
     {
-        if (spawnRowsOverTime && CanSpawnMoreRows())
-        {
-            spawnTimer += Time.deltaTime;
-            if (spawnTimer >= rowSpawnInterval)
-            {
-                spawnTimer -= rowSpawnInterval;
-                SpawnSingleRow(0);
-                rowsSpawned++;
-            }
-        }
+        TrySpawnNextRowByTopPosition();
 
         CheckBottomDanger();
     }
@@ -100,6 +93,28 @@ public class BrickGridSpawner : MonoBehaviour
     private bool CanSpawnMoreRows()
     {
         return rowsSpawned < totalRowsToSpawn;
+    }
+
+    private void TrySpawnNextRowByTopPosition()
+    {
+        if (!spawnRowsOverTime || !CanSpawnMoreRows())
+        {
+            return;
+        }
+
+        if (transform.childCount == 0)
+        {
+            SpawnSingleRow(0);
+            rowsSpawned++;
+            return;
+        }
+
+        float topRowY = GetTopMostBrickY();
+        if (topRowY <= topRowSpawnTriggerY)
+        {
+            SpawnSingleRow(0);
+            rowsSpawned++;
+        }
     }
 
     private void SpawnSingleRow(int rowIndex)
@@ -218,7 +233,34 @@ public class BrickGridSpawner : MonoBehaviour
         }
 
         totalRowsToSpawn = Mathf.Max(0, levelSettings.NextLevelRowsToSpawn);
+        downwardSpeed = Mathf.Max(0f, levelSettings.NextLevelBrickMoveSpeed);
         ApplyOddsFromSettings(levelSettings.NextLevelBrickOdds);
+    }
+
+    private void ConfigureSpawnTrigger()
+    {
+        if (!autoSpawnTriggerFromSpacing)
+        {
+            return;
+        }
+
+        float topSpawnY = transform.position.y + startOffset.y;
+        topRowSpawnTriggerY = topSpawnY - Mathf.Abs(spacing.y);
+    }
+
+    private float GetTopMostBrickY()
+    {
+        float highestY = float.NegativeInfinity;
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform child = transform.GetChild(i);
+            if (child.position.y > highestY)
+            {
+                highestY = child.position.y;
+            }
+        }
+
+        return highestY;
     }
 
     private void ApplyOddsFromSettings(IReadOnlyList<LevelSettings.BrickSpawnOddsEntry> odds)

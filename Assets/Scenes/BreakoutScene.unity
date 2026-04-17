@@ -200,7 +200,8 @@ MonoBehaviour:
   spacing: {x: 1.2, y: 0.6}
   startOffset: {x: -6, y: 3}
   spawnRowsOverTime: 1
-  rowSpawnInterval: 6
+  autoSpawnTriggerFromSpacing: 1
+  topRowSpawnTriggerY: 2.4
   totalRowsToSpawn: 12
   randomizeEmptySlots: 1
   emptySlotChance: 0.122
@@ -821,7 +822,7 @@ MonoBehaviour:
   ballPrefab: {fileID: 9021448586808601386, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   paddleTransform: {fileID: 1324807477}
   startingBalls: 3
-  initialLaunchDirection: {x: 0.6, y: 1}
+  initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}
   onOutOfBalls:
     m_PersistentCalls:
@@ -870,7 +871,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ddf8f2a4ea1090468937792b28d1ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelSettings
-  nextLevelRowsToSpawn: 12
+  nextLevelRowsToSpawn: 10
+  nextLevelBrickMoveSpeed: 0.075
   nextLevelBrickOdds:
   - typeData: {fileID: 11400000, guid: 85e9b8c05e2b7214b819ed976f1dd770, type: 2}
     weight: 40

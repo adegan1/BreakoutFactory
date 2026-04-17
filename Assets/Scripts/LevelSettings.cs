@@ -14,12 +14,19 @@ public class LevelSettings : MonoBehaviour
 
     [Header("Next Level")]
     [SerializeField, Min(0)] private int nextLevelRowsToSpawn = 12;
+    [SerializeField, Min(0f)] private float nextLevelBrickMoveSpeed = 0.15f;
     [SerializeField] private List<BrickSpawnOddsEntry> nextLevelBrickOdds = new List<BrickSpawnOddsEntry>();
 
     public int NextLevelRowsToSpawn
     {
         get => nextLevelRowsToSpawn;
         set => nextLevelRowsToSpawn = Mathf.Max(0, value);
+    }
+
+    public float NextLevelBrickMoveSpeed
+    {
+        get => nextLevelBrickMoveSpeed;
+        set => nextLevelBrickMoveSpeed = Mathf.Max(0f, value);
     }
 
     public IReadOnlyList<BrickSpawnOddsEntry> NextLevelBrickOdds => nextLevelBrickOdds;
@@ -39,6 +46,11 @@ public class LevelSettings : MonoBehaviour
     public void SetNextLevelRowsToSpawn(int rows)
     {
         NextLevelRowsToSpawn = rows;
+    }
+
+    public void SetNextLevelBrickMoveSpeed(float speed)
+    {
+        NextLevelBrickMoveSpeed = speed;
     }
 
     public void SetBrickOdds(List<BrickSpawnOddsEntry> brickOdds)
