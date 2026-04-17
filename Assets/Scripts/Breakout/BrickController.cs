@@ -3,23 +3,36 @@ using UnityEngine;
 public class BrickController : MonoBehaviour
 {
     [SerializeField] private BrickTypeData typeData;
+
+    [Header("Spawn Animation")]
+    [SerializeField] private float growthSpeed = 6f;
+
+    [Header("Movement")]
     [SerializeField] private bool moveDownward;
     [SerializeField] private float downwardSpeed;
 
     private int currentHitPoints;
     private SpriteRenderer spriteRenderer;
+    private Vector3 targetScale;
+    private bool isGrowing;
 
     public int CurrentHitPoints => currentHitPoints;
     public BrickTypeData TypeData => typeData;
 
     private void Awake()
     {
+        targetScale = transform.localScale;
+        transform.localScale = new Vector3(0f, 0f, 1f);
+        isGrowing = true;
+
         spriteRenderer = GetComponent<SpriteRenderer>();
         ApplyTypeData();
     }
 
     private void Update()
     {
+        UpdateSpawnGrowth();
+
         if (!moveDownward || downwardSpeed <= 0f)
         {
             return;
@@ -28,9 +41,35 @@ public class BrickController : MonoBehaviour
         transform.position += Vector3.down * downwardSpeed * Time.deltaTime;
     }
 
+    private void UpdateSpawnGrowth()
+    {
+        if (!isGrowing)
+        {
+            return;
+        }
+
+        if (growthSpeed <= 0f)
+        {
+            transform.localScale = targetScale;
+            isGrowing = false;
+            return;
+        }
+
+        transform.localScale = Vector3.MoveTowards(transform.localScale, targetScale, growthSpeed * Time.deltaTime);
+        if (transform.localScale == targetScale)
+        {
+            isGrowing = false;
+        }
+    }
+
     public void SetDownwardMotion(bool enabled, float speed)
     {
         moveDownward = enabled;
+        SetDownwardSpeed(speed);
+    }
+
+    public void SetDownwardSpeed(float speed)
+    {
         downwardSpeed = Mathf.Max(0f, speed);
     }
 

@@ -6,6 +6,7 @@ TagManager:
   tags:
   - BottomBoundary
   - Paddle
+  - Ball
   layers:
   - Default
   - TransparentFX

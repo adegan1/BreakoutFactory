@@ -34,6 +34,8 @@ public class BrickGridSpawner : MonoBehaviour
     [Header("Downward Movement")]
     [SerializeField] private bool moveDownward = true;
     [SerializeField] private float downwardSpeed = 0.15f;
+    [SerializeField] private float startingDownwardSpeed = 0.9f;
+    [SerializeField] private float speedRampDuration = 4f;
     [SerializeField] private float bottomDangerY = -4.5f;
 
     [Header("Events")]
@@ -42,6 +44,8 @@ public class BrickGridSpawner : MonoBehaviour
     private List<WeightedBrickEntry> weightedBrickPrefabs = new List<WeightedBrickEntry>();
     private bool bottomEventFired;
     private int rowsSpawned;
+    private float currentDownwardSpeed;
+    private float lastAppliedDownwardSpeed = float.MinValue;
 
     public int RowsSpawned => rowsSpawned;
     public int TotalRowsToSpawn => totalRowsToSpawn;
@@ -71,11 +75,17 @@ public class BrickGridSpawner : MonoBehaviour
 
         ConfigureSpawnTrigger();
 
+        currentDownwardSpeed = GetCurrentDownwardSpeed();
+        ApplyCurrentSpeedToExistingBricks(force: true);
+
         SpawnInitialRows();
     }
 
     private void Update()
     {
+        currentDownwardSpeed = GetCurrentDownwardSpeed();
+        ApplyCurrentSpeedToExistingBricks(force: false);
+
         TrySpawnNextRowByTopPosition();
 
         CheckBottomDanger();
@@ -139,7 +149,7 @@ public class BrickGridSpawner : MonoBehaviour
             BrickController spawnedBrick = Instantiate(brickPrefab, position, Quaternion.identity, transform);
             if (spawnedBrick != null)
             {
-                spawnedBrick.SetDownwardMotion(moveDownward, downwardSpeed);
+                spawnedBrick.SetDownwardMotion(moveDownward, currentDownwardSpeed);
                 spawnedBrick.SetTypeData(chosenType);
             }
         }
@@ -292,5 +302,41 @@ public class BrickGridSpawner : MonoBehaviour
         }
 
         weightedBrickPrefabs = mappedEntries;
+    }
+
+    private float GetCurrentDownwardSpeed()
+    {
+        if (!moveDownward)
+        {
+            return 0f;
+        }
+
+        if (speedRampDuration <= 0f)
+        {
+            return Mathf.Max(0f, downwardSpeed);
+        }
+
+        float levelElapsedTime = Time.timeSinceLevelLoad;
+        float t = Mathf.Clamp01(levelElapsedTime / speedRampDuration);
+        return Mathf.Lerp(startingDownwardSpeed, downwardSpeed, t);
+    }
+
+    private void ApplyCurrentSpeedToExistingBricks(bool force)
+    {
+        if (!force && Mathf.Abs(currentDownwardSpeed - lastAppliedDownwardSpeed) < 0.0001f)
+        {
+            return;
+        }
+
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform child = transform.GetChild(i);
+            if (child.TryGetComponent<BrickController>(out BrickController brick))
+            {
+                brick.SetDownwardMotion(moveDownward, currentDownwardSpeed);
+            }
+        }
+
+        lastAppliedDownwardSpeed = currentDownwardSpeed;
     }
 }

@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 9021448586808601386}
   m_Layer: 0
   m_Name: Ball
-  m_TagString: Untagged
+  m_TagString: Ball
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -171,4 +171,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BallController
   speed: 6
   minimumVerticalDirection: 0.2
+  ignoreOtherBallCollisions: 0
+  stuckRecoveryDelay: 0.2
+  minimumMovementPerFixedStep: 0.001
+  unstuckNudgeDistance: 0.05
+  paddleHorizontalInfluence: 0.7
   bottomKillY: -6
