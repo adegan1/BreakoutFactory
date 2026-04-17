@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Lightning Brick
   m_EditorClassIdentifier: Assembly-CSharp::BrickTypeData
   hitPoints: 1
-  displayColor: {r: 0.764151, g: 0.764151, b: 0.764151, a: 1}
+  displayColor: {r: 0.990566, g: 0.88978994, b: 0.2663314, a: 1}
   scoreValue: 10
   weaknessElements: []

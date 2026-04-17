@@ -7,6 +7,12 @@ public class BallController : MonoBehaviour
     [SerializeField] private float speed = 8f;
     [SerializeField] private float minimumVerticalDirection = 0.2f;
 
+    [Header("Anti-Stuck")]
+    [SerializeField] private bool ignoreOtherBallCollisions = false;
+    [SerializeField] private float stuckRecoveryDelay = 0.2f;
+    [SerializeField] private float minimumMovementPerFixedStep = 0.001f;
+    [SerializeField] private float unstuckNudgeDistance = 0.05f;
+
     [Header("Paddle Bounce")]
     [SerializeField] private float paddleHorizontalInfluence = 0.7f;
 
@@ -14,10 +20,13 @@ public class BallController : MonoBehaviour
     [SerializeField] private float bottomKillY = -6f;
 
     private Rigidbody2D rb;
+    private Collider2D ballCollider;
     private bool launched;
     private bool hasBeenLost;
     private Vector2 travelDirection = Vector2.up;
     private Vector2 lastVelocity;
+    private Vector2 previousPosition;
+    private float stagnantTime;
 
     public System.Action<BallController> BallLost;
 
@@ -26,6 +35,8 @@ public class BallController : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        ballCollider = GetComponent<Collider2D>();
+        previousPosition = rb.position;
     }
 
     private void Start()
@@ -49,6 +60,8 @@ public class BallController : MonoBehaviour
         {
             return;
         }
+
+        UpdateStagnationState();
 
         Vector2 currentVelocity = rb.linearVelocity;
 
@@ -80,6 +93,16 @@ public class BallController : MonoBehaviour
     {
         if (collision.contactCount == 0)
         {
+            return;
+        }
+
+        if (ignoreOtherBallCollisions && collision.gameObject.TryGetComponent<BallController>(out _))
+        {
+            if (ballCollider != null)
+            {
+                Physics2D.IgnoreCollision(ballCollider, collision.collider, true);
+            }
+
             return;
         }
 
@@ -163,5 +186,36 @@ public class BallController : MonoBehaviour
     {
         rb.linearVelocity = travelDirection * speed;
         lastVelocity = rb.linearVelocity;
+    }
+
+    private void UpdateStagnationState()
+    {
+        float movedDistance = (rb.position - previousPosition).magnitude;
+        if (movedDistance <= minimumMovementPerFixedStep)
+        {
+            stagnantTime += Time.fixedDeltaTime;
+            if (stagnantTime >= stuckRecoveryDelay)
+            {
+                ForceUnstuck();
+                stagnantTime = 0f;
+            }
+        }
+        else
+        {
+            stagnantTime = 0f;
+        }
+
+        previousPosition = rb.position;
+    }
+
+    private void ForceUnstuck()
+    {
+        float randomHorizontal = Random.Range(-1f, 1f);
+        float ySign = Mathf.Sign(travelDirection.y == 0f ? 1f : travelDirection.y);
+        Vector2 recoveryDirection = new Vector2(randomHorizontal, ySign);
+        Vector2 normalizedRecovery = NormalizeDirection(recoveryDirection, ySign);
+
+        rb.position += normalizedRecovery * unstuckNudgeDistance;
+        SetTravelDirection(normalizedRecovery, ySign);
     }
 }

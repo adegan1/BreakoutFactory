@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Water Brick
   m_EditorClassIdentifier: Assembly-CSharp::BrickTypeData
   hitPoints: 1
-  displayColor: {r: 0.764151, g: 0.764151, b: 0.764151, a: 1}
+  displayColor: {r: 0.23820755, g: 0.5712579, b: 0.9528302, a: 1}
   scoreValue: 10
   weaknessElements: []

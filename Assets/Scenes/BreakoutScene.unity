@@ -194,6 +194,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0266fc2e1f202054cb2f7cbde73d6a48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BrickGridSpawner
+  brickPrefab: {fileID: -4888631261011733178, guid: 59cfc3f131956664e82e8dcd763a4372, type: 3}
   columns: 11
   initialRows: 5
   spacing: {x: 1.2, y: 0.6}
@@ -203,9 +204,6 @@ MonoBehaviour:
   totalRowsToSpawn: 12
   randomizeEmptySlots: 1
   emptySlotChance: 0.122
-  weightedBrickPrefabs:
-  - prefab: {fileID: -4888631261011733178, guid: 59cfc3f131956664e82e8dcd763a4372, type: 3}
-    weight: 100
   levelSettings: {fileID: 2017643838}
   moveDownward: 1
   downwardSpeed: 0.1
@@ -691,7 +689,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.20140618, g: 0.5849056, b: 0.451435, a: 0}
+  m_BackGroundColor: {r: 0.26415092, g: 0.26415092, b: 0.26415092, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -874,8 +872,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelSettings
   nextLevelRowsToSpawn: 12
   nextLevelBrickOdds:
-  - prefab: {fileID: -4888631261011733178, guid: 59cfc3f131956664e82e8dcd763a4372, type: 3}
-    weight: 100
+  - typeData: {fileID: 11400000, guid: 85e9b8c05e2b7214b819ed976f1dd770, type: 2}
+    weight: 40
+  - typeData: {fileID: 11400000, guid: 3297f4dd7b21aab42ae678d3ff9db04c, type: 2}
+    weight: 10
+  - typeData: {fileID: 11400000, guid: d627063a367f56c4287815b5fb7c64be, type: 2}
+    weight: 10
+  - typeData: {fileID: 11400000, guid: af792289cdc9fcd4cb06a790b650cdbc, type: 2}
+    weight: 10
+  - typeData: {fileID: 11400000, guid: 5f4435093ea3bd745a1b198243926470, type: 2}
+    weight: 10
+  - typeData: {fileID: 11400000, guid: 5f789f2fb566a5d469628041845bc087, type: 2}
+    weight: 10
+  - typeData: {fileID: 11400000, guid: 0f820a6fe33f08f43957becd1b6b398b, type: 2}
+    weight: 10
 --- !u!4 &2017643839
 Transform:
   m_ObjectHideFlags: 0

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Life Brick
   m_EditorClassIdentifier: Assembly-CSharp::BrickTypeData
   hitPoints: 1
-  displayColor: {r: 0.764151, g: 0.764151, b: 0.764151, a: 1}
+  displayColor: {r: 0.17598087, g: 0.6698113, b: 0.12953897, a: 1}
   scoreValue: 10
   weaknessElements: []

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Earth Brick
   m_EditorClassIdentifier: Assembly-CSharp::BrickTypeData
   hitPoints: 1
-  displayColor: {r: 0.764151, g: 0.764151, b: 0.764151, a: 1}
+  displayColor: {r: 0.5943396, g: 0.36052793, b: 0.2270826, a: 1}
   scoreValue: 10
   weaknessElements: []
