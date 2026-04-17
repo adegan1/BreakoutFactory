@@ -15,6 +15,10 @@ public class BallController : MonoBehaviour
     [SerializeField] private float stuckRecoveryDelay = 0.2f;
     [SerializeField] private float minimumMovementPerFixedStep = 0.001f;
     [SerializeField] private float unstuckNudgeDistance = 0.05f;
+    [SerializeField] private float axisStuckDelay = 5f;
+    [SerializeField] private float minimumAxisSpeed = 0.05f;
+    [SerializeField] private float horizontalNudgeStrength = 0.25f;
+    [SerializeField] private float verticalNudgeStrength = 0.25f;
 
     [Header("Paddle Bounce")]
     [SerializeField] private float paddleHorizontalInfluence = 0.7f;
@@ -32,6 +36,8 @@ public class BallController : MonoBehaviour
     private Vector2 lastVelocity;
     private Vector2 previousPosition;
     private float stagnantTime;
+    private float noHorizontalMovementTime;
+    private float noVerticalMovementTime;
 
     public System.Action<BallController> BallLost;
 
@@ -87,6 +93,8 @@ public class BallController : MonoBehaviour
         {
             travelDirection = Vector2.up;
         }
+
+        UpdateAxisLockRecovery(currentVelocity);
 
         ApplyVelocity();
     }
@@ -250,6 +258,70 @@ public class BallController : MonoBehaviour
 
         rb.position += normalizedRecovery * unstuckNudgeDistance;
         SetTravelDirection(normalizedRecovery, ySign);
+    }
+
+    private void UpdateAxisLockRecovery(Vector2 currentVelocity)
+    {
+        if (Mathf.Abs(currentVelocity.x) <= minimumAxisSpeed)
+        {
+            noHorizontalMovementTime += Time.fixedDeltaTime;
+        }
+        else
+        {
+            noHorizontalMovementTime = 0f;
+        }
+
+        if (Mathf.Abs(currentVelocity.y) <= minimumAxisSpeed)
+        {
+            noVerticalMovementTime += Time.fixedDeltaTime;
+        }
+        else
+        {
+            noVerticalMovementTime = 0f;
+        }
+
+        if (noHorizontalMovementTime >= axisStuckDelay)
+        {
+            ApplyHorizontalNudge();
+            noHorizontalMovementTime = 0f;
+            return;
+        }
+
+        if (noVerticalMovementTime >= axisStuckDelay)
+        {
+            ApplyVerticalNudge();
+            noVerticalMovementTime = 0f;
+        }
+    }
+
+    private void ApplyHorizontalNudge()
+    {
+        float horizontalSign = Mathf.Sign(travelDirection.x);
+        if (Mathf.Approximately(horizontalSign, 0f))
+        {
+            horizontalSign = Random.value < 0.5f ? -1f : 1f;
+        }
+
+        float defaultYSign = Mathf.Sign(travelDirection.y);
+        if (Mathf.Approximately(defaultYSign, 0f))
+        {
+            defaultYSign = 1f;
+        }
+
+        Vector2 nudgedDirection = new Vector2(travelDirection.x + horizontalSign * horizontalNudgeStrength, travelDirection.y);
+        SetTravelDirection(nudgedDirection, defaultYSign);
+    }
+
+    private void ApplyVerticalNudge()
+    {
+        float verticalSign = Mathf.Sign(travelDirection.y);
+        if (Mathf.Approximately(verticalSign, 0f))
+        {
+            verticalSign = Random.value < 0.5f ? -1f : 1f;
+        }
+
+        Vector2 nudgedDirection = new Vector2(travelDirection.x, travelDirection.y + verticalSign * verticalNudgeStrength);
+        SetTravelDirection(nudgedDirection, verticalSign);
     }
 
     public void SetTypeData(BallTypeData newTypeData)
