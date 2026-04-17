@@ -10,21 +10,21 @@ public class BreakoutGameController : MonoBehaviour
     [SerializeField] private Transform paddleTransform;
 
     [Header("Ball Dispense")]
-    [SerializeField] private int startingBalls = 3;
+    [SerializeField] private List<BallTypeData> ballsToDispense = new List<BallTypeData>();
     [SerializeField] private Vector2 initialLaunchDirection = new Vector2(0.6f, 1f);
     [SerializeField] private Vector2 spawnOffset = new Vector2(0f, 0.6f);
 
     [Header("Events")]
     [SerializeField] private UnityEvent onOutOfBalls;
 
-    private int ballsRemaining;
+    private int nextBallIndex;
     private readonly HashSet<BallController> activeBalls = new HashSet<BallController>();
 
-    public int BallsRemaining => ballsRemaining;
+    public int BallsRemaining => Mathf.Max(0, ballsToDispense.Count - nextBallIndex);
 
     private void Start()
     {
-        ballsRemaining = Mathf.Max(0, startingBalls);
+        nextBallIndex = 0;
     }
 
     private void Update()
@@ -53,7 +53,7 @@ public class BreakoutGameController : MonoBehaviour
 
     private bool CanDispenseBall()
     {
-        return ballsRemaining > 0 && ballPrefab != null;
+        return BallsRemaining > 0 && ballPrefab != null;
     }
 
     private bool IsDispensePressed()
@@ -79,12 +79,18 @@ public class BreakoutGameController : MonoBehaviour
             ? paddleTransform.position + (Vector3)spawnOffset
             : (Vector3)spawnOffset;
 
+        BallTypeData nextBallType = ballsToDispense[nextBallIndex];
+        nextBallIndex++;
+
         BallController spawnedBall = Instantiate(ballPrefab, spawnPosition, Quaternion.identity);
         spawnedBall.BallLost += HandleBallLost;
         activeBalls.Add(spawnedBall);
+        if (nextBallType != null)
+        {
+            spawnedBall.SetTypeData(nextBallType);
+        }
         spawnedBall.Launch(initialLaunchDirection);
 
-        ballsRemaining--;
         TryInvokeOutOfBalls();
     }
 
@@ -101,7 +107,7 @@ public class BreakoutGameController : MonoBehaviour
 
     private void TryInvokeOutOfBalls()
     {
-        if (ballsRemaining <= 0 && activeBalls.Count == 0)
+        if (BallsRemaining <= 0 && activeBalls.Count == 0)
         {
             onOutOfBalls?.Invoke();
         }

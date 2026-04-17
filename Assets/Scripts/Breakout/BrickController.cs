@@ -96,17 +96,37 @@ public class BrickController : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    public void ApplyBallHit(BallController ball)
     {
-        if (!collision.gameObject.TryGetComponent<BallController>(out _))
+        if (ball == null)
         {
             return;
         }
 
-        HandleBallHit(collision);
+        HandleBallHit(ball);
     }
 
-    protected virtual void HandleBallHit(Collision2D collision)
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (!collision.gameObject.TryGetComponent<BallController>(out BallController ball))
+        {
+            return;
+        }
+
+        HandleBallHit(ball);
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (!other.TryGetComponent<BallController>(out BallController ball))
+        {
+            return;
+        }
+
+        HandleBallHit(ball);
+    }
+
+    protected virtual void HandleBallHit(BallController ball)
     {
         ApplyDamage(1);
     }

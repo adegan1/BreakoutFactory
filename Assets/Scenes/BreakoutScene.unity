@@ -204,10 +204,12 @@ MonoBehaviour:
   topRowSpawnTriggerY: 2.4
   totalRowsToSpawn: 12
   randomizeEmptySlots: 1
-  emptySlotChance: 0.122
+  emptySlotChance: 0.1
   levelSettings: {fileID: 2017643838}
   moveDownward: 1
   downwardSpeed: 0.1
+  startingDownwardSpeed: 1.2
+  speedRampDuration: 3
   bottomDangerY: -4.5
   onBricksReachedBottom:
     m_PersistentCalls:

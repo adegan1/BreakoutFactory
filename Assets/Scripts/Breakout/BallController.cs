@@ -3,6 +3,9 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class BallController : MonoBehaviour
 {
+    [Header("Type")]
+    [SerializeField] private BallTypeData typeData;
+
     [Header("Movement")]
     [SerializeField] private float speed = 8f;
     [SerializeField] private float minimumVerticalDirection = 0.2f;
@@ -21,21 +24,27 @@ public class BallController : MonoBehaviour
 
     private Rigidbody2D rb;
     private Collider2D ballCollider;
+    private SpriteRenderer spriteRenderer;
     private bool launched;
     private bool hasBeenLost;
+    private bool collideWithBricks = true;
     private Vector2 travelDirection = Vector2.up;
     private Vector2 lastVelocity;
     private Vector2 previousPosition;
     private float stagnantTime;
 
+    private readonly RaycastHit2D[] brickCastHits = new RaycastHit2D[16];
+
     public System.Action<BallController> BallLost;
 
     public bool IsLaunched => launched;
+    public BallTypeData TypeData => typeData;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         ballCollider = GetComponent<Collider2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         previousPosition = rb.position;
     }
 
@@ -44,6 +53,7 @@ public class BallController : MonoBehaviour
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        ApplyTypeData();
     }
 
     private void Update()
@@ -59,6 +69,11 @@ public class BallController : MonoBehaviour
         if (!launched || hasBeenLost)
         {
             return;
+        }
+
+        if (!collideWithBricks)
+        {
+            DamageBricksAlongPath(previousPosition, rb.position);
         }
 
         UpdateStagnationState();
@@ -106,6 +121,20 @@ public class BallController : MonoBehaviour
             return;
         }
 
+        if (collision.gameObject.TryGetComponent<BrickController>(out BrickController brick))
+        {
+            if (!collideWithBricks)
+            {
+                brick.ApplyBallHit(this);
+                if (ballCollider != null)
+                {
+                    Physics2D.IgnoreCollision(ballCollider, collision.collider, true);
+                }
+
+                return;
+            }
+        }
+
         if (collision.gameObject.CompareTag("Paddle"))
         {
             ContactPoint2D paddleContact = collision.GetContact(0);
@@ -142,6 +171,12 @@ public class BallController : MonoBehaviour
         if (other.CompareTag("BottomBoundary"))
         {
             LoseBall();
+            return;
+        }
+
+        if (!collideWithBricks && other.TryGetComponent<BrickController>(out BrickController brick))
+        {
+            brick.ApplyBallHit(this);
         }
     }
 
@@ -217,5 +252,56 @@ public class BallController : MonoBehaviour
 
         rb.position += normalizedRecovery * unstuckNudgeDistance;
         SetTravelDirection(normalizedRecovery, ySign);
+    }
+
+    public void SetTypeData(BallTypeData newTypeData)
+    {
+        typeData = newTypeData;
+        ApplyTypeData();
+    }
+
+    private void ApplyTypeData()
+    {
+        if (typeData == null)
+        {
+            collideWithBricks = true;
+            return;
+        }
+
+        speed = Mathf.Max(0f, typeData.MovementSpeed);
+        collideWithBricks = typeData.CollideWithBricks;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = typeData.DisplayColor;
+        }
+    }
+
+    private void DamageBricksAlongPath(Vector2 from, Vector2 to)
+    {
+        if ((to - from).sqrMagnitude < 0.000001f)
+        {
+            return;
+        }
+
+        int hitCount = Physics2D.LinecastNonAlloc(from, to, brickCastHits);
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider2D hitCollider = brickCastHits[i].collider;
+            if (hitCollider == null)
+            {
+                continue;
+            }
+
+            if (hitCollider.TryGetComponent<BrickController>(out BrickController brick))
+            {
+                brick.ApplyBallHit(this);
+
+                if (ballCollider != null)
+                {
+                    Physics2D.IgnoreCollision(ballCollider, hitCollider, true);
+                }
+            }
+        }
     }
 }
