@@ -16,6 +16,11 @@ public class BrickController : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Vector3 targetScale;
     private bool isGrowing;
+    private bool isBurning;
+    private int burnDamage;
+    private float burnTickInterval;
+    private float burnTickTimer;
+    private int burnHitsRemaining;
 
     public int CurrentHitPoints => currentHitPoints;
     public BrickTypeData TypeData => typeData;
@@ -33,6 +38,8 @@ public class BrickController : MonoBehaviour
     private void Update()
     {
         UpdateSpawnGrowth();
+
+        UpdateBurning();
 
         if (!moveDownward || downwardSpeed <= 0f)
         {
@@ -93,6 +100,7 @@ public class BrickController : MonoBehaviour
 
         maxHitPoints = Mathf.Max(1, typeData.HitPoints);
         currentHitPoints = maxHitPoints;
+        ClearBurn();
 
         if (spriteRenderer != null)
         {
@@ -141,6 +149,11 @@ public class BrickController : MonoBehaviour
     {
         int damage = GetDamageFromBall(ball);
         ApplyDamage(damage);
+
+        if (ball != null && ball.TypeData != null && ball.TypeData.AppliesBurn)
+        {
+            ApplyBurn(ball.TypeData.BurnDamage, ball.TypeData.BurnTickInterval, ball.TypeData.BurnHitCount);
+        }
     }
 
     protected virtual int GetDamageFromBall(BallController ball)
@@ -181,5 +194,71 @@ public class BrickController : MonoBehaviour
 
     protected virtual void OnBrickDestroyed()
     {
+    }
+
+    private void UpdateBurning()
+    {
+        if (!isBurning || burnHitsRemaining <= 0)
+        {
+            return;
+        }
+
+        burnTickTimer -= Time.deltaTime;
+        if (burnTickTimer > 0f)
+        {
+            return;
+        }
+
+        burnHitsRemaining--;
+        burnTickTimer = burnTickInterval;
+        ApplyDamage(GetBurnDamage());
+
+        if (currentHitPoints <= 0)
+        {
+            return;
+        }
+
+        if (burnHitsRemaining <= 0)
+        {
+            ClearBurn();
+        }
+    }
+
+    private void ApplyBurn(int damagePerTick, float tickInterval, int hitCount)
+    {
+        if (typeData != null && typeData.FireResistant)
+        {
+            return;
+        }
+
+        if (hitCount <= 0)
+        {
+            return;
+        }
+
+        isBurning = true;
+        burnDamage = Mathf.Max(1, damagePerTick);
+        burnTickInterval = Mathf.Max(0.01f, tickInterval);
+        burnTickTimer = burnTickInterval;
+        burnHitsRemaining = hitCount;
+    }
+
+    private void ClearBurn()
+    {
+        isBurning = false;
+        burnDamage = 0;
+        burnTickInterval = 0f;
+        burnTickTimer = 0f;
+        burnHitsRemaining = 0;
+    }
+
+    private int GetBurnDamage()
+    {
+        if (typeData != null && typeData.Flammable)
+        {
+            return burnDamage * 2;
+        }
+
+        return burnDamage;
     }
 }

@@ -15,5 +15,9 @@ MonoBehaviour:
   displayColor: {r: 0.9529412, g: 0.30588236, b: 0.12156863, a: 1}
   movementSpeed: 8
   collideWithBricks: 1
+  appliesBurn: 1
+  burnDamage: 1
+  burnTickInterval: 0.5
+  burnHitCount: 3
   elements: 01000000
   strongAgainst: 0400000006000000
