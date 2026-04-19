@@ -1,7 +1,7 @@
 using UnityEditor;
 
 [CustomEditor(typeof(BallTypeData))]
-public class BallTypeDataEditor : Editor
+public class BallTypeDataEditor : BreakoutDataEditorBase
 {
     private SerializedProperty displayColorProperty;
     private SerializedProperty sizeProperty;
@@ -32,113 +32,56 @@ public class BallTypeDataEditor : Editor
 
     private void OnEnable()
     {
-        displayColorProperty = serializedObject.FindProperty("displayColor");
-        sizeProperty = serializedObject.FindProperty("size");
-        movementSpeedProperty = serializedObject.FindProperty("movementSpeed");
-        damageProperty = serializedObject.FindProperty("damage");
-        bouncesProperty = serializedObject.FindProperty("bounces");
-        passThroughBricksProperty = serializedObject.FindProperty("passThroughBricks");
-        passThroughBallsProperty = serializedObject.FindProperty("passThroughBalls");
-        appliesBurnProperty = serializedObject.FindProperty("appliesBurn");
-        burnDamageProperty = serializedObject.FindProperty("burnDamage");
-        burnTickIntervalProperty = serializedObject.FindProperty("burnTickInterval");
-        burnHitCountProperty = serializedObject.FindProperty("burnHitCount");
-        lightningBurstProperty = serializedObject.FindProperty("lightningBurst");
-        lightningBurstTargetCountProperty = serializedObject.FindProperty("lightningBurstTargetCount");
-        lightningBurstDamageProperty = serializedObject.FindProperty("lightningBurstDamage");
-        lightningBurstRadiusProperty = serializedObject.FindProperty("lightningBurstRadius");
-        earthCrackProperty = serializedObject.FindProperty("earthCrack");
-        shatterDamageProperty = serializedObject.FindProperty("shatterDamage");
-        shatterRadiusProperty = serializedObject.FindProperty("shatterRadius");
-        appliesRootProperty = serializedObject.FindProperty("appliesRoot");
-        rootDurationProperty = serializedObject.FindProperty("rootDuration");
-        rootSpeedMultiplierProperty = serializedObject.FindProperty("rootSpeedMultiplier");
-        createsWaterDropsProperty = serializedObject.FindProperty("createsWaterDrops");
-        waterDropletTypeProperty = serializedObject.FindProperty("waterDropletType");
-        waterDropCooldownProperty = serializedObject.FindProperty("waterDropCooldown");
-        elementsProperty = serializedObject.FindProperty("elements");
-        strongAgainstProperty = serializedObject.FindProperty("strongAgainst");
+        displayColorProperty = FindProperty("displayColor");
+        sizeProperty = FindProperty("size");
+        movementSpeedProperty = FindProperty("movementSpeed");
+        damageProperty = FindProperty("damage");
+        bouncesProperty = FindProperty("bounces");
+        passThroughBricksProperty = FindProperty("passThroughBricks");
+        passThroughBallsProperty = FindProperty("passThroughBalls");
+        appliesBurnProperty = FindProperty("appliesBurn");
+        burnDamageProperty = FindProperty("burnDamage");
+        burnTickIntervalProperty = FindProperty("burnTickInterval");
+        burnHitCountProperty = FindProperty("burnHitCount");
+        lightningBurstProperty = FindProperty("lightningBurst");
+        lightningBurstTargetCountProperty = FindProperty("lightningBurstTargetCount");
+        lightningBurstDamageProperty = FindProperty("lightningBurstDamage");
+        lightningBurstRadiusProperty = FindProperty("lightningBurstRadius");
+        earthCrackProperty = FindProperty("earthCrack");
+        shatterDamageProperty = FindProperty("shatterDamage");
+        shatterRadiusProperty = FindProperty("shatterRadius");
+        appliesRootProperty = FindProperty("appliesRoot");
+        rootDurationProperty = FindProperty("rootDuration");
+        rootSpeedMultiplierProperty = FindProperty("rootSpeedMultiplier");
+        createsWaterDropsProperty = FindProperty("createsWaterDrops");
+        waterDropletTypeProperty = FindProperty("waterDropletType");
+        waterDropCooldownProperty = FindProperty("waterDropCooldown");
+        elementsProperty = FindProperty("elements");
+        strongAgainstProperty = FindProperty("strongAgainst");
     }
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
 
-        EditorGUILayout.LabelField("Visual", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(displayColorProperty);
-        EditorGUILayout.PropertyField(sizeProperty);
-
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Movement", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(movementSpeedProperty);
-
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Core Combat", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(damageProperty);
-        EditorGUILayout.PropertyField(bouncesProperty);
-
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Brick Interaction", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(passThroughBricksProperty);
-        EditorGUILayout.PropertyField(passThroughBallsProperty);
-        EditorGUILayout.PropertyField(appliesBurnProperty);
-
-        if (appliesBurnProperty.boolValue)
-        {
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(burnDamageProperty);
-            EditorGUILayout.PropertyField(burnTickIntervalProperty);
-            EditorGUILayout.PropertyField(burnHitCountProperty);
-            EditorGUI.indentLevel--;
-        }
-
+        DrawSection("Visual", displayColorProperty, sizeProperty);
+        DrawSection("Movement", movementSpeedProperty);
+        DrawSection("Core Combat", damageProperty, bouncesProperty);
+        DrawSection("Brick Interaction", passThroughBricksProperty, passThroughBallsProperty, appliesBurnProperty);
+        DrawConditionalGroup(appliesBurnProperty, burnDamageProperty, burnTickIntervalProperty, burnHitCountProperty);
         EditorGUILayout.PropertyField(lightningBurstProperty);
-
-        if (lightningBurstProperty.boolValue)
-        {
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(lightningBurstTargetCountProperty);
-            EditorGUILayout.PropertyField(lightningBurstDamageProperty);
-            EditorGUILayout.PropertyField(lightningBurstRadiusProperty);
-            EditorGUI.indentLevel--;
-        }
-
+        DrawConditionalGroup(lightningBurstProperty, lightningBurstTargetCountProperty, lightningBurstDamageProperty, lightningBurstRadiusProperty);
         EditorGUILayout.PropertyField(earthCrackProperty);
-
-        if (earthCrackProperty.boolValue)
-        {
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(shatterDamageProperty);
-            EditorGUILayout.PropertyField(shatterRadiusProperty);
-            EditorGUI.indentLevel--;
-        }
-
+        DrawConditionalGroup(earthCrackProperty, shatterDamageProperty, shatterRadiusProperty);
         EditorGUILayout.PropertyField(appliesRootProperty);
-
-        if (appliesRootProperty.boolValue)
-        {
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(rootDurationProperty);
-            EditorGUILayout.PropertyField(rootSpeedMultiplierProperty);
-            EditorGUI.indentLevel--;
-        }
-
+        DrawConditionalGroup(appliesRootProperty, rootDurationProperty, rootSpeedMultiplierProperty);
         EditorGUILayout.PropertyField(createsWaterDropsProperty);
+        DrawConditionalGroup(createsWaterDropsProperty, waterDropletTypeProperty, waterDropCooldownProperty);
 
-        if (createsWaterDropsProperty.boolValue)
-        {
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(waterDropletTypeProperty);
-            EditorGUILayout.PropertyField(waterDropCooldownProperty);
-            EditorGUI.indentLevel--;
-        }
-
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Elements", EditorStyles.boldLabel);
+        DrawSection("Elements");
         EditorGUILayout.PropertyField(elementsProperty, includeChildren: true);
 
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Strong Against", EditorStyles.boldLabel);
+        DrawSection("Strong Against");
         EditorGUILayout.PropertyField(strongAgainstProperty, includeChildren: true);
 
         serializedObject.ApplyModifiedProperties();

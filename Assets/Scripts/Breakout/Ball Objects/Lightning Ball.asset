@@ -13,10 +13,12 @@ MonoBehaviour:
   m_Name: Lightning Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallTypeData
   displayColor: {r: 0.99215686, g: 0.8901961, b: 0.26666668, a: 1}
-  movementSpeed: 8
+  size: 1
+  movementSpeed: 10
+  damage: 1
+  bounces: -1
   passThroughBricks: 0
-  collideWithBricks: 1
-  passThroughBricksMigrated: 1
+  passThroughBalls: 0
   appliesBurn: 0
   burnDamage: 1
   burnTickInterval: 0.5
@@ -31,5 +33,8 @@ MonoBehaviour:
   appliesRoot: 0
   rootDuration: 2
   rootSpeedMultiplier: 0.6
+  createsWaterDrops: 0
+  waterDropletType: {fileID: 0}
+  waterDropCooldown: 0.08
   elements: 03000000
   strongAgainst: 0200000005000000

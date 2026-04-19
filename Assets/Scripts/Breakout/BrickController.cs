@@ -42,6 +42,7 @@ public class BrickController : MonoBehaviour
     private float columnSlowTimeRemaining;
     private float columnSlowSpeedMultiplier = 1f;
     private Coroutine lightningPulseRoutine;
+    private readonly List<BrickController> nearbyBricksBuffer = new List<BrickController>();
 
     public int CurrentHitPoints => currentHitPoints;
     public BrickTypeData TypeData => typeData;
@@ -140,11 +141,6 @@ public class BrickController : MonoBehaviour
 
     public void ApplyBallHit(BallController ball)
     {
-        if (ball == null)
-        {
-            return;
-        }
-
         HandleBallHit(ball);
     }
 
@@ -180,6 +176,7 @@ public class BrickController : MonoBehaviour
             return;
         }
 
+        BallTypeData ballTypeData = ball.TypeData;
         bool wasCrackedBeforeHit = isCracked;
 
         int damage = GetDamageFromBall(ball);
@@ -192,25 +189,7 @@ public class BrickController : MonoBehaviour
             TriggerStoredCrackShatter();
         }
 
-        if (ball != null && ball.TypeData != null && ball.TypeData.AppliesBurn)
-        {
-            ApplyBurn(ball.TypeData.BurnDamage, ball.TypeData.BurnTickInterval, ball.TypeData.BurnHitCount);
-        }
-
-        if (ball != null && ball.TypeData != null && ball.TypeData.LightningBurst)
-        {
-            ApplyLightningBurst(ball.TypeData);
-        }
-
-        if (ball != null && ball.TypeData != null && ball.TypeData.EarthCrack)
-        {
-            ApplyEarthCrackHit(ball.TypeData);
-        }
-
-        if (ball != null && ball.TypeData != null && ball.TypeData.AppliesRoot)
-        {
-            ApplyRootToBrickAndAbove(ball.TypeData.RootDuration, ball.TypeData.RootSpeedMultiplier);
-        }
+        ApplyBallTypeEffects(ballTypeData);
 
         ball.FinalizeBrickHit();
     }
@@ -353,32 +332,15 @@ public class BrickController : MonoBehaviour
     {
         int shatterDamage = Mathf.Max(1, damage);
         float shatterRadius = Mathf.Max(0.1f, radius);
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, shatterRadius);
-        if (colliders == null || colliders.Length == 0)
+        CollectNearbyBricks(shatterRadius, nearbyBricksBuffer);
+        if (nearbyBricksBuffer.Count == 0)
         {
             return;
         }
 
-        List<BrickController> impactedBricks = new List<BrickController>(colliders.Length);
-        for (int i = 0; i < colliders.Length; i++)
+        for (int i = 0; i < nearbyBricksBuffer.Count; i++)
         {
-            Collider2D collider = colliders[i];
-            if (collider == null || !collider.TryGetComponent<BrickController>(out BrickController nearbyBrick))
-            {
-                continue;
-            }
-
-            if (nearbyBrick == this || nearbyBrick.CurrentHitPoints <= 0 || impactedBricks.Contains(nearbyBrick))
-            {
-                continue;
-            }
-
-            impactedBricks.Add(nearbyBrick);
-        }
-
-        for (int i = 0; i < impactedBricks.Count; i++)
-        {
-            BrickController nearbyBrick = impactedBricks[i];
+            BrickController nearbyBrick = nearbyBricksBuffer[i];
             nearbyBrick.ApplyDamage(shatterDamage);
         }
     }
@@ -536,13 +498,63 @@ public class BrickController : MonoBehaviour
         float burstRadius = Mathf.Max(0.1f, ballTypeData.LightningBurstRadius);
         TriggerLightningPulse();
 
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, burstRadius);
+        CollectNearbyBricks(burstRadius, nearbyBricksBuffer);
+        if (nearbyBricksBuffer.Count == 0)
+        {
+            return;
+        }
+
+        int burstHits = Mathf.Min(targetCount, nearbyBricksBuffer.Count);
+        for (int i = 0; i < burstHits; i++)
+        {
+            int randomIndex = Random.Range(i, nearbyBricksBuffer.Count);
+            BrickController selected = nearbyBricksBuffer[randomIndex];
+            nearbyBricksBuffer[randomIndex] = nearbyBricksBuffer[i];
+            nearbyBricksBuffer[i] = selected;
+
+            selected.TriggerLightningPulse();
+            selected.ApplyDamage(burstDamage);
+        }
+    }
+
+    private void ApplyBallTypeEffects(BallTypeData ballTypeData)
+    {
+        if (ballTypeData == null)
+        {
+            return;
+        }
+
+        if (ballTypeData.AppliesBurn)
+        {
+            ApplyBurn(ballTypeData.BurnDamage, ballTypeData.BurnTickInterval, ballTypeData.BurnHitCount);
+        }
+
+        if (ballTypeData.LightningBurst)
+        {
+            ApplyLightningBurst(ballTypeData);
+        }
+
+        if (ballTypeData.EarthCrack)
+        {
+            ApplyEarthCrackHit(ballTypeData);
+        }
+
+        if (ballTypeData.AppliesRoot)
+        {
+            ApplyRootToBrickAndAbove(ballTypeData.RootDuration, ballTypeData.RootSpeedMultiplier);
+        }
+    }
+
+    private void CollectNearbyBricks(float radius, List<BrickController> results)
+    {
+        results.Clear();
+
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, Mathf.Max(0.1f, radius));
         if (colliders == null || colliders.Length == 0)
         {
             return;
         }
 
-        List<BrickController> candidates = new List<BrickController>(colliders.Length);
         for (int i = 0; i < colliders.Length; i++)
         {
             Collider2D collider = colliders[i];
@@ -551,29 +563,12 @@ public class BrickController : MonoBehaviour
                 continue;
             }
 
-            if (nearbyBrick == this || nearbyBrick.CurrentHitPoints <= 0 || candidates.Contains(nearbyBrick))
+            if (nearbyBrick == this || nearbyBrick.CurrentHitPoints <= 0 || results.Contains(nearbyBrick))
             {
                 continue;
             }
 
-            candidates.Add(nearbyBrick);
-        }
-
-        if (candidates.Count == 0)
-        {
-            return;
-        }
-
-        int burstHits = Mathf.Min(targetCount, candidates.Count);
-        for (int i = 0; i < burstHits; i++)
-        {
-            int randomIndex = Random.Range(i, candidates.Count);
-            BrickController selected = candidates[randomIndex];
-            candidates[randomIndex] = candidates[i];
-            candidates[i] = selected;
-
-            selected.TriggerLightningPulse();
-            selected.ApplyDamage(burstDamage);
+            results.Add(nearbyBrick);
         }
     }
 

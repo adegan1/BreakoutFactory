@@ -8,6 +8,13 @@ public class BallController : MonoBehaviour
     private const float VelocitySqrThreshold = 0.001f;
     private const float SideWallNormalThreshold = 0.7f;
     private const float WaterDropSpawnOffset = 0.12f;
+    private static readonly Vector2[] WaterDropDirections =
+    {
+        new Vector2(1f, 1f),
+        new Vector2(-1f, 1f),
+        new Vector2(1f, -1f),
+        new Vector2(-1f, -1f)
+    };
 
     [Header("Type")]
     [SerializeField] private BallTypeData typeData;
@@ -44,7 +51,6 @@ public class BallController : MonoBehaviour
     private bool passThroughBalls;
     private bool destroyAfterCurrentBrickHit;
     private int remainingBrickBounces = -1;
-    private float waterDropCooldown = 0.08f;
     private float nextWaterDropAllowedTime;
     private Vector2 travelDirection = Vector2.up;
     private Vector2 lastVelocity;
@@ -207,9 +213,8 @@ public class BallController : MonoBehaviour
 
         if (passThroughBricks && other.TryGetComponent<BrickController>(out BrickController brick))
         {
-            if (!brickTriggersInside.Contains(other))
+            if (brickTriggersInside.Add(other))
             {
-                brickTriggersInside.Add(other);
                 brick.ApplyBallHit(this);
             }
 
@@ -366,7 +371,6 @@ public class BallController : MonoBehaviour
         passThroughBricks = typeData.PassThroughBricks;
         passThroughBalls = typeData.PassThroughBalls;
         remainingBrickBounces = typeData.Bounces;
-        waterDropCooldown = Mathf.Max(0.01f, typeData.WaterDropCooldown);
         nextWaterDropAllowedTime = 0f;
 
         if (ballCollider != null)
@@ -414,17 +418,7 @@ public class BallController : MonoBehaviour
             }
         }
 
-        Vector2 incoming = GetIncomingDirection();
-        Vector2 reflected = Vector2.Reflect(incoming, normal.normalized);
-        ApplyWallEscapeBias(ref reflected, normal);
-
-        if (Mathf.Abs(reflected.y) < minimumVerticalDirection)
-        {
-            float ySign = Mathf.Sign(reflected.y == 0f ? -normal.y : reflected.y);
-            reflected.y = ySign * minimumVerticalDirection;
-        }
-
-        SetTravelDirection(reflected, defaultYSign: -normal.y);
+        ReflectAndSetDirection(normal);
     }
 
     private void ApplyPaddleBounce(Bounds paddleBounds)
@@ -551,16 +545,17 @@ public class BallController : MonoBehaviour
 
     private void ReflectAndSetDirection(Vector2 normal)
     {
-        Vector2 reflected = Vector2.Reflect(GetIncomingDirection(), normal);
-        ApplyWallEscapeBias(ref reflected, normal);
+        Vector2 surfaceNormal = normal.sqrMagnitude > DirectionEpsilon ? normal.normalized : Vector2.up;
+        Vector2 reflected = Vector2.Reflect(GetIncomingDirection(), surfaceNormal);
+        ApplyWallEscapeBias(ref reflected, surfaceNormal);
 
         if (Mathf.Abs(reflected.y) < minimumVerticalDirection)
         {
-            float ySign = Mathf.Sign(reflected.y == 0f ? -normal.y : reflected.y);
+            float ySign = Mathf.Sign(reflected.y == 0f ? -surfaceNormal.y : reflected.y);
             reflected.y = ySign * minimumVerticalDirection;
         }
 
-        SetTravelDirection(reflected, defaultYSign: -normal.y);
+        SetTravelDirection(reflected, defaultYSign: -surfaceNormal.y);
     }
 
     private Vector2 GetIncomingDirection()
@@ -620,17 +615,9 @@ public class BallController : MonoBehaviour
 
         nextWaterDropAllowedTime = Time.time + typeData.WaterDropCooldown;
 
-        Vector2[] diagonalDirections =
+        for (int i = 0; i < WaterDropDirections.Length; i++)
         {
-            new Vector2(1f, 1f),
-            new Vector2(-1f, 1f),
-            new Vector2(1f, -1f),
-            new Vector2(-1f, -1f)
-        };
-
-        for (int i = 0; i < diagonalDirections.Length; i++)
-        {
-            Vector2 direction = diagonalDirections[i].normalized;
+            Vector2 direction = WaterDropDirections[i].normalized;
             Vector3 spawnPosition = transform.position + (Vector3)(direction * WaterDropSpawnOffset);
             BallController spawnedBall = Instantiate(this, spawnPosition, Quaternion.identity);
             spawnedBall.SetTypeData(typeData.WaterDropletType);

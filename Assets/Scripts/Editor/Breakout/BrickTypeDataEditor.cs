@@ -1,7 +1,7 @@
 using UnityEditor;
 
 [CustomEditor(typeof(BrickTypeData))]
-public class BrickTypeDataEditor : Editor
+public class BrickTypeDataEditor : BreakoutDataEditorBase
 {
     private SerializedProperty hitPointsProperty;
     private SerializedProperty displayColorProperty;
@@ -14,43 +14,25 @@ public class BrickTypeDataEditor : Editor
 
     private void OnEnable()
     {
-        hitPointsProperty = serializedObject.FindProperty("hitPoints");
-        displayColorProperty = serializedObject.FindProperty("displayColor");
-        scoreValueProperty = serializedObject.FindProperty("scoreValue");
-        flammableProperty = serializedObject.FindProperty("flammable");
-        fireResistantProperty = serializedObject.FindProperty("fireResistant");
-        amplifiesLightningProperty = serializedObject.FindProperty("amplifiesLightning");
-        lightningTargetBonusProperty = serializedObject.FindProperty("lightningTargetBonus");
-        typeProperty = serializedObject.FindProperty("type");
+        hitPointsProperty = FindProperty("hitPoints");
+        displayColorProperty = FindProperty("displayColor");
+        scoreValueProperty = FindProperty("scoreValue");
+        flammableProperty = FindProperty("flammable");
+        fireResistantProperty = FindProperty("fireResistant");
+        amplifiesLightningProperty = FindProperty("amplifiesLightning");
+        lightningTargetBonusProperty = FindProperty("lightningTargetBonus");
+        typeProperty = FindProperty("type");
     }
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
 
-        EditorGUILayout.LabelField("Core Properties", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(hitPointsProperty);
-        EditorGUILayout.PropertyField(displayColorProperty);
-        EditorGUILayout.PropertyField(scoreValueProperty);
-
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Fire Interaction", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(flammableProperty);
-        EditorGUILayout.PropertyField(fireResistantProperty);
-
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Lightning Interaction", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(amplifiesLightningProperty);
-        if (amplifiesLightningProperty.boolValue)
-        {
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(lightningTargetBonusProperty);
-            EditorGUI.indentLevel--;
-        }
-
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Type", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(typeProperty);
+        DrawSection("Core Properties", hitPointsProperty, displayColorProperty, scoreValueProperty);
+        DrawSection("Fire Interaction", flammableProperty, fireResistantProperty);
+        DrawSection("Lightning Interaction", amplifiesLightningProperty);
+        DrawConditionalGroup(amplifiesLightningProperty, lightningTargetBonusProperty);
+        DrawSection("Type", typeProperty);
 
         serializedObject.ApplyModifiedProperties();
     }

@@ -13,7 +13,28 @@ MonoBehaviour:
   m_Name: Wind Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallTypeData
   displayColor: {r: 0.39215687, g: 1, b: 0.654902, a: 1}
+  size: 1
   movementSpeed: 6
-  collideWithBricks: 0
+  damage: 1
+  bounces: -1
+  passThroughBricks: 1
+  passThroughBalls: 1
+  appliesBurn: 0
+  burnDamage: 1
+  burnTickInterval: 0.5
+  burnHitCount: 3
+  lightningBurst: 0
+  lightningBurstTargetCount: 2
+  lightningBurstDamage: 1
+  lightningBurstRadius: 2
+  earthCrack: 0
+  shatterDamage: 2
+  shatterRadius: 1.4
+  appliesRoot: 0
+  rootDuration: 2
+  rootSpeedMultiplier: 0.6
+  createsWaterDrops: 0
+  waterDropletType: {fileID: 0}
+  waterDropCooldown: 0.08
   elements: 06000000
   strongAgainst: 0300000001000000
