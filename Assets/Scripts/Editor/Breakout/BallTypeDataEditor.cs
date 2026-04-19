@@ -5,7 +5,7 @@ public class BallTypeDataEditor : Editor
 {
     private SerializedProperty displayColorProperty;
     private SerializedProperty movementSpeedProperty;
-    private SerializedProperty collideWithBricksProperty;
+    private SerializedProperty passThroughBricksProperty;
     private SerializedProperty appliesBurnProperty;
     private SerializedProperty burnDamageProperty;
     private SerializedProperty burnTickIntervalProperty;
@@ -27,7 +27,7 @@ public class BallTypeDataEditor : Editor
     {
         displayColorProperty = serializedObject.FindProperty("displayColor");
         movementSpeedProperty = serializedObject.FindProperty("movementSpeed");
-        collideWithBricksProperty = serializedObject.FindProperty("collideWithBricks");
+        passThroughBricksProperty = serializedObject.FindProperty("passThroughBricks");
         appliesBurnProperty = serializedObject.FindProperty("appliesBurn");
         burnDamageProperty = serializedObject.FindProperty("burnDamage");
         burnTickIntervalProperty = serializedObject.FindProperty("burnTickInterval");
@@ -59,7 +59,7 @@ public class BallTypeDataEditor : Editor
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Brick Interaction", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(collideWithBricksProperty);
+        EditorGUILayout.PropertyField(passThroughBricksProperty);
         EditorGUILayout.PropertyField(appliesBurnProperty);
 
         if (appliesBurnProperty.boolValue)

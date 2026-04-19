@@ -21,7 +21,9 @@ public class BallTypeData : ScriptableObject
     [SerializeField, Min(0f)] private float movementSpeed = 8f;
 
     // Brick Interaction
-    [SerializeField] private bool collideWithBricks = true;
+    [SerializeField] private bool passThroughBricks = false;
+    [SerializeField, HideInInspector] private bool collideWithBricks = true;
+    [SerializeField, HideInInspector] private bool passThroughBricksMigrated = false;
     [SerializeField] private bool appliesBurn = false;
     [SerializeField, Min(1)] private int burnDamage = 1;
     [SerializeField, Min(0.01f)] private float burnTickInterval = 0.5f;
@@ -45,7 +47,7 @@ public class BallTypeData : ScriptableObject
 
     public Color DisplayColor => displayColor;
     public float MovementSpeed => movementSpeed;
-    public bool CollideWithBricks => collideWithBricks;
+    public bool PassThroughBricks => passThroughBricks;
     public bool AppliesBurn => appliesBurn;
     public int BurnDamage => burnDamage;
     public float BurnTickInterval => burnTickInterval;

@@ -165,7 +165,7 @@ public class BrickController : MonoBehaviour
             return;
         }
 
-        if (ball.TypeData != null && !ball.TypeData.CollideWithBricks)
+        if (ball.TypeData != null && ball.TypeData.PassThroughBricks)
         {
             return;
         }

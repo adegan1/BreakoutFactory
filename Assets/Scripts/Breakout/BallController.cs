@@ -38,7 +38,7 @@ public class BallController : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private bool launched;
     private bool hasBeenLost;
-    private bool collideWithBricks = true;
+    private bool passThroughBricks;
     private Vector2 travelDirection = Vector2.up;
     private Vector2 lastVelocity;
     private Vector2 previousPosition;
@@ -191,12 +191,12 @@ public class BallController : MonoBehaviour
             return;
         }
 
-        if (!collideWithBricks && other.isTrigger && !other.CompareTag("Paddle"))
+        if (passThroughBricks && other.isTrigger && !other.CompareTag("Paddle"))
         {
             return;
         }
 
-        if (!collideWithBricks && other.TryGetComponent<BrickController>(out BrickController brick))
+        if (passThroughBricks && other.TryGetComponent<BrickController>(out BrickController brick))
         {
             if (!brickTriggersInside.Contains(other))
             {
@@ -207,12 +207,12 @@ public class BallController : MonoBehaviour
             return;
         }
 
-        if (!collideWithBricks && other.TryGetComponent<BallController>(out _))
+        if (passThroughBricks && other.TryGetComponent<BallController>(out _))
         {
             return;
         }
 
-        if (!collideWithBricks)
+        if (passThroughBricks)
         {
             BounceOffTriggerCollider(other);
         }
@@ -340,7 +340,7 @@ public class BallController : MonoBehaviour
     {
         if (typeData == null)
         {
-            collideWithBricks = true;
+            passThroughBricks = false;
             if (ballCollider != null)
             {
                 ballCollider.isTrigger = false;
@@ -351,11 +351,11 @@ public class BallController : MonoBehaviour
         }
 
         speed = Mathf.Max(0f, typeData.MovementSpeed);
-        collideWithBricks = typeData.CollideWithBricks;
+        passThroughBricks = typeData.PassThroughBricks;
 
         if (ballCollider != null)
         {
-            ballCollider.isTrigger = !collideWithBricks;
+            ballCollider.isTrigger = passThroughBricks;
         }
 
         brickTriggersInside.Clear();
@@ -510,7 +510,7 @@ public class BallController : MonoBehaviour
 
     private bool ShouldIgnoreBrickCollision(Collision2D collision)
     {
-        if (collideWithBricks || !collision.gameObject.TryGetComponent<BrickController>(out _))
+        if (!passThroughBricks || !collision.gameObject.TryGetComponent<BrickController>(out _))
         {
             return false;
         }
