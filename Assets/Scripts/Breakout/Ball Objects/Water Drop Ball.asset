@@ -13,10 +13,12 @@ MonoBehaviour:
   m_Name: Water Drop Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallTypeData
   displayColor: {r: 0.045122836, g: 0.3677147, b: 0.735849, a: 0.7882353}
-  movementSpeed: 8
+  size: 0.5
+  movementSpeed: 6
+  damage: 1
+  bounces: 0
   passThroughBricks: 0
-  collideWithBricks: 1
-  passThroughBricksMigrated: 0
+  passThroughBalls: 1
   appliesBurn: 0
   burnDamage: 1
   burnTickInterval: 0.5
@@ -31,5 +33,8 @@ MonoBehaviour:
   appliesRoot: 0
   rootDuration: 2
   rootSpeedMultiplier: 0.6
-  elements: 00000000
-  strongAgainst: 
+  createsWaterDrops: 0
+  waterDropletType: {fileID: 0}
+  waterDropCooldown: 0.08
+  elements: 02000000
+  strongAgainst: 0100000005000000

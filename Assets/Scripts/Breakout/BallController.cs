@@ -42,6 +42,7 @@ public class BallController : MonoBehaviour
     private bool hasBeenLost;
     private bool passThroughBricks;
     private bool passThroughBalls;
+    private bool destroyAfterCurrentBrickHit;
     private int remainingBrickBounces = -1;
     private float waterDropCooldown = 0.08f;
     private float nextWaterDropAllowedTime;
@@ -586,12 +587,23 @@ public class BallController : MonoBehaviour
 
         if (remainingBrickBounces <= 0)
         {
-            LoseBall();
-            return false;
+            destroyAfterCurrentBrickHit = true;
+            return true;
         }
 
         remainingBrickBounces--;
         return true;
+    }
+
+    public void FinalizeBrickHit()
+    {
+        if (!destroyAfterCurrentBrickHit || hasBeenLost)
+        {
+            return;
+        }
+
+        destroyAfterCurrentBrickHit = false;
+        LoseBall();
     }
 
     public void TrySpawnWaterDropsFromBrickHit()

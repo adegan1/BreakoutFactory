@@ -211,6 +211,8 @@ public class BrickController : MonoBehaviour
         {
             ApplyRootToBrickAndAbove(ball.TypeData.RootDuration, ball.TypeData.RootSpeedMultiplier);
         }
+
+        ball.FinalizeBrickHit();
     }
 
     protected virtual int GetDamageFromBall(BallController ball)
