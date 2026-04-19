@@ -14,6 +14,12 @@ public class BallTypeDataEditor : Editor
     private SerializedProperty lightningBurstTargetCountProperty;
     private SerializedProperty lightningBurstDamageProperty;
     private SerializedProperty lightningBurstRadiusProperty;
+    private SerializedProperty earthCrackProperty;
+    private SerializedProperty shatterDamageProperty;
+    private SerializedProperty shatterRadiusProperty;
+    private SerializedProperty appliesRootProperty;
+    private SerializedProperty rootDurationProperty;
+    private SerializedProperty rootSpeedMultiplierProperty;
     private SerializedProperty elementsProperty;
     private SerializedProperty strongAgainstProperty;
 
@@ -30,6 +36,12 @@ public class BallTypeDataEditor : Editor
         lightningBurstTargetCountProperty = serializedObject.FindProperty("lightningBurstTargetCount");
         lightningBurstDamageProperty = serializedObject.FindProperty("lightningBurstDamage");
         lightningBurstRadiusProperty = serializedObject.FindProperty("lightningBurstRadius");
+        earthCrackProperty = serializedObject.FindProperty("earthCrack");
+        shatterDamageProperty = serializedObject.FindProperty("shatterDamage");
+        shatterRadiusProperty = serializedObject.FindProperty("shatterRadius");
+        appliesRootProperty = serializedObject.FindProperty("appliesRoot");
+        rootDurationProperty = serializedObject.FindProperty("rootDuration");
+        rootSpeedMultiplierProperty = serializedObject.FindProperty("rootSpeedMultiplier");
         elementsProperty = serializedObject.FindProperty("elements");
         strongAgainstProperty = serializedObject.FindProperty("strongAgainst");
     }
@@ -67,6 +79,26 @@ public class BallTypeDataEditor : Editor
             EditorGUILayout.PropertyField(lightningBurstTargetCountProperty);
             EditorGUILayout.PropertyField(lightningBurstDamageProperty);
             EditorGUILayout.PropertyField(lightningBurstRadiusProperty);
+            EditorGUI.indentLevel--;
+        }
+
+        EditorGUILayout.PropertyField(earthCrackProperty);
+
+        if (earthCrackProperty.boolValue)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(shatterDamageProperty);
+            EditorGUILayout.PropertyField(shatterRadiusProperty);
+            EditorGUI.indentLevel--;
+        }
+
+        EditorGUILayout.PropertyField(appliesRootProperty);
+
+        if (appliesRootProperty.boolValue)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(rootDurationProperty);
+            EditorGUILayout.PropertyField(rootSpeedMultiplierProperty);
             EditorGUI.indentLevel--;
         }
 

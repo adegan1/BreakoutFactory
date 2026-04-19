@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class BrickController : MonoBehaviour
 {
+    private const float MinimumRootSpeedMultiplier = 0.05f;
+
     [SerializeField] private BrickTypeData typeData;
 
     [Header("Spawn Animation")]
@@ -22,13 +24,23 @@ public class BrickController : MonoBehaviour
     private int currentHitPoints;
     private int maxHitPoints;
     private SpriteRenderer spriteRenderer;
+    private Collider2D brickCollider;
     private Vector3 targetScale;
     private bool isGrowing;
     private bool isBurning;
+    private bool isCracked;
+    private bool isRooted;
+    private bool hasColumnSlow;
+    private int crackShatterDamage = 1;
+    private float crackShatterRadius = 1f;
     private int burnDamage;
     private float burnTickInterval;
     private float burnTickTimer;
     private int burnHitsRemaining;
+    private float rootTimeRemaining;
+    private float rootSpeedMultiplier = 1f;
+    private float columnSlowTimeRemaining;
+    private float columnSlowSpeedMultiplier = 1f;
     private Coroutine lightningPulseRoutine;
 
     public int CurrentHitPoints => currentHitPoints;
@@ -41,6 +53,7 @@ public class BrickController : MonoBehaviour
         isGrowing = true;
 
         spriteRenderer = GetComponent<SpriteRenderer>();
+        brickCollider = GetComponent<Collider2D>();
         ApplyTypeData();
     }
 
@@ -49,13 +62,16 @@ public class BrickController : MonoBehaviour
         UpdateSpawnGrowth();
 
         UpdateBurning();
+        UpdateRooting();
+        UpdateColumnSlowing();
 
-        if (!moveDownward || downwardSpeed <= 0f)
+        float currentDownwardSpeed = GetCurrentDownwardSpeed();
+        if (!moveDownward || currentDownwardSpeed <= 0f)
         {
             return;
         }
 
-        transform.position += Vector3.down * downwardSpeed * Time.deltaTime;
+        transform.position += Vector3.down * currentDownwardSpeed * Time.deltaTime;
     }
 
     private void UpdateSpawnGrowth()
@@ -110,6 +126,9 @@ public class BrickController : MonoBehaviour
         maxHitPoints = Mathf.Max(1, typeData.HitPoints);
         currentHitPoints = maxHitPoints;
         ClearBurn();
+        ClearEarthCrack();
+        ClearRoot();
+        ClearColumnSlow();
 
         if (spriteRenderer != null)
         {
@@ -156,8 +175,15 @@ public class BrickController : MonoBehaviour
 
     protected virtual void HandleBallHit(BallController ball)
     {
+        bool wasCrackedBeforeHit = isCracked;
+
         int damage = GetDamageFromBall(ball);
         ApplyDamage(damage);
+
+        if (wasCrackedBeforeHit)
+        {
+            TriggerStoredCrackShatter();
+        }
 
         if (ball != null && ball.TypeData != null && ball.TypeData.AppliesBurn)
         {
@@ -167,6 +193,16 @@ public class BrickController : MonoBehaviour
         if (ball != null && ball.TypeData != null && ball.TypeData.LightningBurst)
         {
             ApplyLightningBurst(ball.TypeData);
+        }
+
+        if (ball != null && ball.TypeData != null && ball.TypeData.EarthCrack)
+        {
+            ApplyEarthCrackHit(ball.TypeData);
+        }
+
+        if (ball != null && ball.TypeData != null && ball.TypeData.AppliesRoot)
+        {
+            ApplyRootToBrickAndAbove(ball.TypeData.RootDuration, ball.TypeData.RootSpeedMultiplier);
         }
     }
 
@@ -268,12 +304,210 @@ public class BrickController : MonoBehaviour
 
     private int GetBurnDamage()
     {
-        if (typeData != null && typeData.Flammable)
+        if (isRooted || (typeData != null && typeData.Flammable))
         {
             return burnDamage * 2;
         }
 
         return burnDamage;
+    }
+
+    private void ApplyEarthCrackHit(BallTypeData ballTypeData)
+    {
+        if (ballTypeData == null)
+        {
+            return;
+        }
+
+        if (isCracked)
+        {
+            return;
+        }
+
+        isCracked = true;
+        crackShatterDamage = Mathf.Max(1, ballTypeData.ShatterDamage);
+        crackShatterRadius = Mathf.Max(0.1f, ballTypeData.ShatterRadius);
+    }
+
+    private void TriggerStoredCrackShatter()
+    {
+        if (!isCracked)
+        {
+            return;
+        }
+
+        isCracked = false;
+        TriggerShatter(crackShatterDamage, crackShatterRadius);
+    }
+
+    private void TriggerShatter(int damage, float radius)
+    {
+        int shatterDamage = Mathf.Max(1, damage);
+        float shatterRadius = Mathf.Max(0.1f, radius);
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, shatterRadius);
+        if (colliders == null || colliders.Length == 0)
+        {
+            return;
+        }
+
+        List<BrickController> impactedBricks = new List<BrickController>(colliders.Length);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider2D collider = colliders[i];
+            if (collider == null || !collider.TryGetComponent<BrickController>(out BrickController nearbyBrick))
+            {
+                continue;
+            }
+
+            if (nearbyBrick == this || nearbyBrick.CurrentHitPoints <= 0 || impactedBricks.Contains(nearbyBrick))
+            {
+                continue;
+            }
+
+            impactedBricks.Add(nearbyBrick);
+        }
+
+        for (int i = 0; i < impactedBricks.Count; i++)
+        {
+            BrickController nearbyBrick = impactedBricks[i];
+            nearbyBrick.ApplyDamage(shatterDamage);
+        }
+    }
+
+    private void ClearEarthCrack()
+    {
+        isCracked = false;
+        crackShatterDamage = 1;
+        crackShatterRadius = 1f;
+    }
+
+    private void ApplyRootToBrickAndAbove(float duration, float speedMultiplier)
+    {
+        float clampedDuration = Mathf.Max(0f, duration);
+        if (clampedDuration <= 0f)
+        {
+            return;
+        }
+
+        float clampedSpeedMultiplier = Mathf.Clamp(speedMultiplier, MinimumRootSpeedMultiplier, 1f);
+        float yThreshold = transform.position.y - 0.01f;
+        float xTolerance = GetColumnTolerance();
+
+        Transform parentTransform = transform.parent;
+        if (parentTransform == null)
+        {
+            ApplyRoot(clampedDuration, clampedSpeedMultiplier);
+            return;
+        }
+
+        for (int i = 0; i < parentTransform.childCount; i++)
+        {
+            Transform child = parentTransform.GetChild(i);
+            if (child == null || child.position.y < yThreshold)
+            {
+                continue;
+            }
+
+            if (Mathf.Abs(child.position.x - transform.position.x) > xTolerance)
+            {
+                continue;
+            }
+
+            if (!child.TryGetComponent<BrickController>(out BrickController brick))
+            {
+                continue;
+            }
+
+            if (brick == this)
+            {
+                brick.ApplyRoot(clampedDuration, clampedSpeedMultiplier);
+                continue;
+            }
+
+            brick.ApplyColumnSlow(clampedDuration, clampedSpeedMultiplier);
+        }
+    }
+
+    private void ApplyRoot(float duration, float speedMultiplier)
+    {
+        isRooted = true;
+        rootTimeRemaining = Mathf.Max(0f, duration);
+        rootSpeedMultiplier = Mathf.Clamp(speedMultiplier, MinimumRootSpeedMultiplier, 1f);
+    }
+
+    private void ApplyColumnSlow(float duration, float speedMultiplier)
+    {
+        hasColumnSlow = true;
+        columnSlowTimeRemaining = Mathf.Max(0f, duration);
+        columnSlowSpeedMultiplier = Mathf.Clamp(speedMultiplier, MinimumRootSpeedMultiplier, 1f);
+    }
+
+    private void UpdateRooting()
+    {
+        if (!isRooted)
+        {
+            return;
+        }
+
+        rootTimeRemaining -= Time.deltaTime;
+        if (rootTimeRemaining <= 0f)
+        {
+            ClearRoot();
+        }
+    }
+
+    private void UpdateColumnSlowing()
+    {
+        if (!hasColumnSlow)
+        {
+            return;
+        }
+
+        columnSlowTimeRemaining -= Time.deltaTime;
+        if (columnSlowTimeRemaining <= 0f)
+        {
+            ClearColumnSlow();
+        }
+    }
+
+    private void ClearRoot()
+    {
+        isRooted = false;
+        rootTimeRemaining = 0f;
+        rootSpeedMultiplier = 1f;
+    }
+
+    private void ClearColumnSlow()
+    {
+        hasColumnSlow = false;
+        columnSlowTimeRemaining = 0f;
+        columnSlowSpeedMultiplier = 1f;
+    }
+
+    private float GetCurrentDownwardSpeed()
+    {
+        float speedMultiplier = 1f;
+        if (isRooted)
+        {
+            speedMultiplier = Mathf.Min(speedMultiplier, Mathf.Clamp(rootSpeedMultiplier, MinimumRootSpeedMultiplier, 1f));
+        }
+
+        if (hasColumnSlow)
+        {
+            speedMultiplier = Mathf.Min(speedMultiplier, Mathf.Clamp(columnSlowSpeedMultiplier, MinimumRootSpeedMultiplier, 1f));
+        }
+
+        return downwardSpeed * speedMultiplier;
+    }
+
+    private float GetColumnTolerance()
+    {
+        if (brickCollider != null)
+        {
+            return Mathf.Max(0.05f, brickCollider.bounds.extents.x * 0.7f);
+        }
+
+        return 0.6f;
     }
 
     private void ApplyLightningBurst(BallTypeData ballTypeData)

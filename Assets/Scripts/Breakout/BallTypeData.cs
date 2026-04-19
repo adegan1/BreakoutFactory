@@ -30,6 +30,12 @@ public class BallTypeData : ScriptableObject
     [SerializeField, Min(1)] private int lightningBurstTargetCount = 2;
     [SerializeField, Min(1)] private int lightningBurstDamage = 1;
     [SerializeField, Min(0.1f)] private float lightningBurstRadius = 2f;
+    [SerializeField] private bool earthCrack = false;
+    [SerializeField, Min(1)] private int shatterDamage = 2;
+    [SerializeField, Min(0.1f)] private float shatterRadius = 1.4f;
+    [SerializeField] private bool appliesRoot = false;
+    [SerializeField, Min(0.1f)] private float rootDuration = 2f;
+    [SerializeField, Range(0.1f, 1f)] private float rootSpeedMultiplier = 0.6f;
 
     // Elements
     [SerializeField] private BallElement[] elements = new BallElement[] { BallElement.Basic };
@@ -48,6 +54,12 @@ public class BallTypeData : ScriptableObject
     public int LightningBurstTargetCount => lightningBurstTargetCount;
     public int LightningBurstDamage => lightningBurstDamage;
     public float LightningBurstRadius => lightningBurstRadius;
+    public bool EarthCrack => earthCrack;
+    public int ShatterDamage => shatterDamage;
+    public float ShatterRadius => shatterRadius;
+    public bool AppliesRoot => appliesRoot;
+    public float RootDuration => rootDuration;
+    public float RootSpeedMultiplier => rootSpeedMultiplier;
     public BallElement[] Elements => elements;
     public BallElement[] StrongAgainst => strongAgainst;
 
