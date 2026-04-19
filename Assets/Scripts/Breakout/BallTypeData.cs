@@ -26,6 +26,10 @@ public class BallTypeData : ScriptableObject
     [SerializeField, Min(1)] private int burnDamage = 1;
     [SerializeField, Min(0.01f)] private float burnTickInterval = 0.5f;
     [SerializeField, Min(1)] private int burnHitCount = 3;
+    [SerializeField] private bool lightningBurst = false;
+    [SerializeField, Min(1)] private int lightningBurstTargetCount = 2;
+    [SerializeField, Min(1)] private int lightningBurstDamage = 1;
+    [SerializeField, Min(0.1f)] private float lightningBurstRadius = 2f;
 
     // Elements
     [SerializeField] private BallElement[] elements = new BallElement[] { BallElement.Basic };
@@ -40,6 +44,10 @@ public class BallTypeData : ScriptableObject
     public int BurnDamage => burnDamage;
     public float BurnTickInterval => burnTickInterval;
     public int BurnHitCount => burnHitCount;
+    public bool LightningBurst => lightningBurst;
+    public int LightningBurstTargetCount => lightningBurstTargetCount;
+    public int LightningBurstDamage => lightningBurstDamage;
+    public float LightningBurstRadius => lightningBurstRadius;
     public BallElement[] Elements => elements;
     public BallElement[] StrongAgainst => strongAgainst;
 

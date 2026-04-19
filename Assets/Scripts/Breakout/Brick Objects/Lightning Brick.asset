@@ -17,4 +17,6 @@ MonoBehaviour:
   scoreValue: 10
   flammable: 0
   fireResistant: 0
+  amplifiesLightning: 0
+  lightningTargetBonus: 2
   type: 3

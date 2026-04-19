@@ -15,5 +15,13 @@ MonoBehaviour:
   displayColor: {r: 0.99215686, g: 0.8901961, b: 0.26666668, a: 1}
   movementSpeed: 8
   collideWithBricks: 1
+  appliesBurn: 0
+  burnDamage: 1
+  burnTickInterval: 0.5
+  burnHitCount: 3
+  lightningBurst: 1
+  lightningBurstTargetCount: 3
+  lightningBurstDamage: 1
+  lightningBurstRadius: 1
   elements: 03000000
   strongAgainst: 0200000005000000

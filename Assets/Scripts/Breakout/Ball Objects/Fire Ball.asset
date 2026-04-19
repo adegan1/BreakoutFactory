@@ -17,7 +17,11 @@ MonoBehaviour:
   collideWithBricks: 1
   appliesBurn: 1
   burnDamage: 1
-  burnTickInterval: 0.5
-  burnHitCount: 3
+  burnTickInterval: 1
+  burnHitCount: 5
+  lightningBurst: 0
+  lightningBurstTargetCount: 2
+  lightningBurstDamage: 1
+  lightningBurstRadius: 2
   elements: 01000000
   strongAgainst: 0400000006000000

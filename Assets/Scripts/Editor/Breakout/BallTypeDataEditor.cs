@@ -10,6 +10,10 @@ public class BallTypeDataEditor : Editor
     private SerializedProperty burnDamageProperty;
     private SerializedProperty burnTickIntervalProperty;
     private SerializedProperty burnHitCountProperty;
+    private SerializedProperty lightningBurstProperty;
+    private SerializedProperty lightningBurstTargetCountProperty;
+    private SerializedProperty lightningBurstDamageProperty;
+    private SerializedProperty lightningBurstRadiusProperty;
     private SerializedProperty elementsProperty;
     private SerializedProperty strongAgainstProperty;
 
@@ -22,6 +26,10 @@ public class BallTypeDataEditor : Editor
         burnDamageProperty = serializedObject.FindProperty("burnDamage");
         burnTickIntervalProperty = serializedObject.FindProperty("burnTickInterval");
         burnHitCountProperty = serializedObject.FindProperty("burnHitCount");
+        lightningBurstProperty = serializedObject.FindProperty("lightningBurst");
+        lightningBurstTargetCountProperty = serializedObject.FindProperty("lightningBurstTargetCount");
+        lightningBurstDamageProperty = serializedObject.FindProperty("lightningBurstDamage");
+        lightningBurstRadiusProperty = serializedObject.FindProperty("lightningBurstRadius");
         elementsProperty = serializedObject.FindProperty("elements");
         strongAgainstProperty = serializedObject.FindProperty("strongAgainst");
     }
@@ -48,6 +56,17 @@ public class BallTypeDataEditor : Editor
             EditorGUILayout.PropertyField(burnDamageProperty);
             EditorGUILayout.PropertyField(burnTickIntervalProperty);
             EditorGUILayout.PropertyField(burnHitCountProperty);
+            EditorGUI.indentLevel--;
+        }
+
+        EditorGUILayout.PropertyField(lightningBurstProperty);
+
+        if (lightningBurstProperty.boolValue)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(lightningBurstTargetCountProperty);
+            EditorGUILayout.PropertyField(lightningBurstDamageProperty);
+            EditorGUILayout.PropertyField(lightningBurstRadiusProperty);
             EditorGUI.indentLevel--;
         }
 

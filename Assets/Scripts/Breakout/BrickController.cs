@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 public class BrickController : MonoBehaviour
 {
@@ -11,6 +13,12 @@ public class BrickController : MonoBehaviour
     [SerializeField] private bool moveDownward;
     [SerializeField] private float downwardSpeed;
 
+    [Header("Lightning VFX")]
+    [SerializeField] private bool enableLightningPulse = true;
+    [SerializeField] private Color lightningPulseColor = new Color(0.7f, 0.95f, 1f, 1f);
+    [SerializeField, Min(0.01f)] private float lightningPulseDuration = 0.12f;
+    [SerializeField, Range(0f, 1f)] private float lightningPulseStrength = 0.9f;
+
     private int currentHitPoints;
     private int maxHitPoints;
     private SpriteRenderer spriteRenderer;
@@ -21,6 +29,7 @@ public class BrickController : MonoBehaviour
     private float burnTickInterval;
     private float burnTickTimer;
     private int burnHitsRemaining;
+    private Coroutine lightningPulseRoutine;
 
     public int CurrentHitPoints => currentHitPoints;
     public BrickTypeData TypeData => typeData;
@@ -154,6 +163,11 @@ public class BrickController : MonoBehaviour
         {
             ApplyBurn(ball.TypeData.BurnDamage, ball.TypeData.BurnTickInterval, ball.TypeData.BurnHitCount);
         }
+
+        if (ball != null && ball.TypeData != null && ball.TypeData.LightningBurst)
+        {
+            ApplyLightningBurst(ball.TypeData);
+        }
     }
 
     protected virtual int GetDamageFromBall(BallController ball)
@@ -260,5 +274,150 @@ public class BrickController : MonoBehaviour
         }
 
         return burnDamage;
+    }
+
+    private void ApplyLightningBurst(BallTypeData ballTypeData)
+    {
+        if (ballTypeData == null)
+        {
+            return;
+        }
+
+        int targetCount = Mathf.Max(0, ballTypeData.LightningBurstTargetCount + GetLightningTargetBonus());
+        if (targetCount <= 0)
+        {
+            return;
+        }
+
+        int burstDamage = Mathf.Max(1, ballTypeData.LightningBurstDamage);
+        float burstRadius = Mathf.Max(0.1f, ballTypeData.LightningBurstRadius);
+        TriggerLightningPulse();
+
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, burstRadius);
+        if (colliders == null || colliders.Length == 0)
+        {
+            return;
+        }
+
+        List<BrickController> candidates = new List<BrickController>(colliders.Length);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider2D collider = colliders[i];
+            if (collider == null || !collider.TryGetComponent<BrickController>(out BrickController nearbyBrick))
+            {
+                continue;
+            }
+
+            if (nearbyBrick == this || nearbyBrick.CurrentHitPoints <= 0 || candidates.Contains(nearbyBrick))
+            {
+                continue;
+            }
+
+            candidates.Add(nearbyBrick);
+        }
+
+        if (candidates.Count == 0)
+        {
+            return;
+        }
+
+        int burstHits = Mathf.Min(targetCount, candidates.Count);
+        for (int i = 0; i < burstHits; i++)
+        {
+            int randomIndex = Random.Range(i, candidates.Count);
+            BrickController selected = candidates[randomIndex];
+            candidates[randomIndex] = candidates[i];
+            candidates[i] = selected;
+
+            selected.TriggerLightningPulse();
+            selected.ApplyDamage(burstDamage);
+        }
+    }
+
+    private int GetLightningTargetBonus()
+    {
+        if (typeData == null || !typeData.AmplifiesLightning)
+        {
+            return 0;
+        }
+
+        return Mathf.Max(0, typeData.LightningTargetBonus);
+    }
+
+    private void TriggerLightningPulse()
+    {
+        if (!enableLightningPulse || spriteRenderer == null)
+        {
+            return;
+        }
+
+        if (lightningPulseRoutine != null)
+        {
+            StopCoroutine(lightningPulseRoutine);
+        }
+
+        lightningPulseRoutine = StartCoroutine(LightningPulseCoroutine());
+    }
+
+    private IEnumerator LightningPulseCoroutine()
+    {
+        float duration = Mathf.Max(0.01f, lightningPulseDuration);
+        float halfDuration = duration * 0.5f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+
+            float pulse01;
+            if (elapsed <= halfDuration)
+            {
+                pulse01 = halfDuration <= 0f ? 1f : elapsed / halfDuration;
+            }
+            else
+            {
+                float downElapsed = elapsed - halfDuration;
+                pulse01 = 1f - (halfDuration <= 0f ? 1f : downElapsed / halfDuration);
+            }
+
+            ApplyLightningPulseColor(Mathf.Clamp01(pulse01));
+            yield return null;
+        }
+
+        SetBaseBrickColor();
+        lightningPulseRoutine = null;
+    }
+
+    private void ApplyLightningPulseColor(float pulse01)
+    {
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        Color baseColor = GetBaseBrickColor();
+        Color pulseColor = lightningPulseColor;
+        pulseColor.a = baseColor.a;
+
+        float weight = Mathf.Clamp01(lightningPulseStrength) * Mathf.Clamp01(pulse01);
+        spriteRenderer.color = Color.Lerp(baseColor, pulseColor, weight);
+    }
+
+    private void SetBaseBrickColor()
+    {
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        spriteRenderer.color = GetBaseBrickColor();
+    }
+
+    private Color GetBaseBrickColor()
+    {
+        Color baseColor = typeData != null ? typeData.DisplayColor : spriteRenderer.color;
+        float ratio = Mathf.Clamp01((float)currentHitPoints / Mathf.Max(1, maxHitPoints));
+        baseColor.a = ratio;
+        return baseColor;
     }
 }

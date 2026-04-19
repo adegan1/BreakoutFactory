@@ -8,6 +8,8 @@ public class BrickTypeDataEditor : Editor
     private SerializedProperty scoreValueProperty;
     private SerializedProperty flammableProperty;
     private SerializedProperty fireResistantProperty;
+    private SerializedProperty amplifiesLightningProperty;
+    private SerializedProperty lightningTargetBonusProperty;
     private SerializedProperty typeProperty;
 
     private void OnEnable()
@@ -17,6 +19,8 @@ public class BrickTypeDataEditor : Editor
         scoreValueProperty = serializedObject.FindProperty("scoreValue");
         flammableProperty = serializedObject.FindProperty("flammable");
         fireResistantProperty = serializedObject.FindProperty("fireResistant");
+        amplifiesLightningProperty = serializedObject.FindProperty("amplifiesLightning");
+        lightningTargetBonusProperty = serializedObject.FindProperty("lightningTargetBonus");
         typeProperty = serializedObject.FindProperty("type");
     }
 
@@ -33,6 +37,16 @@ public class BrickTypeDataEditor : Editor
         EditorGUILayout.LabelField("Fire Interaction", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(flammableProperty);
         EditorGUILayout.PropertyField(fireResistantProperty);
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Lightning Interaction", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(amplifiesLightningProperty);
+        if (amplifiesLightningProperty.boolValue)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(lightningTargetBonusProperty);
+            EditorGUI.indentLevel--;
+        }
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Type", EditorStyles.boldLabel);
