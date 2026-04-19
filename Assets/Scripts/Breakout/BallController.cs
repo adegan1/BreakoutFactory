@@ -7,6 +7,7 @@ public class BallController : MonoBehaviour
     private const float DirectionEpsilon = 0.0001f;
     private const float VelocitySqrThreshold = 0.001f;
     private const float SideWallNormalThreshold = 0.7f;
+    private const float WaterDropSpawnOffset = 0.12f;
 
     [Header("Type")]
     [SerializeField] private BallTypeData typeData;
@@ -36,9 +37,14 @@ public class BallController : MonoBehaviour
     private Rigidbody2D rb;
     private Collider2D ballCollider;
     private SpriteRenderer spriteRenderer;
+    private Vector3 baseLocalScale;
     private bool launched;
     private bool hasBeenLost;
     private bool passThroughBricks;
+    private bool passThroughBalls;
+    private int remainingBrickBounces = -1;
+    private float waterDropCooldown = 0.08f;
+    private float nextWaterDropAllowedTime;
     private Vector2 travelDirection = Vector2.up;
     private Vector2 lastVelocity;
     private Vector2 previousPosition;
@@ -52,12 +58,14 @@ public class BallController : MonoBehaviour
 
     public bool IsLaunched => launched;
     public BallTypeData TypeData => typeData;
+    public bool PassThroughBallsEnabled => passThroughBalls;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         ballCollider = GetComponent<Collider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        baseLocalScale = transform.localScale;
         previousPosition = rb.position;
     }
 
@@ -341,10 +349,13 @@ public class BallController : MonoBehaviour
         if (typeData == null)
         {
             passThroughBricks = false;
+            passThroughBalls = false;
             if (ballCollider != null)
             {
                 ballCollider.isTrigger = false;
             }
+
+            transform.localScale = baseLocalScale;
 
             brickTriggersInside.Clear();
             return;
@@ -352,6 +363,10 @@ public class BallController : MonoBehaviour
 
         speed = Mathf.Max(0f, typeData.MovementSpeed);
         passThroughBricks = typeData.PassThroughBricks;
+        passThroughBalls = typeData.PassThroughBalls;
+        remainingBrickBounces = typeData.Bounces;
+        waterDropCooldown = Mathf.Max(0.01f, typeData.WaterDropCooldown);
+        nextWaterDropAllowedTime = 0f;
 
         if (ballCollider != null)
         {
@@ -364,6 +379,9 @@ public class BallController : MonoBehaviour
         {
             spriteRenderer.color = typeData.DisplayColor;
         }
+
+        float sizeMultiplier = Mathf.Clamp(typeData.Size, 0.25f, 3f);
+        transform.localScale = baseLocalScale * sizeMultiplier;
     }
 
     private void BounceOffTriggerCollider(Collider2D other)
@@ -495,7 +513,14 @@ public class BallController : MonoBehaviour
 
     private bool TryIgnoreOtherBallCollision(Collision2D collision)
     {
-        if (!ignoreOtherBallCollisions || !collision.gameObject.TryGetComponent<BallController>(out _))
+        if (!collision.gameObject.TryGetComponent<BallController>(out BallController otherBall))
+        {
+            return false;
+        }
+
+        bool shouldIgnoreBallCollisions = ignoreOtherBallCollisions || passThroughBalls;
+        bool eitherBallPassesThroughBalls = shouldIgnoreBallCollisions || otherBall.PassThroughBallsEnabled;
+        if (!eitherBallPassesThroughBalls)
         {
             return false;
         }
@@ -545,5 +570,66 @@ public class BallController : MonoBehaviour
     private bool IsSideWall(Vector2 normal)
     {
         return Mathf.Abs(normal.x) > SideWallNormalThreshold;
+    }
+
+    public bool ConsumeBrickBounce()
+    {
+        if (hasBeenLost)
+        {
+            return false;
+        }
+
+        if (remainingBrickBounces < 0)
+        {
+            return true;
+        }
+
+        if (remainingBrickBounces <= 0)
+        {
+            LoseBall();
+            return false;
+        }
+
+        remainingBrickBounces--;
+        return true;
+    }
+
+    public void TrySpawnWaterDropsFromBrickHit()
+    {
+        if (typeData == null || !typeData.CreatesWaterDrops || typeData.WaterDropletType == null)
+        {
+            return;
+        }
+
+        if (Time.time < nextWaterDropAllowedTime)
+        {
+            return;
+        }
+
+        nextWaterDropAllowedTime = Time.time + typeData.WaterDropCooldown;
+
+        Vector2[] diagonalDirections =
+        {
+            new Vector2(1f, 1f),
+            new Vector2(-1f, 1f),
+            new Vector2(1f, -1f),
+            new Vector2(-1f, -1f)
+        };
+
+        for (int i = 0; i < diagonalDirections.Length; i++)
+        {
+            Vector2 direction = diagonalDirections[i].normalized;
+            Vector3 spawnPosition = transform.position + (Vector3)(direction * WaterDropSpawnOffset);
+            BallController spawnedBall = Instantiate(this, spawnPosition, Quaternion.identity);
+            spawnedBall.SetTypeData(typeData.WaterDropletType);
+
+            Collider2D spawnedCollider = spawnedBall.GetComponent<Collider2D>();
+            if (ballCollider != null && spawnedCollider != null)
+            {
+                Physics2D.IgnoreCollision(ballCollider, spawnedCollider, true);
+            }
+
+            spawnedBall.Launch(direction);
+        }
     }
 }

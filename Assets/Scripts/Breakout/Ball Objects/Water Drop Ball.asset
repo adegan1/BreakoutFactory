@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dd4e8a10846b007448780d9c07aae58b, type: 3}
-  m_Name: Earth Ball
+  m_Name: Water Drop Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallTypeData
-  displayColor: {r: 0.59607846, g: 0.36078432, b: 0.22745098, a: 1}
+  displayColor: {r: 0.045122836, g: 0.3677147, b: 0.735849, a: 0.7882353}
   movementSpeed: 8
   passThroughBricks: 0
   collideWithBricks: 1
-  passThroughBricksMigrated: 1
+  passThroughBricksMigrated: 0
   appliesBurn: 0
   burnDamage: 1
   burnTickInterval: 0.5
@@ -25,11 +25,11 @@ MonoBehaviour:
   lightningBurstTargetCount: 2
   lightningBurstDamage: 1
   lightningBurstRadius: 2
-  earthCrack: 1
+  earthCrack: 0
   shatterDamage: 2
-  shatterRadius: 1
+  shatterRadius: 1.4
   appliesRoot: 0
   rootDuration: 2
   rootSpeedMultiplier: 0.6
-  elements: 05000000
-  strongAgainst: 040000000300000000000000
+  elements: 00000000
+  strongAgainst: 

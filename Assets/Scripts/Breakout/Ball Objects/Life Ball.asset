@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BallTypeData
   displayColor: {r: 0.1764706, g: 0.67058825, b: 0.12941177, a: 1}
   movementSpeed: 8
+  passThroughBricks: 0
   collideWithBricks: 1
+  passThroughBricksMigrated: 1
   appliesBurn: 0
   burnDamage: 1
   burnTickInterval: 0.5
@@ -23,5 +25,11 @@ MonoBehaviour:
   lightningBurstTargetCount: 2
   lightningBurstDamage: 1
   lightningBurstRadius: 2
+  earthCrack: 0
+  shatterDamage: 2
+  shatterRadius: 1.4
+  appliesRoot: 1
+  rootDuration: 3
+  rootSpeedMultiplier: 0.25
   elements: 04000000
   strongAgainst: 0200000005000000

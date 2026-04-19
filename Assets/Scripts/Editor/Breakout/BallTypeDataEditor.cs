@@ -4,8 +4,12 @@ using UnityEditor;
 public class BallTypeDataEditor : Editor
 {
     private SerializedProperty displayColorProperty;
+    private SerializedProperty sizeProperty;
     private SerializedProperty movementSpeedProperty;
+    private SerializedProperty damageProperty;
+    private SerializedProperty bouncesProperty;
     private SerializedProperty passThroughBricksProperty;
+    private SerializedProperty passThroughBallsProperty;
     private SerializedProperty appliesBurnProperty;
     private SerializedProperty burnDamageProperty;
     private SerializedProperty burnTickIntervalProperty;
@@ -20,14 +24,21 @@ public class BallTypeDataEditor : Editor
     private SerializedProperty appliesRootProperty;
     private SerializedProperty rootDurationProperty;
     private SerializedProperty rootSpeedMultiplierProperty;
+    private SerializedProperty createsWaterDropsProperty;
+    private SerializedProperty waterDropletTypeProperty;
+    private SerializedProperty waterDropCooldownProperty;
     private SerializedProperty elementsProperty;
     private SerializedProperty strongAgainstProperty;
 
     private void OnEnable()
     {
         displayColorProperty = serializedObject.FindProperty("displayColor");
+        sizeProperty = serializedObject.FindProperty("size");
         movementSpeedProperty = serializedObject.FindProperty("movementSpeed");
+        damageProperty = serializedObject.FindProperty("damage");
+        bouncesProperty = serializedObject.FindProperty("bounces");
         passThroughBricksProperty = serializedObject.FindProperty("passThroughBricks");
+        passThroughBallsProperty = serializedObject.FindProperty("passThroughBalls");
         appliesBurnProperty = serializedObject.FindProperty("appliesBurn");
         burnDamageProperty = serializedObject.FindProperty("burnDamage");
         burnTickIntervalProperty = serializedObject.FindProperty("burnTickInterval");
@@ -42,6 +53,9 @@ public class BallTypeDataEditor : Editor
         appliesRootProperty = serializedObject.FindProperty("appliesRoot");
         rootDurationProperty = serializedObject.FindProperty("rootDuration");
         rootSpeedMultiplierProperty = serializedObject.FindProperty("rootSpeedMultiplier");
+        createsWaterDropsProperty = serializedObject.FindProperty("createsWaterDrops");
+        waterDropletTypeProperty = serializedObject.FindProperty("waterDropletType");
+        waterDropCooldownProperty = serializedObject.FindProperty("waterDropCooldown");
         elementsProperty = serializedObject.FindProperty("elements");
         strongAgainstProperty = serializedObject.FindProperty("strongAgainst");
     }
@@ -52,14 +66,21 @@ public class BallTypeDataEditor : Editor
 
         EditorGUILayout.LabelField("Visual", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(displayColorProperty);
+        EditorGUILayout.PropertyField(sizeProperty);
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Movement", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(movementSpeedProperty);
 
         EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Core Combat", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(damageProperty);
+        EditorGUILayout.PropertyField(bouncesProperty);
+
+        EditorGUILayout.Space();
         EditorGUILayout.LabelField("Brick Interaction", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(passThroughBricksProperty);
+        EditorGUILayout.PropertyField(passThroughBallsProperty);
         EditorGUILayout.PropertyField(appliesBurnProperty);
 
         if (appliesBurnProperty.boolValue)
@@ -99,6 +120,16 @@ public class BallTypeDataEditor : Editor
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(rootDurationProperty);
             EditorGUILayout.PropertyField(rootSpeedMultiplierProperty);
+            EditorGUI.indentLevel--;
+        }
+
+        EditorGUILayout.PropertyField(createsWaterDropsProperty);
+
+        if (createsWaterDropsProperty.boolValue)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(waterDropletTypeProperty);
+            EditorGUILayout.PropertyField(waterDropCooldownProperty);
             EditorGUI.indentLevel--;
         }
 

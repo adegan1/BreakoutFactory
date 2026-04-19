@@ -175,10 +175,17 @@ public class BrickController : MonoBehaviour
 
     protected virtual void HandleBallHit(BallController ball)
     {
+        if (ball == null || !ball.ConsumeBrickBounce())
+        {
+            return;
+        }
+
         bool wasCrackedBeforeHit = isCracked;
 
         int damage = GetDamageFromBall(ball);
         ApplyDamage(damage);
+
+        ball.TrySpawnWaterDropsFromBrickHit();
 
         if (wasCrackedBeforeHit)
         {
@@ -208,12 +215,12 @@ public class BrickController : MonoBehaviour
 
     protected virtual int GetDamageFromBall(BallController ball)
     {
-        if (typeData == null || ball == null || ball.TypeData == null)
+        if (ball == null || ball.TypeData == null)
         {
             return 1;
         }
 
-        return ball.TypeData.IsStrongAgainst(typeData.Type) ? 2 : 1;
+        return Mathf.Max(1, ball.TypeData.Damage);
     }
 
     protected virtual void ApplyDamage(int amount)
