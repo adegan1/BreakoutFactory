@@ -12,9 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 480dd7a1a8a1d2b4eaaf06ac503642a9, type: 3}
   m_Name: Wind Brick
   m_EditorClassIdentifier: Assembly-CSharp::BrickTypeData
-  hitPoints: 5
+  hitPoints: 3
   displayColor: {r: 0.3915094, g: 1, b: 0.6534832, a: 1}
   scoreValue: 10
   flammable: 0
   fireResistant: 0
+  amplifiesLightning: 0
+  lightningTargetBonus: 1
   type: 6

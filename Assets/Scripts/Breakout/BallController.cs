@@ -44,6 +44,7 @@ public class BallController : MonoBehaviour
     private Rigidbody2D rb;
     private Collider2D ballCollider;
     private SpriteRenderer spriteRenderer;
+    private TrailRenderer trailRenderer;
     private Vector3 baseLocalScale;
     private bool launched;
     private bool hasBeenLost;
@@ -72,6 +73,7 @@ public class BallController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         ballCollider = GetComponent<Collider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        trailRenderer = GetComponent<TrailRenderer>();
         baseLocalScale = transform.localScale;
         previousPosition = rb.position;
     }
@@ -383,6 +385,17 @@ public class BallController : MonoBehaviour
         if (spriteRenderer != null)
         {
             spriteRenderer.color = typeData.DisplayColor;
+        }
+
+        if (trailRenderer != null)
+        {
+            Color ballColor = typeData.DisplayColor;
+            Gradient gradient = new Gradient();
+            gradient.SetKeys(
+                new GradientColorKey[] { new GradientColorKey(ballColor, 0f), new GradientColorKey(ballColor, 1f) },
+                new GradientAlphaKey[] { new GradientAlphaKey(0.5f, 0f), new GradientAlphaKey(0f, 1f) }
+            );
+            trailRenderer.colorGradient = gradient;
         }
 
         float sizeMultiplier = Mathf.Clamp(typeData.Size, 0.25f, 3f);

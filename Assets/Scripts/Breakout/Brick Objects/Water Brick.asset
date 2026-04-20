@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 480dd7a1a8a1d2b4eaaf06ac503642a9, type: 3}
   m_Name: Water Brick
   m_EditorClassIdentifier: Assembly-CSharp::BrickTypeData
-  hitPoints: 5
+  hitPoints: 3
   displayColor: {r: 0.23820755, g: 0.5712579, b: 0.9528302, a: 1}
   scoreValue: 10
   flammable: 0
