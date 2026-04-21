@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2086996543295852681}
   - component: {fileID: 6008715946111650592}
+  - component: {fileID: 7797548973511550544}
   m_Layer: 0
   m_Name: Generator Building
   m_TagString: Untagged
@@ -91,3 +92,18 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &7797548973511550544
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276502763047268258}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0dbb36df02e8ec4ea143f579e935b74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingInstance
+  buildingDefinition: {fileID: 0}
+  targetSpriteRenderer: {fileID: 6008715946111650592}
+  applyDefinitionOnAwake: 1

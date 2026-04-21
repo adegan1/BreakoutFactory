@@ -8,17 +8,17 @@ public class InventoryManager : MonoBehaviour
     [Serializable]
     public class InventoryEntry
     {
-        [SerializeField] private string itemId;
+        [SerializeField] private BuildingDefinition buildingDefinition;
         [Min(0)]
         [SerializeField] private int quantity = 1;
 
-        public InventoryEntry(string itemId, int quantity)
+        public InventoryEntry(BuildingDefinition buildingDefinition, int quantity)
         {
-            this.itemId = itemId;
+            this.buildingDefinition = buildingDefinition;
             this.quantity = Mathf.Max(0, quantity);
         }
 
-        public string ItemId => itemId;
+        public BuildingDefinition BuildingDefinition => buildingDefinition;
         public int Quantity => quantity;
 
         public void SetQuantity(int newQuantity)
@@ -29,13 +29,19 @@ public class InventoryManager : MonoBehaviour
 
     private static InventoryManager instance;
 
-    [Header("Starting Inventory")]
-    [SerializeField] private List<InventoryEntry> startingItems = new();
+    [Header("Starting Building Inventory")]
+    [SerializeField] private List<InventoryEntry> startingBuildings = new();
 
-    [Header("Runtime Inventory")]
-    [SerializeField] private List<InventoryEntry> inventoryItems = new();
+    [Header("Runtime Building Inventory")]
+    [SerializeField] private List<InventoryEntry> buildingInventory = new();
 
-    private readonly Dictionary<string, InventoryEntry> itemsById = new(StringComparer.OrdinalIgnoreCase);
+    [Header("Progress")]
+    [SerializeField, Min(0)] private int startingScrap;
+    [SerializeField, Min(0)] private int startingScore;
+    [SerializeField, Min(0)] private int scrap;
+    [SerializeField, Min(0)] private int score;
+
+    private readonly Dictionary<BuildingDefinition, InventoryEntry> buildingsByDefinition = new();
     private bool isInitialized;
 
     public static InventoryManager Instance => EnsureInstance();
@@ -43,12 +49,30 @@ public class InventoryManager : MonoBehaviour
 
     public event Action InventoryChanged;
 
-    public IReadOnlyList<InventoryEntry> Items
+    public IReadOnlyList<InventoryEntry> BuildingItems
     {
         get
         {
             EnsureInitialized();
-            return inventoryItems;
+            return buildingInventory;
+        }
+    }
+
+    public int Scrap
+    {
+        get
+        {
+            EnsureInitialized();
+            return scrap;
+        }
+    }
+
+    public int Score
+    {
+        get
+        {
+            EnsureInitialized();
+            return score;
         }
     }
 
@@ -65,96 +89,146 @@ public class InventoryManager : MonoBehaviour
         EnsureInitialized();
     }
 
-    public int GetQuantity(string itemId)
+    public void AddScrap(int amount)
     {
-        EnsureInitialized();
-        string normalizedItemId = NormalizeItemId(itemId);
-        if (string.IsNullOrEmpty(normalizedItemId))
-        {
-            return 0;
-        }
-
-        return TryGetQuantityInternal(normalizedItemId, out int quantity) ? quantity : 0;
-    }
-
-    public bool HasItem(string itemId, int quantity = 1)
-    {
-        if (quantity <= 0)
-        {
-            return true;
-        }
-
-        return GetQuantity(itemId) >= quantity;
-    }
-
-    public void AddItem(string itemId, int quantity = 1)
-    {
-        if (quantity <= 0)
+        if (amount <= 0)
         {
             return;
         }
 
         EnsureInitialized();
-        string normalizedItemId = NormalizeItemId(itemId);
-        if (string.IsNullOrEmpty(normalizedItemId))
-        {
-            Debug.LogWarning("Cannot add an inventory item with an empty id.", this);
-            return;
-        }
-
-        TryGetQuantityInternal(normalizedItemId, out int currentQuantity);
-        SetQuantityInternal(normalizedItemId, currentQuantity + quantity, true);
+        scrap += amount;
+        InventoryChanged?.Invoke();
     }
 
-    public bool RemoveItem(string itemId, int quantity = 1)
+    public bool RemoveScrap(int amount)
     {
-        if (quantity <= 0)
+        if (amount <= 0)
         {
             return true;
         }
 
         EnsureInitialized();
-        string normalizedItemId = NormalizeItemId(itemId);
-        if (string.IsNullOrEmpty(normalizedItemId))
+        if (scrap < amount)
         {
             return false;
         }
 
-        TryGetQuantityInternal(normalizedItemId, out int currentQuantity);
-        if (currentQuantity < quantity)
-        {
-            return false;
-        }
-
-        SetQuantityInternal(normalizedItemId, currentQuantity - quantity, true);
+        scrap -= amount;
+        InventoryChanged?.Invoke();
         return true;
     }
 
-    public void SetQuantity(string itemId, int quantity)
+    public void SetScrap(int amount)
     {
         EnsureInitialized();
-        string normalizedItemId = NormalizeItemId(itemId);
-        if (string.IsNullOrEmpty(normalizedItemId))
+        scrap = Mathf.Max(0, amount);
+        InventoryChanged?.Invoke();
+    }
+
+    public void AddScore(int amount)
+    {
+        if (amount <= 0)
         {
-            Debug.LogWarning("Cannot set an inventory item with an empty id.", this);
             return;
         }
 
-        SetQuantityInternal(normalizedItemId, quantity, true);
+        EnsureInitialized();
+        score += amount;
+        InventoryChanged?.Invoke();
+    }
+
+    public void SetScore(int amount)
+    {
+        EnsureInitialized();
+        score = Mathf.Max(0, amount);
+        InventoryChanged?.Invoke();
     }
 
     public void ClearInventory()
     {
         EnsureInitialized();
 
-        if (inventoryItems.Count == 0)
+        bool hasAnyBuildings = buildingInventory.Count > 0;
+        bool hasProgress = scrap > 0 || score > 0;
+        if (!hasAnyBuildings && !hasProgress)
         {
             return;
         }
 
-        inventoryItems.Clear();
-        itemsById.Clear();
+        buildingInventory.Clear();
+        buildingsByDefinition.Clear();
+        scrap = 0;
+        score = 0;
         InventoryChanged?.Invoke();
+    }
+
+    public int GetBuildingQuantity(BuildingDefinition buildingDefinition)
+    {
+        EnsureInitialized();
+        if (buildingDefinition == null)
+        {
+            return 0;
+        }
+
+        return TryGetBuildingQuantityInternal(buildingDefinition, out int quantity) ? quantity : 0;
+    }
+
+    public bool HasBuilding(BuildingDefinition buildingDefinition, int quantity = 1)
+    {
+        if (quantity <= 0)
+        {
+            return true;
+        }
+
+        return GetBuildingQuantity(buildingDefinition) >= quantity;
+    }
+
+    public void AddBuilding(BuildingDefinition buildingDefinition, int quantity = 1)
+    {
+        if (quantity <= 0 || buildingDefinition == null)
+        {
+            return;
+        }
+
+        EnsureInitialized();
+        TryGetBuildingQuantityInternal(buildingDefinition, out int currentQuantity);
+        SetBuildingQuantityInternal(buildingDefinition, currentQuantity + quantity, true);
+    }
+
+    public bool RemoveBuilding(BuildingDefinition buildingDefinition, int quantity = 1)
+    {
+        if (quantity <= 0)
+        {
+            return true;
+        }
+
+        EnsureInitialized();
+        if (buildingDefinition == null)
+        {
+            return false;
+        }
+
+        TryGetBuildingQuantityInternal(buildingDefinition, out int currentQuantity);
+        if (currentQuantity < quantity)
+        {
+            return false;
+        }
+
+        SetBuildingQuantityInternal(buildingDefinition, currentQuantity - quantity, true);
+        return true;
+    }
+
+    public void SetBuildingQuantity(BuildingDefinition buildingDefinition, int quantity)
+    {
+        EnsureInitialized();
+        if (buildingDefinition == null)
+        {
+            Debug.LogWarning("Cannot set building inventory with a null definition.", this);
+            return;
+        }
+
+        SetBuildingQuantityInternal(buildingDefinition, quantity, true);
     }
 
     private static InventoryManager EnsureInstance()
@@ -190,37 +264,34 @@ public class InventoryManager : MonoBehaviour
             return;
         }
 
-        List<InventoryEntry> sourceItems = inventoryItems.Count > 0
-            ? new List<InventoryEntry>(inventoryItems)
-            : new List<InventoryEntry>(startingItems);
+        List<InventoryEntry> sourceBuildings = buildingInventory.Count > 0
+            ? new List<InventoryEntry>(buildingInventory)
+            : new List<InventoryEntry>(startingBuildings);
 
-        inventoryItems.Clear();
-        itemsById.Clear();
+        buildingInventory.Clear();
+        buildingsByDefinition.Clear();
 
-        foreach (InventoryEntry entry in sourceItems)
+        foreach (InventoryEntry entry in sourceBuildings)
         {
-            if (entry == null)
+            if (entry == null || entry.BuildingDefinition == null || entry.Quantity <= 0)
             {
                 continue;
             }
 
-            string normalizedItemId = NormalizeItemId(entry.ItemId);
-            if (string.IsNullOrEmpty(normalizedItemId) || entry.Quantity <= 0)
-            {
-                continue;
-            }
-
-            TryGetQuantityInternal(normalizedItemId, out int currentQuantity);
+            TryGetBuildingQuantityInternal(entry.BuildingDefinition, out int currentQuantity);
             int combinedQuantity = currentQuantity + entry.Quantity;
-            SetQuantityInternal(normalizedItemId, combinedQuantity, false);
+            SetBuildingQuantityInternal(entry.BuildingDefinition, combinedQuantity, false);
         }
+
+        scrap = Mathf.Max(0, scrap > 0 ? scrap : startingScrap);
+        score = Mathf.Max(0, score > 0 ? score : startingScore);
 
         isInitialized = true;
     }
 
-    private bool TryGetQuantityInternal(string itemId, out int quantity)
+    private bool TryGetBuildingQuantityInternal(BuildingDefinition buildingDefinition, out int quantity)
     {
-        if (itemsById.TryGetValue(itemId, out InventoryEntry entry))
+        if (buildingDefinition != null && buildingsByDefinition.TryGetValue(buildingDefinition, out InventoryEntry entry))
         {
             quantity = entry.Quantity;
             return true;
@@ -230,16 +301,21 @@ public class InventoryManager : MonoBehaviour
         return false;
     }
 
-    private void SetQuantityInternal(string itemId, int quantity, bool notifyListeners)
+    private void SetBuildingQuantityInternal(BuildingDefinition buildingDefinition, int quantity, bool notifyListeners)
     {
+        if (buildingDefinition == null)
+        {
+            return;
+        }
+
         int clampedQuantity = Mathf.Max(0, quantity);
 
         if (clampedQuantity == 0)
         {
-            if (itemsById.TryGetValue(itemId, out InventoryEntry existingEntry))
+            if (buildingsByDefinition.TryGetValue(buildingDefinition, out InventoryEntry existingEntry))
             {
-                itemsById.Remove(itemId);
-                inventoryItems.Remove(existingEntry);
+                buildingsByDefinition.Remove(buildingDefinition);
+                buildingInventory.Remove(existingEntry);
 
                 if (notifyListeners)
                 {
@@ -250,7 +326,7 @@ public class InventoryManager : MonoBehaviour
             return;
         }
 
-        if (itemsById.TryGetValue(itemId, out InventoryEntry entry))
+        if (buildingsByDefinition.TryGetValue(buildingDefinition, out InventoryEntry entry))
         {
             if (entry.Quantity == clampedQuantity)
             {
@@ -261,9 +337,9 @@ public class InventoryManager : MonoBehaviour
         }
         else
         {
-            entry = new InventoryEntry(itemId, clampedQuantity);
-            itemsById.Add(itemId, entry);
-            inventoryItems.Add(entry);
+            entry = new InventoryEntry(buildingDefinition, clampedQuantity);
+            buildingsByDefinition.Add(buildingDefinition, entry);
+            buildingInventory.Add(entry);
         }
 
         if (notifyListeners)
@@ -272,8 +348,4 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    private static string NormalizeItemId(string itemId)
-    {
-        return string.IsNullOrWhiteSpace(itemId) ? string.Empty : itemId.Trim();
-    }
 }

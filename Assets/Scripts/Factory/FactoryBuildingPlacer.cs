@@ -7,14 +7,17 @@ public class FactoryBuildingPlacer : MonoBehaviour
 {
     [SerializeField] private TileManager tileManager;
     [SerializeField] private Camera worldCamera;
+    [SerializeField] private InventoryManager inventoryManager;
     [FormerlySerializedAs("buildingPrefab")]
     [SerializeField] private GameObject defaultBuildingPrefab;
     [SerializeField] private LayerMask placementSurfaceMask = ~0;
 
     [Header("Building Selection")]
-    [SerializeField] private List<GameObject> availableBuildingPrefabs = new();
     [SerializeField] private int selectedBuildingIndex;
     [SerializeField] private bool enableNumberKeySelection = true;
+
+    [Header("Remove Behavior")]
+    [SerializeField] private bool refundBuildingToInventoryOnRemove = true;
 
     [Header("Hover Highlight")]
     [SerializeField] private Transform hoverHighlight;
@@ -22,7 +25,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [SerializeField] private Color blockedHoverColor = new Color(1f, 0.3f, 0.3f, 0.5f);
     [SerializeField] private float hoverZOffset = -0.1f;
 
-    private readonly Dictionary<Vector2Int, GameObject> spawnedByCell = new();
+    private readonly Dictionary<Vector2Int, PlacedBuildingRecord> spawnedByCell = new();
     private SpriteRenderer hoverHighlightRenderer;
     private bool suppressHoverUntilTileChange;
     private Vector2Int suppressedHoverTile;
@@ -31,13 +34,31 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private Vector3 pointerWorldPoint;
 
     public int SelectedBuildingIndex => selectedBuildingIndex;
-    public GameObject SelectedBuildingPrefab => GetSelectedBuildingPrefab();
+    public BuildingDefinition SelectedBuildingDefinition => GetSelectedBuildingDefinition();
+    public GameObject SelectedBuildingPrefab => GetSelectedBuildingDefinition()?.BehaviorPrefab;
+
+    private class PlacedBuildingRecord
+    {
+        public readonly GameObject SpawnedObject;
+        public readonly BuildingDefinition Definition;
+
+        public PlacedBuildingRecord(GameObject spawnedObject, BuildingDefinition definition)
+        {
+            SpawnedObject = spawnedObject;
+            Definition = definition;
+        }
+    }
 
     private void Reset()
     {
         if (worldCamera == null)
         {
             worldCamera = Camera.main;
+        }
+
+        if (inventoryManager == null)
+        {
+            inventoryManager = FindFirstObjectByType<InventoryManager>();
         }
     }
 
@@ -48,7 +69,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             worldCamera = Camera.main;
         }
 
-        EnsureBuildingOptionsInitialized();
+        EnsureInventoryManagerAssigned();
         ClampSelectedBuildingIndex();
 
         if (hoverHighlight != null)
@@ -119,9 +140,9 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (hoverHighlightRenderer != null)
         {
-            hoverHighlightRenderer.color = tileManager.IsOccupied(pointerGridPosition)
-                ? blockedHoverColor
-                : validHoverColor;
+            hoverHighlightRenderer.color = CanPlaceSelectedBuildingAt(pointerGridPosition)
+                ? validHoverColor
+                : blockedHoverColor;
         }
 
         SetHoverHighlightVisible(true);
@@ -159,15 +180,27 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return false;
         }
 
-        GameObject selectedBuildingPrefab = GetSelectedBuildingPrefab();
+        BuildingDefinition selectedBuildingDefinition = GetSelectedBuildingDefinition();
+        if (selectedBuildingDefinition == null)
+        {
+            return false;
+        }
+
+        GameObject selectedBuildingPrefab = selectedBuildingDefinition.BehaviorPrefab;
         if (selectedBuildingPrefab == null)
         {
             return false;
         }
 
-        Vector2Int gridPosition = pointerGridPosition;
-        if (spawnedByCell.TryGetValue(gridPosition, out GameObject existing) && existing != null)
+        if (inventoryManager == null || !inventoryManager.RemoveBuilding(selectedBuildingDefinition, 1))
         {
+            return false;
+        }
+
+        Vector2Int gridPosition = pointerGridPosition;
+        if (spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord existing) && existing != null && existing.SpawnedObject != null)
+        {
+            inventoryManager.AddBuilding(selectedBuildingDefinition, 1);
             return false;
         }
 
@@ -176,14 +209,22 @@ public class FactoryBuildingPlacer : MonoBehaviour
             spawnedByCell.Remove(gridPosition);
         }
 
-        if (!tileManager.TryOccupyTile(gridPosition, selectedBuildingPrefab.name))
+        if (!tileManager.TryOccupyTile(gridPosition, selectedBuildingDefinition.name))
         {
+            inventoryManager.AddBuilding(selectedBuildingDefinition, 1);
             return false;
         }
 
         Vector3 spawnPosition = tileManager.GridToWorld(gridPosition);
         GameObject spawned = Instantiate(selectedBuildingPrefab, spawnPosition, Quaternion.identity);
-        spawnedByCell[gridPosition] = spawned;
+
+        BuildingInstance buildingInstance = spawned.GetComponent<BuildingInstance>();
+        if (buildingInstance != null)
+        {
+            buildingInstance.Initialize(selectedBuildingDefinition);
+        }
+
+        spawnedByCell[gridPosition] = new PlacedBuildingRecord(spawned, selectedBuildingDefinition);
         return true;
     }
 
@@ -195,7 +236,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         Vector2Int gridPosition = pointerGridPosition;
-        if (!spawnedByCell.TryGetValue(gridPosition, out GameObject spawned))
+        if (!spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord record) || record == null)
         {
             return;
         }
@@ -205,18 +246,24 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return;
         }
 
-        if (spawned != null)
+        if (record.SpawnedObject != null)
         {
-            Destroy(spawned);
+            Destroy(record.SpawnedObject);
         }
 
         spawnedByCell.Remove(gridPosition);
+
+        if (refundBuildingToInventoryOnRemove && inventoryManager != null && record.Definition != null)
+        {
+            inventoryManager.AddBuilding(record.Definition, 1);
+        }
+
         suppressHoverUntilTileChange = false;
     }
 
     private bool CanInteractAtPointer()
     {
-        return hasPointerTile && tileManager != null;
+        return hasPointerTile && tileManager != null && inventoryManager != null;
     }
 
     private void RefreshPointerState(Mouse mouse)
@@ -267,8 +314,10 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return;
         }
 
+        ClampSelectedBuildingIndex();
+
         Keyboard keyboard = Keyboard.current;
-        if (keyboard == null || availableBuildingPrefabs.Count == 0)
+        if (keyboard == null || inventoryManager == null || inventoryManager.BuildingItems.Count == 0)
         {
             return;
         }
@@ -313,12 +362,18 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     public bool TrySelectBuildingByIndex(int index)
     {
-        if (index < 0 || index >= availableBuildingPrefabs.Count)
+        if (inventoryManager == null)
         {
             return false;
         }
 
-        if (availableBuildingPrefabs[index] == null)
+        IReadOnlyList<InventoryManager.InventoryEntry> buildingItems = inventoryManager.BuildingItems;
+        if (index < 0 || index >= buildingItems.Count)
+        {
+            return false;
+        }
+
+        if (buildingItems[index] == null || buildingItems[index].BuildingDefinition == null)
         {
             return false;
         }
@@ -327,38 +382,73 @@ public class FactoryBuildingPlacer : MonoBehaviour
         return true;
     }
 
-    private GameObject GetSelectedBuildingPrefab()
+    private BuildingDefinition GetSelectedBuildingDefinition()
     {
-        if (availableBuildingPrefabs.Count == 0)
+        if (inventoryManager == null)
+        {
+            return null;
+        }
+
+        IReadOnlyList<InventoryManager.InventoryEntry> buildingItems = inventoryManager.BuildingItems;
+        if (buildingItems.Count == 0)
         {
             return null;
         }
 
         ClampSelectedBuildingIndex();
-        return availableBuildingPrefabs[selectedBuildingIndex];
+        InventoryManager.InventoryEntry selectedEntry = buildingItems[selectedBuildingIndex];
+        return selectedEntry?.BuildingDefinition;
     }
 
-    private void EnsureBuildingOptionsInitialized()
+    private bool CanPlaceSelectedBuildingAt(Vector2Int gridPosition)
     {
-        if (availableBuildingPrefabs.Count > 0)
+        if (tileManager == null || inventoryManager == null || !tileManager.IsInBounds(gridPosition))
         {
-            return;
+            return false;
         }
 
-        if (defaultBuildingPrefab != null)
+        if (tileManager.IsOccupied(gridPosition))
         {
-            availableBuildingPrefabs.Add(defaultBuildingPrefab);
+            return false;
+        }
+
+        BuildingDefinition selectedBuildingDefinition = GetSelectedBuildingDefinition();
+        if (selectedBuildingDefinition == null || selectedBuildingDefinition.BehaviorPrefab == null)
+        {
+            return false;
+        }
+
+        return inventoryManager.HasBuilding(selectedBuildingDefinition, 1);
+    }
+
+    private void EnsureInventoryManagerAssigned()
+    {
+        if (inventoryManager == null)
+        {
+            inventoryManager = FindFirstObjectByType<InventoryManager>();
+        }
+
+        if (inventoryManager == null)
+        {
+            inventoryManager = InventoryManager.Instance;
         }
     }
 
     private void ClampSelectedBuildingIndex()
     {
-        if (availableBuildingPrefabs.Count == 0)
+        if (inventoryManager == null)
         {
             selectedBuildingIndex = 0;
             return;
         }
 
-        selectedBuildingIndex = Mathf.Clamp(selectedBuildingIndex, 0, availableBuildingPrefabs.Count - 1);
+        int buildingCount = inventoryManager.BuildingItems.Count;
+        if (buildingCount == 0)
+        {
+            selectedBuildingIndex = 0;
+            return;
+        }
+
+        selectedBuildingIndex = Mathf.Clamp(selectedBuildingIndex, 0, buildingCount - 1);
     }
 }
