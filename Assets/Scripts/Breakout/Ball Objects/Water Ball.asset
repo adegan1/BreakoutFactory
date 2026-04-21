@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Water Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallTypeData
   displayColor: {r: 0.23921569, g: 0.57254905, b: 0.9529412, a: 1}
+  ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   size: 1
   movementSpeed: 8
   damage: 1

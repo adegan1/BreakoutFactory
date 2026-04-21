@@ -13,10 +13,13 @@ MonoBehaviour:
   m_Name: Life Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallTypeData
   displayColor: {r: 0.1764706, g: 0.67058825, b: 0.12941177, a: 1}
+  ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
+  size: 1
   movementSpeed: 8
+  damage: 1
+  bounces: -1
   passThroughBricks: 0
-  collideWithBricks: 1
-  passThroughBricksMigrated: 1
+  passThroughBalls: 0
   appliesBurn: 0
   burnDamage: 1
   burnTickInterval: 0.5
@@ -31,5 +34,8 @@ MonoBehaviour:
   appliesRoot: 1
   rootDuration: 3
   rootSpeedMultiplier: 0.25
+  createsWaterDrops: 0
+  waterDropletType: {fileID: 0}
+  waterDropCooldown: 0.08
   elements: 04000000
   strongAgainst: 0200000005000000
