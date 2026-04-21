@@ -15,6 +15,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [Header("Building Selection")]
     [SerializeField] private int selectedBuildingIndex;
     [SerializeField] private bool enableNumberKeySelection = true;
+    [SerializeField] private bool enableRotationInput = true;
 
     [Header("Remove Behavior")]
     [SerializeField] private bool refundBuildingToInventoryOnRemove = true;
@@ -26,26 +27,33 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [SerializeField] private float hoverZOffset = -0.1f;
 
     private readonly Dictionary<Vector2Int, PlacedBuildingRecord> spawnedByCell = new();
+    private readonly Dictionary<int, PlacedBuildingRecord> buildingsByInstanceId = new();
     private SpriteRenderer hoverHighlightRenderer;
     private bool suppressHoverUntilTileChange;
     private Vector2Int suppressedHoverTile;
     private bool hasPointerTile;
     private Vector2Int pointerGridPosition;
     private Vector3 pointerWorldPoint;
+    private int selectedRotationQuarterTurns;
 
     public int SelectedBuildingIndex => selectedBuildingIndex;
     public BuildingDefinition SelectedBuildingDefinition => GetSelectedBuildingDefinition();
     public GameObject SelectedBuildingPrefab => GetSelectedBuildingDefinition()?.BehaviorPrefab;
+    public int SelectedRotationQuarterTurns => selectedRotationQuarterTurns;
 
     private class PlacedBuildingRecord
     {
         public readonly GameObject SpawnedObject;
         public readonly BuildingDefinition Definition;
+        public readonly Vector2Int TopLeftGridPosition;
+        public readonly Vector2Int FootprintSize;
 
-        public PlacedBuildingRecord(GameObject spawnedObject, BuildingDefinition definition)
+        public PlacedBuildingRecord(GameObject spawnedObject, BuildingDefinition definition, Vector2Int topLeft, Vector2Int footprintSize)
         {
             SpawnedObject = spawnedObject;
             Definition = definition;
+            TopLeftGridPosition = topLeft;
+            FootprintSize = footprintSize;
         }
     }
 
@@ -89,6 +97,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         HandleBuildingSelectionInput();
+        HandleRotationInput();
 
         RefreshPointerState(mouse);
         UpdateHoverHighlight();
@@ -132,17 +141,49 @@ public class FactoryBuildingPlacer : MonoBehaviour
             suppressHoverUntilTileChange = false;
         }
 
-        Vector3 center = tileManager.GridToWorld(pointerGridPosition);
-        center.z = tileManager.GridPlaneZ + hoverZOffset;
+        // Check if there's a building at the pointer (for removal)
+        if (spawnedByCell.TryGetValue(pointerGridPosition, out PlacedBuildingRecord buildingAtPointer) && buildingAtPointer != null)
+        {
+            DisplayFootprintHighlight(buildingAtPointer.TopLeftGridPosition, buildingAtPointer.FootprintSize, blockedHoverColor);
+            return;
+        }
 
-        hoverHighlight.position = center;
-        hoverHighlight.localScale = new Vector3(tileManager.TileSize, tileManager.TileSize, 1f);
+        // Show placement preview for selected building
+        BuildingDefinition selectedBuildingDefinition = GetSelectedBuildingDefinition();
+        if (selectedBuildingDefinition != null)
+        {
+            Vector2Int footprintSize = GetRotatedFootprintSize(selectedBuildingDefinition.FootprintSize);
+            Vector2Int optimalTopLeft = CalculateOptimalPlacementPosition(pointerGridPosition, footprintSize);
+            bool canPlace = CanPlaceSelectedBuildingAt(pointerGridPosition);
+            Color previewColor = canPlace ? validHoverColor : blockedHoverColor;
+
+            DisplayFootprintHighlight(optimalTopLeft, footprintSize, previewColor);
+            return;
+        }
+
+        SetHoverHighlightVisible(false);
+    }
+
+    private void DisplayFootprintHighlight(Vector2Int topLeftGridPosition, Vector2Int footprintSize, Color color)
+    {
+        // Calculate the center of the footprint
+        Vector3 footprintCenter = tileManager.GridToWorld(topLeftGridPosition);
+
+        // Offset to true center (accounting for multi-tile size)
+        footprintCenter.x += (footprintSize.x - 1) * tileManager.TileSize * 0.5f;
+        footprintCenter.y += (footprintSize.y - 1) * tileManager.TileSize * 0.5f;
+        footprintCenter.z = tileManager.GridPlaneZ + hoverZOffset;
+
+        hoverHighlight.position = footprintCenter;
+        hoverHighlight.localScale = new Vector3(
+            footprintSize.x * tileManager.TileSize,
+            footprintSize.y * tileManager.TileSize,
+            1f
+        );
 
         if (hoverHighlightRenderer != null)
         {
-            hoverHighlightRenderer.color = CanPlaceSelectedBuildingAt(pointerGridPosition)
-                ? validHoverColor
-                : blockedHoverColor;
+            hoverHighlightRenderer.color = color;
         }
 
         SetHoverHighlightVisible(true);
@@ -197,34 +238,50 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return false;
         }
 
-        Vector2Int gridPosition = pointerGridPosition;
-        if (spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord existing) && existing != null && existing.SpawnedObject != null)
+        Vector2Int footprintSize = GetRotatedFootprintSize(selectedBuildingDefinition.FootprintSize);
+        Vector2Int optimalTopLeft = CalculateOptimalPlacementPosition(pointerGridPosition, footprintSize);
+
+        if (!tileManager.CanOccupyFootprint(optimalTopLeft, footprintSize))
         {
             inventoryManager.AddBuilding(selectedBuildingDefinition, 1);
             return false;
         }
 
-        if (existing == null)
-        {
-            spawnedByCell.Remove(gridPosition);
-        }
-
-        if (!tileManager.TryOccupyTile(gridPosition, selectedBuildingDefinition.name))
+        string occupantId = selectedBuildingPrefab.GetInstanceID().ToString();
+        if (!tileManager.TryOccupyFootprint(optimalTopLeft, footprintSize, occupantId))
         {
             inventoryManager.AddBuilding(selectedBuildingDefinition, 1);
             return false;
         }
 
-        Vector3 spawnPosition = tileManager.GridToWorld(gridPosition);
-        GameObject spawned = Instantiate(selectedBuildingPrefab, spawnPosition, Quaternion.identity);
+        Vector3 spawnPosition = tileManager.GridToWorld(optimalTopLeft);
+        // Offset spawn position to the center of the footprint for proper scaling
+        spawnPosition.x += (footprintSize.x - 1) * tileManager.TileSize * 0.5f;
+        spawnPosition.y += (footprintSize.y - 1) * tileManager.TileSize * 0.5f;
+        
+        float rotationDegrees = selectedRotationQuarterTurns * 90f;
+        Quaternion spawnRotation = Quaternion.Euler(0f, 0f, rotationDegrees);
+        GameObject spawned = Instantiate(selectedBuildingPrefab, spawnPosition, spawnRotation);
 
         BuildingInstance buildingInstance = spawned.GetComponent<BuildingInstance>();
         if (buildingInstance != null)
         {
+            buildingInstance.SetGridPosition(optimalTopLeft, footprintSize, selectedRotationQuarterTurns);
             buildingInstance.Initialize(selectedBuildingDefinition);
         }
 
-        spawnedByCell[gridPosition] = new PlacedBuildingRecord(spawned, selectedBuildingDefinition);
+        PlacedBuildingRecord record = new PlacedBuildingRecord(spawned, selectedBuildingDefinition, optimalTopLeft, footprintSize);
+        buildingsByInstanceId[spawned.GetInstanceID()] = record;
+
+        for (int x = 0; x < footprintSize.x; x++)
+        {
+            for (int y = 0; y < footprintSize.y; y++)
+            {
+                Vector2Int tilePos = optimalTopLeft + new Vector2Int(x, y);
+                spawnedByCell[tilePos] = record;
+            }
+        }
+
         return true;
     }
 
@@ -241,17 +298,30 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return;
         }
 
-        if (!tileManager.ClearTile(gridPosition))
+        if (record.SpawnedObject == null)
         {
             return;
         }
 
-        if (record.SpawnedObject != null)
+        Vector2Int topLeft = record.TopLeftGridPosition;
+        Vector2Int footprintSize = record.FootprintSize;
+
+        if (!tileManager.ClearFootprint(topLeft, footprintSize))
         {
-            Destroy(record.SpawnedObject);
+            return;
         }
 
-        spawnedByCell.Remove(gridPosition);
+        Destroy(record.SpawnedObject);
+        buildingsByInstanceId.Remove(record.SpawnedObject.GetInstanceID());
+
+        for (int x = 0; x < footprintSize.x; x++)
+        {
+            for (int y = 0; y < footprintSize.y; y++)
+            {
+                Vector2Int tilePos = topLeft + new Vector2Int(x, y);
+                spawnedByCell.Remove(tilePos);
+            }
+        }
 
         if (refundBuildingToInventoryOnRemove && inventoryManager != null && record.Definition != null)
         {
@@ -360,6 +430,26 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
     }
 
+    private void HandleRotationInput()
+    {
+        if (!enableRotationInput)
+        {
+            return;
+        }
+
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null)
+        {
+            return;
+        }
+
+        if (keyboard.rKey.wasPressedThisFrame)
+        {
+            selectedRotationQuarterTurns = (selectedRotationQuarterTurns + 1) % 4;
+            suppressHoverUntilTileChange = false;
+        }
+    }
+
     public bool TrySelectBuildingByIndex(int index)
     {
         if (inventoryManager == null)
@@ -407,18 +497,74 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return false;
         }
 
-        if (tileManager.IsOccupied(gridPosition))
-        {
-            return false;
-        }
-
         BuildingDefinition selectedBuildingDefinition = GetSelectedBuildingDefinition();
         if (selectedBuildingDefinition == null || selectedBuildingDefinition.BehaviorPrefab == null)
         {
             return false;
         }
 
-        return inventoryManager.HasBuilding(selectedBuildingDefinition, 1);
+        Vector2Int footprintSize = GetRotatedFootprintSize(selectedBuildingDefinition.FootprintSize);
+        Vector2Int optimalTopLeft = CalculateOptimalPlacementPosition(gridPosition, footprintSize);
+
+        return tileManager.CanOccupyFootprint(optimalTopLeft, footprintSize) 
+            && inventoryManager.HasBuilding(selectedBuildingDefinition, 1);
+    }
+
+    private Vector2Int GetRotatedFootprintSize(Vector2Int baseFootprint)
+    {
+        if ((selectedRotationQuarterTurns & 1) == 0)
+        {
+            return baseFootprint;
+        }
+
+        return new Vector2Int(baseFootprint.y, baseFootprint.x);
+    }
+
+    private Vector2Int CalculateOptimalPlacementPosition(Vector2Int cursorGridPosition, Vector2Int footprintSize)
+    {
+        if (tileManager == null)
+        {
+            return cursorGridPosition;
+        }
+
+        // Calculate the offset from top-left to center of the building
+        float centerOffsetX = (footprintSize.x - 1) * 0.5f;
+        float centerOffsetY = (footprintSize.y - 1) * 0.5f;
+
+        // For even dimensions, bias towards placing more tiles to the right (X) and above (Y)
+        // For odd dimensions, round to nearest for true centering
+        int topLeftX;
+        int topLeftY;
+
+        if (footprintSize.x % 2 == 0)
+        {
+            // Even width: bias right by using ceil
+            topLeftX = Mathf.CeilToInt(cursorGridPosition.x - centerOffsetX);
+        }
+        else
+        {
+            // Odd width: round to nearest for true centering
+            topLeftX = Mathf.RoundToInt(cursorGridPosition.x - centerOffsetX);
+        }
+
+        if (footprintSize.y % 2 == 0)
+        {
+            // Even height: bias up by using ceil
+            topLeftY = Mathf.CeilToInt(cursorGridPosition.y - centerOffsetY);
+        }
+        else
+        {
+            // Odd height: round to nearest for true centering
+            topLeftY = Mathf.RoundToInt(cursorGridPosition.y - centerOffsetY);
+        }
+
+        Vector2Int topLeft = new Vector2Int(topLeftX, topLeftY);
+
+        // Clamp to grid bounds
+        topLeft.x = Mathf.Clamp(topLeft.x, 0, tileManager.GridWidth - footprintSize.x);
+        topLeft.y = Mathf.Clamp(topLeft.y, 0, tileManager.GridHeight - footprintSize.y);
+
+        return topLeft;
     }
 
     private void EnsureInventoryManagerAssigned()

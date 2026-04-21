@@ -123,6 +123,81 @@ public class TileManager : MonoBehaviour
         return TryGetTileCell(gridPosition, out tile);
     }
 
+    public bool CanOccupyFootprint(Vector2Int topLeftGridPosition, Vector2Int footprintSize)
+    {
+        if (footprintSize.x <= 0 || footprintSize.y <= 0)
+        {
+            return false;
+        }
+
+        for (int x = 0; x < footprintSize.x; x++)
+        {
+            for (int y = 0; y < footprintSize.y; y++)
+            {
+                Vector2Int tilePos = topLeftGridPosition + new Vector2Int(x, y);
+                if (!IsInBounds(tilePos) || IsOccupied(tilePos))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public bool TryOccupyFootprint(Vector2Int topLeftGridPosition, Vector2Int footprintSize, string occupantId)
+    {
+        if (!CanOccupyFootprint(topLeftGridPosition, footprintSize))
+        {
+            return false;
+        }
+
+        for (int x = 0; x < footprintSize.x; x++)
+        {
+            for (int y = 0; y < footprintSize.y; y++)
+            {
+                Vector2Int tilePos = topLeftGridPosition + new Vector2Int(x, y);
+                if (!TryOccupyTile(tilePos, occupantId))
+                {
+                    // Rollback on partial failure
+                    ClearFootprint(topLeftGridPosition, new Vector2Int(x, y));
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public bool ClearFootprint(Vector2Int topLeftGridPosition, Vector2Int footprintSize)
+    {
+        bool anyCleared = false;
+
+        for (int x = 0; x < footprintSize.x; x++)
+        {
+            for (int y = 0; y < footprintSize.y; y++)
+            {
+                Vector2Int tilePos = topLeftGridPosition + new Vector2Int(x, y);
+                if (ClearTile(tilePos))
+                {
+                    anyCleared = true;
+                }
+            }
+        }
+
+        return anyCleared;
+    }
+
+    public string GetOccupantAtPosition(Vector2Int gridPosition)
+    {
+        if (!TryGetTileCell(gridPosition, out TileCell tile))
+        {
+            return string.Empty;
+        }
+
+        return tile.OccupantId;
+    }
+
     private void OnDrawGizmos()
     {
         if (!drawGridGizmos || gridWidth <= 0 || gridHeight <= 0 || tileSize <= 0f)

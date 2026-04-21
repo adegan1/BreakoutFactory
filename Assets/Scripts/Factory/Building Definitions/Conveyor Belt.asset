@@ -18,4 +18,5 @@ MonoBehaviour:
   buildingColor: {r: 0.3584906, g: 0.3584906, b: 0.3584906, a: 1}
   footprintWidth: 1
   footprintHeight: 1
+  behaviorPrefab: {fileID: 1276502763047268258, guid: da22c3addc64f564b8ec6d423e674f2d, type: 3}
   scrapDropAmount: 0
