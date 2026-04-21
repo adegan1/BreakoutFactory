@@ -44,6 +44,8 @@ public class BrickController : MonoBehaviour
     private Coroutine lightningPulseRoutine;
     private readonly List<BrickController> nearbyBricksBuffer = new List<BrickController>();
 
+    public static event System.Action<BrickController, int> BrickDestroyed;
+
     public int CurrentHitPoints => currentHitPoints;
     public BrickTypeData TypeData => typeData;
 
@@ -232,6 +234,8 @@ public class BrickController : MonoBehaviour
 
     protected virtual void OnBrickDestroyed()
     {
+        int scoreValue = typeData != null ? Mathf.Max(0, typeData.ScoreValue) : 0;
+        BrickDestroyed?.Invoke(this, scoreValue);
     }
 
     private void UpdateBurning()

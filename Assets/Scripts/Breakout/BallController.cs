@@ -45,6 +45,7 @@ public class BallController : MonoBehaviour
     private Collider2D ballCollider;
     private SpriteRenderer spriteRenderer;
     private TrailRenderer trailRenderer;
+    private Sprite defaultSprite;
     private Vector3 baseLocalScale;
     private bool launched;
     private bool hasBeenLost;
@@ -74,6 +75,7 @@ public class BallController : MonoBehaviour
         ballCollider = GetComponent<Collider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         trailRenderer = GetComponent<TrailRenderer>();
+        defaultSprite = spriteRenderer != null ? spriteRenderer.sprite : null;
         baseLocalScale = transform.localScale;
         previousPosition = rb.position;
     }
@@ -365,6 +367,11 @@ public class BallController : MonoBehaviour
 
             transform.localScale = baseLocalScale;
 
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.sprite = defaultSprite;
+            }
+
             brickTriggersInside.Clear();
             return;
         }
@@ -384,6 +391,7 @@ public class BallController : MonoBehaviour
 
         if (spriteRenderer != null)
         {
+            spriteRenderer.sprite = typeData.BallSprite != null ? typeData.BallSprite : defaultSprite;
             spriteRenderer.color = typeData.DisplayColor;
         }
 

@@ -4,6 +4,7 @@ using UnityEditor;
 public class BallTypeDataEditor : BreakoutDataEditorBase
 {
     private SerializedProperty displayColorProperty;
+    private SerializedProperty ballSpriteProperty;
     private SerializedProperty sizeProperty;
     private SerializedProperty movementSpeedProperty;
     private SerializedProperty damageProperty;
@@ -33,6 +34,7 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private void OnEnable()
     {
         displayColorProperty = FindProperty("displayColor");
+        ballSpriteProperty = FindProperty("ballSprite");
         sizeProperty = FindProperty("size");
         movementSpeedProperty = FindProperty("movementSpeed");
         damageProperty = FindProperty("damage");
@@ -64,7 +66,7 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     {
         serializedObject.Update();
 
-        DrawSection("Visual", displayColorProperty, sizeProperty);
+        DrawSection("Visual", displayColorProperty, ballSpriteProperty, sizeProperty);
         DrawSection("Movement", movementSpeedProperty);
         DrawSection("Core Combat", damageProperty, bouncesProperty);
         DrawSection("Brick Interaction", passThroughBricksProperty, passThroughBallsProperty, appliesBurnProperty);

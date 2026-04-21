@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using System;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
@@ -18,15 +19,32 @@ public class BreakoutGameController : MonoBehaviour
     [SerializeField] private UnityEvent onOutOfBalls;
 
     private int nextBallIndex;
+    private int score;
     private readonly HashSet<BallController> activeBalls = new HashSet<BallController>();
     private bool outOfBallsInvoked;
 
     public int BallsRemaining => Mathf.Max(0, ballsToDispense.Count - nextBallIndex);
+    public int Score => score;
+    public event Action<int> ScoreChanged;
+    public event Action BallsQueueChanged;
+
+    private void OnEnable()
+    {
+        BrickController.BrickDestroyed += HandleBrickDestroyed;
+    }
+
+    private void OnDisable()
+    {
+        BrickController.BrickDestroyed -= HandleBrickDestroyed;
+    }
 
     private void Start()
     {
         nextBallIndex = 0;
+        score = 0;
         outOfBallsInvoked = false;
+        NotifyScoreChanged();
+        NotifyBallsQueueChanged();
         TryInvokeOutOfBalls();
     }
 
@@ -88,6 +106,7 @@ public class BreakoutGameController : MonoBehaviour
 
         BallTypeData nextBallType = ballsToDispense[nextBallIndex];
         nextBallIndex++;
+        NotifyBallsQueueChanged();
 
         BallController spawnedBall = Instantiate(ballPrefab, spawnPosition, Quaternion.identity);
         spawnedBall.BallLost += HandleBallLost;
@@ -102,6 +121,38 @@ public class BreakoutGameController : MonoBehaviour
         spawnedBall.Launch(initialLaunchDirection);
 
         TryInvokeOutOfBalls();
+    }
+
+    public List<BallTypeData> GetUpcomingBallsSnapshot()
+    {
+        List<BallTypeData> remainingBalls = new List<BallTypeData>();
+        for (int i = nextBallIndex; i < ballsToDispense.Count; i++)
+        {
+            remainingBalls.Add(ballsToDispense[i]);
+        }
+
+        return remainingBalls;
+    }
+
+    private void HandleBrickDestroyed(BrickController destroyedBrick, int awardedScore)
+    {
+        if (awardedScore <= 0)
+        {
+            return;
+        }
+
+        score += awardedScore;
+        NotifyScoreChanged();
+    }
+
+    private void NotifyScoreChanged()
+    {
+        ScoreChanged?.Invoke(score);
+    }
+
+    private void NotifyBallsQueueChanged()
+    {
+        BallsQueueChanged?.Invoke();
     }
 
     private void HandleBallLost(BallController lostBall)

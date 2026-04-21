@@ -16,6 +16,7 @@ public class BallTypeData : ScriptableObject
 
     // Visual
     [SerializeField] private Color displayColor = Color.white;
+    [SerializeField] private Sprite ballSprite;
     [SerializeField, Range(0.25f, 3f)] private float size = 1f;
 
     // Movement
@@ -53,6 +54,7 @@ public class BallTypeData : ScriptableObject
     [SerializeField] private BallElement[] strongAgainst = new BallElement[0];
 
     public Color DisplayColor => displayColor;
+    public Sprite BallSprite => ballSprite;
     public float Size => size;
     public float MovementSpeed => movementSpeed;
     public int Damage => damage;
