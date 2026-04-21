@@ -18,4 +18,4 @@ MonoBehaviour:
   buildingColor: {r: 0.22677112, g: 0.6004495, b: 0.9811321, a: 1}
   footprintWidth: 2
   footprintHeight: 2
-  scrapDropAmount: 1
+  scrapDropAmount: 3
