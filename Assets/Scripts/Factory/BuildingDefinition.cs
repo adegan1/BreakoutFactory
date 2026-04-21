@@ -13,6 +13,9 @@ public class BuildingDefinition : ScriptableObject
     [SerializeField, Min(1)] private int footprintWidth = 1;
     [SerializeField, Min(1)] private int footprintHeight = 1;
 
+    [Header("Behavior")]
+    [SerializeField] private GameObject behaviorPrefab;
+
     [Header("Drops")]
     [SerializeField, Min(0)] private int scrapDropAmount = 0;
 
@@ -22,6 +25,7 @@ public class BuildingDefinition : ScriptableObject
     public Color BuildingColor => buildingColor;
     public int FootprintWidth => footprintWidth;
     public int FootprintHeight => footprintHeight;
+    public GameObject BehaviorPrefab => behaviorPrefab;
     public int ScrapDropAmount => scrapDropAmount;
 
     public Vector2Int FootprintSize => new Vector2Int(footprintWidth, footprintHeight);
