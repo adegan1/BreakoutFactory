@@ -507,7 +507,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FactoryBuildingPlacer
   tileManager: {fileID: 1143339329}
   worldCamera: {fileID: 1332879926}
-  inventoryManager: {fileID: 0}
+  inventoryManager: {fileID: 1995175673}
   defaultBuildingPrefab: {fileID: 1276502763047268258, guid: 4f1855806b1d9574c9d28be9647eb577, type: 3}
   placementSurfaceMask:
     serializedVersion: 2

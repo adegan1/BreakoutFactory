@@ -3,20 +3,27 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Building Definition", menuName = "Factory/Building Definition")]
 public class BuildingDefinition : ScriptableObject
 {
-    [Header("Display")]
+    // Display
     [SerializeField] private string displayName;
     [SerializeField, TextArea(2, 5)] private string description;
     [SerializeField] private Sprite buildingSprite;
     [SerializeField] private Color buildingColor = Color.white;
 
-    [Header("Placement")]
+    // Placement
     [SerializeField, Min(1)] private int footprintWidth = 1;
     [SerializeField, Min(1)] private int footprintHeight = 1;
 
-    [Header("Behavior")]
+    // Behavior
     [SerializeField] private GameObject behaviorPrefab;
 
-    [Header("Drops")]
+    [SerializeField] private bool isConveyor;
+
+    // Conveyor visuals
+    [SerializeField] private Sprite conveyorStraightSprite;
+    [SerializeField] private Sprite conveyorTurnLeftSprite;
+    [SerializeField] private Sprite conveyorTurnRightSprite;
+
+    // Drops
     [SerializeField, Min(0)] private int scrapDropAmount = 0;
 
     public string DisplayName => displayName;
@@ -26,6 +33,10 @@ public class BuildingDefinition : ScriptableObject
     public int FootprintWidth => footprintWidth;
     public int FootprintHeight => footprintHeight;
     public GameObject BehaviorPrefab => behaviorPrefab;
+    public bool IsConveyor => isConveyor;
+    public Sprite ConveyorStraightSprite => conveyorStraightSprite;
+    public Sprite ConveyorTurnLeftSprite => conveyorTurnLeftSprite;
+    public Sprite ConveyorTurnRightSprite => conveyorTurnRightSprite;
     public int ScrapDropAmount => scrapDropAmount;
 
     public Vector2Int FootprintSize => new Vector2Int(footprintWidth, footprintHeight);
