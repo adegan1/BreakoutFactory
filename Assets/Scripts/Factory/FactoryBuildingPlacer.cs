@@ -26,9 +26,14 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [SerializeField] private Color blockedHoverColor = new Color(1f, 0.3f, 0.3f, 0.5f);
     [SerializeField] private float hoverZOffset = -0.1f;
 
+    [Header("Conveyor Direction Indicator")]
+    [SerializeField] private Transform conveyorDirectionIndicator;
+    [SerializeField] private Color conveyorIndicatorColor = new Color(1f, 1f, 1f, 0.85f);
+
     private readonly Dictionary<Vector2Int, PlacedBuildingRecord> spawnedByCell = new();
     private readonly Dictionary<int, PlacedBuildingRecord> buildingsByInstanceId = new();
     private SpriteRenderer hoverHighlightRenderer;
+    private SpriteRenderer conveyorDirectionIndicatorRenderer;
     private Sprite defaultHoverSprite;
     private Quaternion defaultHoverRotation = Quaternion.identity;
     private bool suppressHoverUntilTileChange;
@@ -100,6 +105,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
                 defaultHoverSprite = hoverHighlightRenderer.sprite;
             }
         }
+
+        if (conveyorDirectionIndicator != null)
+        {
+            conveyorDirectionIndicatorRenderer = conveyorDirectionIndicator.GetComponent<SpriteRenderer>();
+        }
     }
 
     private void Update()
@@ -109,6 +119,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         {
             hasPointerTile = false;
             SetHoverHighlightVisible(false);
+            SetConveyorDirectionIndicatorVisible(false);
             return;
         }
 
@@ -117,6 +128,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         RefreshPointerState(mouse);
         UpdateHoverHighlight();
+        UpdateConveyorDirectionIndicator();
 
         if (mouse.leftButton.wasPressedThisFrame)
         {
@@ -189,6 +201,69 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         SetHoverHighlightVisible(false);
+    }
+
+    private void UpdateConveyorDirectionIndicator()
+    {
+        if (conveyorDirectionIndicator == null)
+        {
+            return;
+        }
+
+        if (!hasPointerTile || suppressHoverUntilTileChange && pointerGridPosition == suppressedHoverTile)
+        {
+            SetConveyorDirectionIndicatorVisible(false);
+            return;
+        }
+
+        BuildingDefinition selectedDef = GetSelectedBuildingDefinition();
+        if (selectedDef == null || !IsConveyorDefinition(selectedDef))
+        {
+            SetConveyorDirectionIndicatorVisible(false);
+            return;
+        }
+
+        Vector2Int footprintSize = GetRotatedFootprintSize(selectedDef.FootprintSize);
+        Vector2Int optimalTopLeft = CalculateOptimalPlacementPosition(pointerGridPosition, footprintSize);
+
+        // The output direction is always the belt's facing direction regardless of turn type.
+        // Turns only affect which side input is received from, not where items exit.
+        Vector2Int outputDirection = ConveyorVisualResolver.DirectionFromQuarterTurns(selectedRotationQuarterTurns);
+        Vector2Int outputTile = optimalTopLeft + outputDirection;
+
+        if (spawnedByCell.TryGetValue(outputTile, out PlacedBuildingRecord outputOccupant)
+            && IsConveyorDefinition(outputOccupant?.Definition))
+        {
+            SetConveyorDirectionIndicatorVisible(false);
+            return;
+        }
+
+        Vector3 indicatorPos = tileManager.GridToWorld(outputTile);
+        indicatorPos.z = tileManager.GridPlaneZ + hoverZOffset;
+
+        conveyorDirectionIndicator.position = indicatorPos;
+        conveyorDirectionIndicator.localScale = new Vector3(tileManager.TileSize, tileManager.TileSize, 1f);
+        conveyorDirectionIndicator.rotation = Quaternion.Euler(0f, 0f, selectedRotationQuarterTurns * 90f);
+
+        if (conveyorDirectionIndicatorRenderer != null)
+        {
+            conveyorDirectionIndicatorRenderer.color = conveyorIndicatorColor;
+        }
+
+        SetConveyorDirectionIndicatorVisible(true);
+    }
+
+    private void SetConveyorDirectionIndicatorVisible(bool isVisible)
+    {
+        if (conveyorDirectionIndicator == null)
+        {
+            return;
+        }
+
+        if (conveyorDirectionIndicator.gameObject.activeSelf != isVisible)
+        {
+            conveyorDirectionIndicator.gameObject.SetActive(isVisible);
+        }
     }
 
     private Vector3 GetFootprintWorldCenter(Vector2Int topLeft, Vector2Int footprintSize)
