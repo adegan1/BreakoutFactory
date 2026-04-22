@@ -160,9 +160,18 @@ public class FactoryBuildingPlacer : MonoBehaviour
         // Check if there's a building at the pointer (for removal)
         if (spawnedByCell.TryGetValue(pointerGridPosition, out PlacedBuildingRecord buildingAtPointer) && buildingAtPointer != null)
         {
-            DisplayFootprintHighlight(buildingAtPointer.TopLeftGridPosition, buildingAtPointer.FootprintSize, blockedHoverColor);
-            ApplyDefaultHoverVisual(blockedHoverColor);
-            return;
+            BuildingDefinition selectedDef = GetSelectedBuildingDefinition();
+            Vector2Int fp = selectedDef != null ? GetRotatedFootprintSize(selectedDef.FootprintSize) : Vector2Int.zero;
+            Vector2Int tl = selectedDef != null ? CalculateOptimalPlacementPosition(pointerGridPosition, fp) : default;
+            bool isReplacement = selectedDef != null && CanReplaceConveyorAt(tl, fp, selectedDef);
+
+            if (!isReplacement)
+            {
+                DisplayFootprintHighlight(buildingAtPointer.TopLeftGridPosition, buildingAtPointer.FootprintSize, blockedHoverColor);
+                ApplyDefaultHoverVisual(blockedHoverColor);
+                return;
+            }
+            // Conveyor replacement: fall through to show placement preview
         }
 
         // Show placement preview for selected building
@@ -182,14 +191,17 @@ public class FactoryBuildingPlacer : MonoBehaviour
         SetHoverHighlightVisible(false);
     }
 
+    private Vector3 GetFootprintWorldCenter(Vector2Int topLeft, Vector2Int footprintSize)
+    {
+        Vector3 center = tileManager.GridToWorld(topLeft);
+        center.x += (footprintSize.x - 1) * tileManager.TileSize * 0.5f;
+        center.y += (footprintSize.y - 1) * tileManager.TileSize * 0.5f;
+        return center;
+    }
+
     private void DisplayFootprintHighlight(Vector2Int topLeftGridPosition, Vector2Int footprintSize, Color color)
     {
-        // Calculate the center of the footprint
-        Vector3 footprintCenter = tileManager.GridToWorld(topLeftGridPosition);
-
-        // Offset to true center (accounting for multi-tile size)
-        footprintCenter.x += (footprintSize.x - 1) * tileManager.TileSize * 0.5f;
-        footprintCenter.y += (footprintSize.y - 1) * tileManager.TileSize * 0.5f;
+        Vector3 footprintCenter = GetFootprintWorldCenter(topLeftGridPosition, footprintSize);
         footprintCenter.z = tileManager.GridPlaneZ + hoverZOffset;
 
         hoverHighlight.position = footprintCenter;
@@ -231,7 +243,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (IsConveyorDefinition(definition))
         {
-            ConveyorVisualResult conveyorVisual = ResolveConveyorVisual(
+            ConveyorVisualResolver.Result conveyorVisual = ConveyorVisualResolver.Resolve(
                 definition,
                 GetIncomingDirectionForPosition(topLeftGridPosition),
                 selectedRotationQuarterTurns);
@@ -307,8 +319,13 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (!tileManager.CanOccupyFootprint(optimalTopLeft, footprintSize))
         {
-            inventoryManager.AddBuilding(selectedBuildingDefinition, 1);
-            return false;
+            if (!CanReplaceConveyorAt(optimalTopLeft, footprintSize, selectedBuildingDefinition)
+                || !spawnedByCell.TryGetValue(optimalTopLeft, out PlacedBuildingRecord existingConveyor)
+                || !RemovePlacedBuilding(existingConveyor, true))
+            {
+                inventoryManager.AddBuilding(selectedBuildingDefinition, 1);
+                return false;
+            }
         }
 
         string occupantId = selectedBuildingPrefab.GetInstanceID().ToString();
@@ -318,10 +335,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return false;
         }
 
-        Vector3 spawnPosition = tileManager.GridToWorld(optimalTopLeft);
-        // Offset spawn position to the center of the footprint for proper scaling
-        spawnPosition.x += (footprintSize.x - 1) * tileManager.TileSize * 0.5f;
-        spawnPosition.y += (footprintSize.y - 1) * tileManager.TileSize * 0.5f;
+        Vector3 spawnPosition = GetFootprintWorldCenter(optimalTopLeft, footprintSize);
         
         float rotationDegrees = selectedRotationQuarterTurns * 90f;
         Quaternion spawnRotation = Quaternion.Euler(0f, 0f, rotationDegrees);
@@ -359,12 +373,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         Vector2Int gridPosition = pointerGridPosition;
-        if (!spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord record) || record == null)
-        {
-            return;
-        }
-
-        if (record.SpawnedObject == null)
+        if (!spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord record) || record?.SpawnedObject == null)
         {
             return;
         }
@@ -372,31 +381,40 @@ public class FactoryBuildingPlacer : MonoBehaviour
         Vector2Int topLeft = record.TopLeftGridPosition;
         Vector2Int footprintSize = record.FootprintSize;
 
-        if (!tileManager.ClearFootprint(topLeft, footprintSize))
+        if (!RemovePlacedBuilding(record, refundBuildingToInventoryOnRemove))
         {
             return;
         }
 
-        Destroy(record.SpawnedObject);
-        buildingsByInstanceId.Remove(record.SpawnedObject.GetInstanceID());
+        RefreshConveyorVisualsAround(topLeft, footprintSize);
+        suppressHoverUntilTileChange = false;
+    }
 
-        for (int x = 0; x < footprintSize.x; x++)
+    private bool RemovePlacedBuilding(PlacedBuildingRecord record, bool refundToInventory)
+    {
+        if (!tileManager.ClearFootprint(record.TopLeftGridPosition, record.FootprintSize))
         {
-            for (int y = 0; y < footprintSize.y; y++)
+            return false;
+        }
+
+        int instanceId = record.SpawnedObject.GetInstanceID();
+        Destroy(record.SpawnedObject);
+        buildingsByInstanceId.Remove(instanceId);
+
+        for (int x = 0; x < record.FootprintSize.x; x++)
+        {
+            for (int y = 0; y < record.FootprintSize.y; y++)
             {
-                Vector2Int tilePos = topLeft + new Vector2Int(x, y);
-                spawnedByCell.Remove(tilePos);
+                spawnedByCell.Remove(record.TopLeftGridPosition + new Vector2Int(x, y));
             }
         }
 
-        if (refundBuildingToInventoryOnRemove && inventoryManager != null && record.Definition != null)
+        if (refundToInventory && inventoryManager != null && record.Definition != null)
         {
             inventoryManager.AddBuilding(record.Definition, 1);
         }
 
-        RefreshConveyorVisualsAround(topLeft, footprintSize);
-
-        suppressHoverUntilTileChange = false;
+        return true;
     }
 
     private void RefreshConveyorVisualsAround(Vector2Int topLeftGridPosition, Vector2Int footprintSize)
@@ -448,12 +466,21 @@ public class FactoryBuildingPlacer : MonoBehaviour
         return definition != null && definition.IsConveyor;
     }
 
-    private bool HasAdjacentConveyorAt(Vector2Int gridPosition)
+    private bool CanReplaceConveyorAt(Vector2Int optimalTopLeft, Vector2Int footprintSize, BuildingDefinition incomingDefinition)
     {
-        return spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord record)
-            && record != null
-            && record.SpawnedObject != null
-            && IsConveyorDefinition(record.Definition);
+        if (!IsConveyorDefinition(incomingDefinition))
+        {
+            return false;
+        }
+
+        if (!spawnedByCell.TryGetValue(optimalTopLeft, out PlacedBuildingRecord existing) || existing == null)
+        {
+            return false;
+        }
+
+        return IsConveyorDefinition(existing.Definition)
+            && existing.FootprintSize == footprintSize
+            && existing.TopLeftGridPosition == optimalTopLeft;
     }
 
     private void ApplyConveyorVisualForRecord(PlacedBuildingRecord conveyorRecord)
@@ -463,7 +490,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return;
         }
 
-        ConveyorVisualResult conveyorVisual = ResolveConveyorVisual(
+        ConveyorVisualResolver.Result conveyorVisual = ConveyorVisualResolver.Resolve(
             conveyorRecord.Definition,
             GetIncomingDirectionForRecord(conveyorRecord),
             conveyorRecord.PlacedRotationQuarterTurns);
@@ -490,53 +517,6 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
     }
 
-    private ConveyorVisualResult ResolveConveyorVisual(
-        BuildingDefinition definition,
-        Vector2Int? incomingDirection,
-        int defaultQuarterTurns)
-    {
-        int quarterTurns = defaultQuarterTurns;
-        Vector2Int currentDirection = DirectionFromQuarterTurns(quarterTurns);
-        Sprite selectedSprite = definition.ConveyorStraightSprite != null
-            ? definition.ConveyorStraightSprite
-            : definition.BuildingSprite;
-
-        if (!incomingDirection.HasValue)
-        {
-            return new ConveyorVisualResult(selectedSprite, quarterTurns);
-        }
-
-        Vector2Int incoming = incomingDirection.Value;
-        int cross = incoming.x * currentDirection.y - incoming.y * currentDirection.x;
-        bool isColinear = incoming == currentDirection || incoming == -currentDirection;
-
-        if (isColinear)
-        {
-            return new ConveyorVisualResult(selectedSprite, quarterTurns);
-        }
-
-        if (cross < 0)
-        {
-            selectedSprite = definition.ConveyorTurnRightSprite != null
-                ? definition.ConveyorTurnRightSprite
-                : (definition.ConveyorTurnLeftSprite != null
-                    ? definition.ConveyorTurnLeftSprite
-                    : selectedSprite);
-            quarterTurns = (quarterTurns + 1) % 4;
-        }
-        else
-        {
-            selectedSprite = definition.ConveyorTurnLeftSprite != null
-                ? definition.ConveyorTurnLeftSprite
-                : (definition.ConveyorTurnRightSprite != null
-                    ? definition.ConveyorTurnRightSprite
-                    : selectedSprite);
-            quarterTurns = (quarterTurns + 3) % 4;
-        }
-
-        return new ConveyorVisualResult(selectedSprite, quarterTurns);
-    }
-
     private Vector2Int? GetIncomingDirectionForRecord(PlacedBuildingRecord targetRecord)
     {
         if (targetRecord == null)
@@ -561,7 +541,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             }
 
             int neighborQuarterTurns = neighborRecord.PlacedRotationQuarterTurns;
-            Vector2Int neighborDirection = DirectionFromQuarterTurns(neighborQuarterTurns);
+            Vector2Int neighborDirection = ConveyorVisualResolver.DirectionFromQuarterTurns(neighborQuarterTurns);
             if (neighborPosition + neighborDirection == targetPosition)
             {
                 return neighborDirection;
@@ -569,39 +549,6 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         return null;
-    }
-
-    private static Vector2Int DirectionFromQuarterTurns(int quarterTurns)
-    {
-        switch (Mathf.Abs(quarterTurns) % 4)
-        {
-            case 0:
-                return Vector2Int.right;
-            case 1:
-                return Vector2Int.up;
-            case 2:
-                return Vector2Int.left;
-            default:
-                return Vector2Int.down;
-        }
-    }
-
-    private readonly struct ConveyorVisualResult
-    {
-        public readonly Sprite Sprite;
-        public readonly int QuarterTurns;
-
-        public ConveyorVisualResult(Sprite sprite, int quarterTurns)
-        {
-            Sprite = sprite;
-            QuarterTurns = quarterTurns;
-        }
-    }
-
-    private int GetCurrentQuarterTurns(Quaternion rotation)
-    {
-        float zDegrees = rotation.eulerAngles.z;
-        return Mathf.RoundToInt(zDegrees / 90f) % 4;
     }
 
     private bool CanInteractAtPointer()
@@ -779,7 +726,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
         Vector2Int footprintSize = GetRotatedFootprintSize(selectedBuildingDefinition.FootprintSize);
         Vector2Int optimalTopLeft = CalculateOptimalPlacementPosition(gridPosition, footprintSize);
 
-        return tileManager.CanOccupyFootprint(optimalTopLeft, footprintSize) 
+        return (tileManager.CanOccupyFootprint(optimalTopLeft, footprintSize)
+            || CanReplaceConveyorAt(optimalTopLeft, footprintSize, selectedBuildingDefinition))
             && inventoryManager.HasBuilding(selectedBuildingDefinition, 1);
     }
 
