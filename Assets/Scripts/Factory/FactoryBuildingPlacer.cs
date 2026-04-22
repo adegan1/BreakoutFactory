@@ -169,14 +169,14 @@ public class FactoryBuildingPlacer : MonoBehaviour
             suppressHoverUntilTileChange = false;
         }
 
+        BuildingDefinition selectedDef = GetSelectedBuildingDefinition();
+        Vector2Int footprintSize = selectedDef != null ? GetRotatedFootprintSize(selectedDef.FootprintSize) : Vector2Int.one;
+        Vector2Int optimalTopLeft = selectedDef != null ? CalculateOptimalPlacementPosition(pointerGridPosition, footprintSize) : pointerGridPosition;
+
         // Check if there's a building at the pointer (for removal)
         if (spawnedByCell.TryGetValue(pointerGridPosition, out PlacedBuildingRecord buildingAtPointer) && buildingAtPointer != null)
         {
-            BuildingDefinition selectedDef = GetSelectedBuildingDefinition();
-            Vector2Int fp = selectedDef != null ? GetRotatedFootprintSize(selectedDef.FootprintSize) : Vector2Int.zero;
-            Vector2Int tl = selectedDef != null ? CalculateOptimalPlacementPosition(pointerGridPosition, fp) : default;
-            bool isReplacement = selectedDef != null && CanReplaceConveyorAt(tl, fp, selectedDef);
-
+            bool isReplacement = selectedDef != null && CanReplaceConveyorAt(optimalTopLeft, footprintSize, selectedDef);
             if (!isReplacement)
             {
                 DisplayFootprintHighlight(buildingAtPointer.TopLeftGridPosition, buildingAtPointer.FootprintSize, blockedHoverColor);
@@ -186,17 +186,12 @@ public class FactoryBuildingPlacer : MonoBehaviour
             // Conveyor replacement: fall through to show placement preview
         }
 
-        // Show placement preview for selected building
-        BuildingDefinition selectedBuildingDefinition = GetSelectedBuildingDefinition();
-        if (selectedBuildingDefinition != null)
+        if (selectedDef != null)
         {
-            Vector2Int footprintSize = GetRotatedFootprintSize(selectedBuildingDefinition.FootprintSize);
-            Vector2Int optimalTopLeft = CalculateOptimalPlacementPosition(pointerGridPosition, footprintSize);
             bool canPlace = CanPlaceSelectedBuildingAt(pointerGridPosition);
             Color previewColor = canPlace ? validHoverColor : blockedHoverColor;
-
             DisplayFootprintHighlight(optimalTopLeft, footprintSize, previewColor);
-            ApplyBuildingHoverVisual(selectedBuildingDefinition, optimalTopLeft, canPlace);
+            ApplyBuildingHoverVisual(selectedDef, optimalTopLeft, canPlace);
             return;
         }
 
@@ -350,6 +345,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         suppressedHoverTile = pointerGridPosition;
         suppressHoverUntilTileChange = true;
         SetHoverHighlightVisible(false);
+        SetConveyorDirectionIndicatorVisible(false);
     }
 
     private void SetHoverHighlightVisible(bool isVisible)
@@ -687,41 +683,13 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return;
         }
 
-        if (keyboard.digit1Key.wasPressedThisFrame)
+        for (int i = 0; i < 9; i++)
         {
-            TrySelectBuildingByIndex(0);
-        }
-        else if (keyboard.digit2Key.wasPressedThisFrame)
-        {
-            TrySelectBuildingByIndex(1);
-        }
-        else if (keyboard.digit3Key.wasPressedThisFrame)
-        {
-            TrySelectBuildingByIndex(2);
-        }
-        else if (keyboard.digit4Key.wasPressedThisFrame)
-        {
-            TrySelectBuildingByIndex(3);
-        }
-        else if (keyboard.digit5Key.wasPressedThisFrame)
-        {
-            TrySelectBuildingByIndex(4);
-        }
-        else if (keyboard.digit6Key.wasPressedThisFrame)
-        {
-            TrySelectBuildingByIndex(5);
-        }
-        else if (keyboard.digit7Key.wasPressedThisFrame)
-        {
-            TrySelectBuildingByIndex(6);
-        }
-        else if (keyboard.digit8Key.wasPressedThisFrame)
-        {
-            TrySelectBuildingByIndex(7);
-        }
-        else if (keyboard.digit9Key.wasPressedThisFrame)
-        {
-            TrySelectBuildingByIndex(8);
+            if (keyboard[(Key)((int)Key.Digit1 + i)].wasPressedThisFrame)
+            {
+                TrySelectBuildingByIndex(i);
+                break;
+            }
         }
     }
 
