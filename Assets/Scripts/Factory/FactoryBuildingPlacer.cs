@@ -29,6 +29,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private readonly Dictionary<Vector2Int, PlacedBuildingRecord> spawnedByCell = new();
     private readonly Dictionary<int, PlacedBuildingRecord> buildingsByInstanceId = new();
     private SpriteRenderer hoverHighlightRenderer;
+    private Sprite defaultHoverSprite;
+    private Quaternion defaultHoverRotation = Quaternion.identity;
     private bool suppressHoverUntilTileChange;
     private Vector2Int suppressedHoverTile;
     private bool hasPointerTile;
@@ -54,13 +56,15 @@ public class FactoryBuildingPlacer : MonoBehaviour
         public readonly BuildingDefinition Definition;
         public readonly Vector2Int TopLeftGridPosition;
         public readonly Vector2Int FootprintSize;
+        public readonly int PlacedRotationQuarterTurns;
 
-        public PlacedBuildingRecord(GameObject spawnedObject, BuildingDefinition definition, Vector2Int topLeft, Vector2Int footprintSize)
+        public PlacedBuildingRecord(GameObject spawnedObject, BuildingDefinition definition, Vector2Int topLeft, Vector2Int footprintSize, int placedRotationQuarterTurns)
         {
             SpawnedObject = spawnedObject;
             Definition = definition;
             TopLeftGridPosition = topLeft;
             FootprintSize = footprintSize;
+            PlacedRotationQuarterTurns = placedRotationQuarterTurns;
         }
     }
 
@@ -90,6 +94,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
         if (hoverHighlight != null)
         {
             hoverHighlightRenderer = hoverHighlight.GetComponent<SpriteRenderer>();
+            defaultHoverRotation = hoverHighlight.rotation;
+            if (hoverHighlightRenderer != null)
+            {
+                defaultHoverSprite = hoverHighlightRenderer.sprite;
+            }
         }
     }
 
@@ -152,6 +161,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         if (spawnedByCell.TryGetValue(pointerGridPosition, out PlacedBuildingRecord buildingAtPointer) && buildingAtPointer != null)
         {
             DisplayFootprintHighlight(buildingAtPointer.TopLeftGridPosition, buildingAtPointer.FootprintSize, blockedHoverColor);
+            ApplyDefaultHoverVisual(blockedHoverColor);
             return;
         }
 
@@ -165,6 +175,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             Color previewColor = canPlace ? validHoverColor : blockedHoverColor;
 
             DisplayFootprintHighlight(optimalTopLeft, footprintSize, previewColor);
+            ApplyBuildingHoverVisual(selectedBuildingDefinition, optimalTopLeft, canPlace);
             return;
         }
 
@@ -194,6 +205,52 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         SetHoverHighlightVisible(true);
+    }
+
+    private void ApplyDefaultHoverVisual(Color tint)
+    {
+        if (hoverHighlight == null || hoverHighlightRenderer == null)
+        {
+            return;
+        }
+
+        hoverHighlightRenderer.sprite = defaultHoverSprite;
+        hoverHighlightRenderer.color = tint;
+        hoverHighlight.rotation = defaultHoverRotation;
+    }
+
+    private void ApplyBuildingHoverVisual(BuildingDefinition definition, Vector2Int topLeftGridPosition, bool canPlace)
+    {
+        if (hoverHighlight == null || hoverHighlightRenderer == null || definition == null)
+        {
+            return;
+        }
+
+        Sprite selectedSprite = definition.BuildingSprite;
+        int quarterTurns = selectedRotationQuarterTurns;
+
+        if (IsConveyorDefinition(definition))
+        {
+            ConveyorVisualResult conveyorVisual = ResolveConveyorVisual(
+                definition,
+                GetIncomingDirectionForPosition(topLeftGridPosition),
+                selectedRotationQuarterTurns);
+
+            selectedSprite = conveyorVisual.Sprite;
+            quarterTurns = conveyorVisual.QuarterTurns;
+        }
+
+        hoverHighlightRenderer.sprite = selectedSprite != null ? selectedSprite : defaultHoverSprite;
+        hoverHighlightRenderer.color = BuildPreviewTint(definition.BuildingColor, canPlace);
+        hoverHighlight.rotation = Quaternion.Euler(0f, 0f, quarterTurns * 90f);
+    }
+
+    private Color BuildPreviewTint(Color baseColor, bool canPlace)
+    {
+        Color tintAnchor = canPlace ? validHoverColor : blockedHoverColor;
+        Color tint = Color.Lerp(baseColor, tintAnchor, canPlace ? 0.25f : 0.6f);
+        tint.a = tintAnchor.a;
+        return tint;
     }
 
     private void SuppressHoverAtPointerTile()
@@ -277,7 +334,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             buildingInstance.Initialize(selectedBuildingDefinition);
         }
 
-        PlacedBuildingRecord record = new PlacedBuildingRecord(spawned, selectedBuildingDefinition, optimalTopLeft, footprintSize);
+        PlacedBuildingRecord record = new PlacedBuildingRecord(spawned, selectedBuildingDefinition, optimalTopLeft, footprintSize, selectedRotationQuarterTurns);
         buildingsByInstanceId[spawned.GetInstanceID()] = record;
 
         for (int x = 0; x < footprintSize.x; x++)
@@ -406,84 +463,13 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return;
         }
 
-        Vector2Int anchorPosition = conveyorRecord.TopLeftGridPosition;
-        bool hasUp = HasAdjacentConveyorAt(anchorPosition + Vector2Int.up);
-        bool hasRight = HasAdjacentConveyorAt(anchorPosition + Vector2Int.right);
-        bool hasDown = HasAdjacentConveyorAt(anchorPosition + Vector2Int.down);
-        bool hasLeft = HasAdjacentConveyorAt(anchorPosition + Vector2Int.left);
+        ConveyorVisualResult conveyorVisual = ResolveConveyorVisual(
+            conveyorRecord.Definition,
+            GetIncomingDirectionForRecord(conveyorRecord),
+            conveyorRecord.PlacedRotationQuarterTurns);
 
-        int adjacentCount = 0;
-        if (hasUp) adjacentCount++;
-        if (hasRight) adjacentCount++;
-        if (hasDown) adjacentCount++;
-        if (hasLeft) adjacentCount++;
-
-        int quarterTurns = GetCurrentQuarterTurns(conveyorRecord.SpawnedObject.transform.rotation);
-        Sprite selectedSprite = conveyorRecord.Definition.ConveyorStraightSprite != null
-            ? conveyorRecord.Definition.ConveyorStraightSprite
-            : conveyorRecord.Definition.BuildingSprite;
-
-        if ((hasUp && hasDown) || (hasLeft && hasRight))
-        {
-            quarterTurns = (hasUp && hasDown) ? 1 : 0;
-        }
-        else if (adjacentCount == 1)
-        {
-            if (hasUp || hasDown)
-            {
-                quarterTurns = 1;
-            }
-            else
-            {
-                quarterTurns = 0;
-            }
-        }
-        else if (adjacentCount == 2)
-        {
-            bool isRightVariant = (hasUp && hasRight) || (hasDown && hasLeft);
-            bool isLeftVariant = (hasUp && hasLeft) || (hasDown && hasRight);
-
-            if (isRightVariant || isLeftVariant)
-            {
-                if (isRightVariant)
-                {
-                    selectedSprite = conveyorRecord.Definition.ConveyorTurnRightSprite
-                        != null
-                        ? conveyorRecord.Definition.ConveyorTurnRightSprite
-                        : (conveyorRecord.Definition.ConveyorTurnLeftSprite
-                            != null
-                            ? conveyorRecord.Definition.ConveyorTurnLeftSprite
-                            : selectedSprite);
-                }
-                else
-                {
-                    selectedSprite = conveyorRecord.Definition.ConveyorTurnLeftSprite
-                        != null
-                        ? conveyorRecord.Definition.ConveyorTurnLeftSprite
-                        : (conveyorRecord.Definition.ConveyorTurnRightSprite
-                            != null
-                            ? conveyorRecord.Definition.ConveyorTurnRightSprite
-                            : selectedSprite);
-                }
-
-                if (hasUp && hasRight)
-                {
-                    quarterTurns = 0;
-                }
-                else if (hasRight && hasDown)
-                {
-                    quarterTurns = 1;
-                }
-                else if (hasDown && hasLeft)
-                {
-                    quarterTurns = 2;
-                }
-                else if (hasLeft && hasUp)
-                {
-                    quarterTurns = 3;
-                }
-            }
-        }
+        int quarterTurns = conveyorVisual.QuarterTurns;
+        Sprite selectedSprite = conveyorVisual.Sprite;
 
         conveyorRecord.SpawnedObject.transform.rotation = Quaternion.Euler(0f, 0f, quarterTurns * 90f);
 
@@ -501,6 +487,114 @@ public class FactoryBuildingPlacer : MonoBehaviour
         {
             spriteRenderer.sprite = selectedSprite;
             spriteRenderer.color = conveyorRecord.Definition.BuildingColor;
+        }
+    }
+
+    private ConveyorVisualResult ResolveConveyorVisual(
+        BuildingDefinition definition,
+        Vector2Int? incomingDirection,
+        int defaultQuarterTurns)
+    {
+        int quarterTurns = defaultQuarterTurns;
+        Vector2Int currentDirection = DirectionFromQuarterTurns(quarterTurns);
+        Sprite selectedSprite = definition.ConveyorStraightSprite != null
+            ? definition.ConveyorStraightSprite
+            : definition.BuildingSprite;
+
+        if (!incomingDirection.HasValue)
+        {
+            return new ConveyorVisualResult(selectedSprite, quarterTurns);
+        }
+
+        Vector2Int incoming = incomingDirection.Value;
+        int cross = incoming.x * currentDirection.y - incoming.y * currentDirection.x;
+        bool isColinear = incoming == currentDirection || incoming == -currentDirection;
+
+        if (isColinear)
+        {
+            return new ConveyorVisualResult(selectedSprite, quarterTurns);
+        }
+
+        if (cross < 0)
+        {
+            selectedSprite = definition.ConveyorTurnRightSprite != null
+                ? definition.ConveyorTurnRightSprite
+                : (definition.ConveyorTurnLeftSprite != null
+                    ? definition.ConveyorTurnLeftSprite
+                    : selectedSprite);
+            quarterTurns = (quarterTurns + 1) % 4;
+        }
+        else
+        {
+            selectedSprite = definition.ConveyorTurnLeftSprite != null
+                ? definition.ConveyorTurnLeftSprite
+                : (definition.ConveyorTurnRightSprite != null
+                    ? definition.ConveyorTurnRightSprite
+                    : selectedSprite);
+            quarterTurns = (quarterTurns + 3) % 4;
+        }
+
+        return new ConveyorVisualResult(selectedSprite, quarterTurns);
+    }
+
+    private Vector2Int? GetIncomingDirectionForRecord(PlacedBuildingRecord targetRecord)
+    {
+        if (targetRecord == null)
+        {
+            return null;
+        }
+
+        return GetIncomingDirectionForPosition(targetRecord.TopLeftGridPosition);
+    }
+
+    private Vector2Int? GetIncomingDirectionForPosition(Vector2Int targetPosition)
+    {
+        for (int i = 0; i < CardinalDirections.Length; i++)
+        {
+            Vector2Int neighborPosition = targetPosition + CardinalDirections[i];
+            if (!spawnedByCell.TryGetValue(neighborPosition, out PlacedBuildingRecord neighborRecord)
+                || neighborRecord == null
+                || neighborRecord.SpawnedObject == null
+                || !IsConveyorDefinition(neighborRecord.Definition))
+            {
+                continue;
+            }
+
+            int neighborQuarterTurns = neighborRecord.PlacedRotationQuarterTurns;
+            Vector2Int neighborDirection = DirectionFromQuarterTurns(neighborQuarterTurns);
+            if (neighborPosition + neighborDirection == targetPosition)
+            {
+                return neighborDirection;
+            }
+        }
+
+        return null;
+    }
+
+    private static Vector2Int DirectionFromQuarterTurns(int quarterTurns)
+    {
+        switch (Mathf.Abs(quarterTurns) % 4)
+        {
+            case 0:
+                return Vector2Int.right;
+            case 1:
+                return Vector2Int.up;
+            case 2:
+                return Vector2Int.left;
+            default:
+                return Vector2Int.down;
+        }
+    }
+
+    private readonly struct ConveyorVisualResult
+    {
+        public readonly Sprite Sprite;
+        public readonly int QuarterTurns;
+
+        public ConveyorVisualResult(Sprite sprite, int quarterTurns)
+        {
+            Sprite = sprite;
+            QuarterTurns = quarterTurns;
         }
     }
 
@@ -624,7 +718,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (keyboard.rKey.wasPressedThisFrame)
         {
-            selectedRotationQuarterTurns = (selectedRotationQuarterTurns + 1) % 4;
+            selectedRotationQuarterTurns = (selectedRotationQuarterTurns + 3) % 4;
             suppressHoverUntilTileChange = false;
         }
     }
