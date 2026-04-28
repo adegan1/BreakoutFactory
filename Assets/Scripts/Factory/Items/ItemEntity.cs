@@ -9,6 +9,7 @@ public class ItemEntity : MonoBehaviour
     [SerializeField] private bool renameGameObjectToItemName = true;
 
     private int quantity = 1;
+    private bool hasWarnedMissingRenderer;
 
     public ItemDefinition ItemDefinition => itemDefinition;
     public int Quantity => quantity;
@@ -23,6 +24,8 @@ public class ItemEntity : MonoBehaviour
 
     private void Awake()
     {
+        ResolveSpriteRendererIfNeeded();
+
         if (applyDefinitionOnAwake)
         {
             ApplyDefinitionVisuals();
@@ -39,6 +42,8 @@ public class ItemEntity : MonoBehaviour
 
     public void Initialize(ItemDefinition definition, int startingQuantity = 1)
     {
+        ResolveSpriteRendererIfNeeded();
+
         itemDefinition = definition;
         quantity = Mathf.Max(0, startingQuantity);
         ApplyDefinitionVisuals();
@@ -51,15 +56,27 @@ public class ItemEntity : MonoBehaviour
 
     public void ApplyDefinitionVisuals()
     {
-        if (targetSpriteRenderer == null)
-        {
-            return;
-        }
+        ResolveSpriteRendererIfNeeded();
 
         if (itemDefinition == null)
         {
-            targetSpriteRenderer.sprite = null;
-            targetSpriteRenderer.color = Color.white;
+            if (targetSpriteRenderer != null)
+            {
+                targetSpriteRenderer.sprite = null;
+                targetSpriteRenderer.color = Color.white;
+            }
+
+            return;
+        }
+
+        if (targetSpriteRenderer == null)
+        {
+            if (!hasWarnedMissingRenderer)
+            {
+                hasWarnedMissingRenderer = true;
+                Debug.LogWarning($"ItemEntity on '{name}' could not find a SpriteRenderer to apply item visuals.", this);
+            }
+
             return;
         }
 
@@ -70,5 +87,15 @@ public class ItemEntity : MonoBehaviour
         {
             gameObject.name = itemDefinition.DisplayName + " Item";
         }
+    }
+
+    private void ResolveSpriteRendererIfNeeded()
+    {
+        if (targetSpriteRenderer != null)
+        {
+            return;
+        }
+
+        targetSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
     }
 }

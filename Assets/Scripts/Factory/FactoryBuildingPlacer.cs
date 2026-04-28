@@ -708,7 +708,10 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (keyboard.rKey.wasPressedThisFrame)
         {
-            selectedRotationQuarterTurns = (selectedRotationQuarterTurns + 3) % 4;
+            bool isShiftHeld = keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed;
+            selectedRotationQuarterTurns = isShiftHeld
+                ? (selectedRotationQuarterTurns + 1) % 4
+                : (selectedRotationQuarterTurns + 3) % 4;
             suppressHoverUntilTileChange = false;
         }
     }
