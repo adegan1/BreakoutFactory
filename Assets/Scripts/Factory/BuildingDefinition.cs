@@ -15,6 +15,7 @@ public class BuildingDefinition : ScriptableObject
 
     // Behavior
     [SerializeField] private GameObject behaviorPrefab;
+    [SerializeField] private GeneratorBuildingSettings generatorSettings;
 
     [SerializeField] private bool isConveyor;
 
@@ -33,6 +34,7 @@ public class BuildingDefinition : ScriptableObject
     public int FootprintWidth => footprintWidth;
     public int FootprintHeight => footprintHeight;
     public GameObject BehaviorPrefab => behaviorPrefab;
+    public GeneratorBuildingSettings GeneratorSettings => generatorSettings;
     public bool IsConveyor => isConveyor;
     public Sprite ConveyorStraightSprite => conveyorStraightSprite;
     public Sprite ConveyorTurnLeftSprite => conveyorTurnLeftSprite;

@@ -1156,6 +1156,37 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1 &1689083139
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1689083140}
+  m_Layer: 0
+  m_Name: Factory Items Container
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1689083140
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689083139}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 22.54449, y: 24.90806, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1822554078
 GameObject:
   m_ObjectHideFlags: 0
@@ -1403,6 +1434,8 @@ MonoBehaviour:
   startingBuildings:
   - buildingDefinition: {fileID: 11400000, guid: 9ee3ce427af21a547a30648e8e8e5a21, type: 2}
     quantity: 100
+  - buildingDefinition: {fileID: 11400000, guid: 05b5143009930014699e691bf67154f0, type: 2}
+    quantity: 10
   - buildingDefinition: {fileID: 11400000, guid: d916ecbf3d00aa34085b40b06ea73067, type: 2}
     quantity: 1
   - buildingDefinition: {fileID: 11400000, guid: af82f016ca79a914eac8da8b08de15ab, type: 2}
@@ -1434,3 +1467,4 @@ SceneRoots:
   - {fileID: 941752517}
   - {fileID: 1277036739}
   - {fileID: 228283569}
+  - {fileID: 1689083140}

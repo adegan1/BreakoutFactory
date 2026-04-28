@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEngine;
 
 [CustomEditor(typeof(BuildingDefinition))]
 public class BuildingDefinitionEditor : BreakoutDataEditorBase
@@ -10,6 +11,7 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
     private SerializedProperty footprintWidthProperty;
     private SerializedProperty footprintHeightProperty;
     private SerializedProperty behaviorPrefabProperty;
+    private SerializedProperty generatorSettingsProperty;
     private SerializedProperty isConveyorProperty;
     private SerializedProperty conveyorStraightSpriteProperty;
     private SerializedProperty conveyorTurnLeftSpriteProperty;
@@ -25,6 +27,7 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
         footprintWidthProperty = FindProperty("footprintWidth");
         footprintHeightProperty = FindProperty("footprintHeight");
         behaviorPrefabProperty = FindProperty("behaviorPrefab");
+        generatorSettingsProperty = FindProperty("generatorSettings");
         isConveyorProperty = FindProperty("isConveyor");
         conveyorStraightSpriteProperty = FindProperty("conveyorStraightSprite");
         conveyorTurnLeftSpriteProperty = FindProperty("conveyorTurnLeftSprite");
@@ -39,6 +42,12 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
         DrawSection("Display", displayNameProperty, descriptionProperty, buildingSpriteProperty, buildingColorProperty);
         DrawSection("Placement", footprintWidthProperty, footprintHeightProperty);
         DrawSection("Behavior", behaviorPrefabProperty);
+
+        if (ShouldDrawGeneratorSettings())
+        {
+            DrawSection("Generator", generatorSettingsProperty);
+        }
+
         DrawSection("Conveyor", isConveyorProperty);
         if (isConveyorProperty.boolValue)
         {
@@ -47,5 +56,19 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
         DrawSection("Drops", scrapDropAmountProperty);
 
         serializedObject.ApplyModifiedProperties();
+    }
+
+    private bool ShouldDrawGeneratorSettings()
+    {
+        if (generatorSettingsProperty != null && generatorSettingsProperty.objectReferenceValue != null)
+        {
+            return true;
+        }
+
+        GameObject behaviorPrefab = behaviorPrefabProperty != null
+            ? behaviorPrefabProperty.objectReferenceValue as GameObject
+            : null;
+
+        return behaviorPrefab != null && behaviorPrefab.GetComponent<GeneratorBuilding>() != null;
     }
 }
