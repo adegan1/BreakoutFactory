@@ -27,7 +27,8 @@ public static class ConveyorVisualResolver
         }
     }
 
-    // Resolves the conveyor sprite and final rotation for a conveyor tile given its facing direction and the direction of an adjacent upstream conveyor feeding into it.
+    // Resolves the conveyor sprite for a conveyor tile given its facing direction and the direction of an adjacent upstream conveyor feeding into it.
+    // Rotation quarter-turns remain the logical placement direction; turn sprites are visual-only.
     public static Result Resolve(
         BuildingDefinition definition,
         Vector2Int? incomingDirection,
@@ -60,7 +61,6 @@ public static class ConveyorVisualResolver
                 : (definition.ConveyorTurnLeftSprite != null
                     ? definition.ConveyorTurnLeftSprite
                     : selectedSprite);
-            quarterTurns = (quarterTurns + 1) % 4;
         }
         else
         {
@@ -69,7 +69,6 @@ public static class ConveyorVisualResolver
                 : (definition.ConveyorTurnRightSprite != null
                     ? definition.ConveyorTurnRightSprite
                     : selectedSprite);
-            quarterTurns = (quarterTurns + 3) % 4;
         }
 
         return new Result(selectedSprite, quarterTurns);

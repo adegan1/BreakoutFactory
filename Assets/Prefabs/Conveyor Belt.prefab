@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2086996543295852681}
   - component: {fileID: 6008715946111650592}
   - component: {fileID: 3975101550272029158}
+  - component: {fileID: -5924060441793675169}
   m_Layer: 0
   m_Name: Conveyor Belt
   m_TagString: Untagged
@@ -107,3 +108,21 @@ MonoBehaviour:
   buildingDefinition: {fileID: 0}
   targetSpriteRenderer: {fileID: 6008715946111650592}
   applyDefinitionOnAwake: 1
+--- !u!114 &-5924060441793675169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276502763047268258}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9683ab1765fe184897982000f57c82d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ConveyorBuilding
+  buildingInstance: {fileID: 3975101550272029158}
+  tileManager: {fileID: 0}
+  moveDurationSeconds: 0.5
+  itemWorldOffset: {x: 0, y: 0, z: 0}
+  drawDirectionGizmo: 1
+  gizmoColor: {r: 0.3, g: 1, b: 0.8, a: 0.9}

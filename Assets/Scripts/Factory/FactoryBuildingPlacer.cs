@@ -750,10 +750,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
             GetIncomingDirectionForRecord(conveyorRecord),
             conveyorRecord.PlacedRotationQuarterTurns);
 
-        int quarterTurns = conveyorVisual.QuarterTurns;
+        int visualQuarterTurns = conveyorVisual.QuarterTurns;
+        int logicalQuarterTurns = conveyorRecord.PlacedRotationQuarterTurns;
         Sprite selectedSprite = conveyorVisual.Sprite;
 
-        conveyorRecord.SpawnedObject.transform.rotation = Quaternion.Euler(0f, 0f, quarterTurns * 90f);
+        conveyorRecord.SpawnedObject.transform.rotation = Quaternion.Euler(0f, 0f, visualQuarterTurns * 90f);
 
         BuildingInstance buildingInstance = conveyorRecord.SpawnedObject.GetComponent<BuildingInstance>();
         if (buildingInstance != null)
@@ -761,7 +762,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             buildingInstance.SetGridPosition(
                 conveyorRecord.TopLeftGridPosition,
                 conveyorRecord.FootprintSize,
-                quarterTurns);
+                logicalQuarterTurns);
         }
 
         SpriteRenderer spriteRenderer = conveyorRecord.SpawnedObject.GetComponentInChildren<SpriteRenderer>();
