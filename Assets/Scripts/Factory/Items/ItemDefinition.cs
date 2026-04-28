@@ -3,8 +3,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Item Definition", menuName = "Factory/Item Definition")]
 public class ItemDefinition : ScriptableObject
 {
+    private const string UnknownItemId = "item.unknown";
+
     // Identity
-    [SerializeField] private string itemId = "item.unknown";
+    [SerializeField] private string itemId = UnknownItemId;
     [SerializeField] private string displayName;
     [SerializeField, TextArea(2, 5)] private string description;
 
@@ -24,13 +26,20 @@ public class ItemDefinition : ScriptableObject
     public int MaxStackSize => maxStackSize;
     public int BaseValue => baseValue;
 
+    private string BuildDefaultItemId()
+    {
+        string sourceName = string.IsNullOrWhiteSpace(name) ? UnknownItemId : name;
+        return sourceName.ToLowerInvariant().Replace(" ", ".");
+    }
+
     private void OnValidate()
     {
         if (string.IsNullOrWhiteSpace(itemId))
         {
-            itemId = name.ToLowerInvariant().Replace(" ", ".");
+            itemId = BuildDefaultItemId();
         }
 
+        itemId = itemId.Trim();
         maxStackSize = Mathf.Max(1, maxStackSize);
         baseValue = Mathf.Max(0, baseValue);
     }

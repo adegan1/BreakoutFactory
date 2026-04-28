@@ -647,8 +647,11 @@ MonoBehaviour:
   validHoverColor: {r: 0.25, g: 1, b: 0.45, a: 0.5}
   blockedHoverColor: {r: 1, g: 0.3, b: 0.3, a: 0.5}
   hoverZOffset: -0.1
-  conveyorDirectionIndicator: {fileID: 1493723448}
-  conveyorIndicatorColor: {r: 1, g: 1, b: 1, a: 0.74509805}
+  directionIndicator: {fileID: 1493723448}
+  inputIndicator: {fileID: 1942682777}
+  inputIndicatorSecondary: {fileID: 387747834}
+  outputIndicator: {fileID: 1530720853}
+  indicatorColor: {r: 1, g: 1, b: 1, a: 0.7058824}
 --- !u!4 &1025983502
 Transform:
   m_ObjectHideFlags: 0

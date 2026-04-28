@@ -96,9 +96,11 @@ public class GeneratorBuilding : MonoBehaviour
             return false;
         }
 
-        Vector2Int worldDirection = RotateDirection(GetBaseDirection(settings.OutputSide), buildingInstance.RotationQuarterTurns);
+        Vector2Int worldDirection = FactoryGridDirectionUtility.RotateDirection(
+            FactoryGridDirectionUtility.GetBaseDirection(settings.OutputSide),
+            buildingInstance.RotationQuarterTurns);
         Vector2Int anchor = buildingInstance.GridPosition;
-        Vector2Int sideOffset = GetSideOffset(worldDirection, footprintSize);
+        Vector2Int sideOffset = FactoryGridDirectionUtility.GetSideOffset(worldDirection, footprintSize);
         outputGridPosition = anchor + sideOffset;
         return tileManager.IsInBounds(outputGridPosition);
     }
@@ -124,8 +126,7 @@ public class GeneratorBuilding : MonoBehaviour
         }
 
         Vector3 spawnPosition = tileManager.GridToWorld(outputGridPosition) + itemSpawnOffset;
-        Transform parent = spawnedItemParent != null ? spawnedItemParent : null;
-        ItemEntity spawnedItem = Instantiate(itemEntityPrefab, spawnPosition, Quaternion.identity, parent);
+        ItemEntity spawnedItem = Instantiate(itemEntityPrefab, spawnPosition, Quaternion.identity, spawnedItemParent);
         spawnedItem.Initialize(settings.ItemDefinition, settings.QuantityPerSpawn);
         spawnedItemCount++;
         return true;
@@ -210,54 +211,6 @@ public class GeneratorBuilding : MonoBehaviour
         }
 
         return false;
-    }
-
-    private static Vector2Int GetBaseDirection(OutputSide side)
-    {
-        switch (side)
-        {
-            case OutputSide.Up:
-                return Vector2Int.up;
-            case OutputSide.Left:
-                return Vector2Int.left;
-            case OutputSide.Down:
-                return Vector2Int.down;
-            default:
-                return Vector2Int.right;
-        }
-    }
-
-    private static Vector2Int RotateDirection(Vector2Int direction, int quarterTurns)
-    {
-        Vector2Int rotated = direction;
-        int normalizedQuarterTurns = Mathf.Abs(quarterTurns) % 4;
-
-        for (int i = 0; i < normalizedQuarterTurns; i++)
-        {
-            rotated = new Vector2Int(-rotated.y, rotated.x);
-        }
-
-        return rotated;
-    }
-
-    private static Vector2Int GetSideOffset(Vector2Int direction, Vector2Int footprintSize)
-    {
-        if (direction == Vector2Int.right)
-        {
-            return new Vector2Int(footprintSize.x, (footprintSize.y - 1) / 2);
-        }
-
-        if (direction == Vector2Int.left)
-        {
-            return new Vector2Int(-1, (footprintSize.y - 1) / 2);
-        }
-
-        if (direction == Vector2Int.up)
-        {
-            return new Vector2Int((footprintSize.x - 1) / 2, footprintSize.y);
-        }
-
-        return new Vector2Int((footprintSize.x - 1) / 2, -1);
     }
 
     private void OnDrawGizmosSelected()
