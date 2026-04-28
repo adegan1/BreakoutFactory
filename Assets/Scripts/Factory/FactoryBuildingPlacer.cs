@@ -26,14 +26,22 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [SerializeField] private Color blockedHoverColor = new Color(1f, 0.3f, 0.3f, 0.5f);
     [SerializeField] private float hoverZOffset = -0.1f;
 
-    [Header("Conveyor Direction Indicator")]
-    [SerializeField] private Transform conveyorDirectionIndicator;
-    [SerializeField] private Color conveyorIndicatorColor = new Color(1f, 1f, 1f, 0.85f);
+    [Header("Placement Indicators")]
+    [FormerlySerializedAs("conveyorDirectionIndicator")]
+    [SerializeField] private Transform directionIndicator;
+    [SerializeField] private Transform inputIndicator;
+    [SerializeField] private Transform inputIndicatorSecondary;
+    [SerializeField] private Transform outputIndicator;
+    [FormerlySerializedAs("conveyorIndicatorColor")]
+    [SerializeField] private Color indicatorColor = new Color(1f, 1f, 1f, 0.85f);
 
     private readonly Dictionary<Vector2Int, PlacedBuildingRecord> spawnedByCell = new();
     private readonly Dictionary<int, PlacedBuildingRecord> buildingsByInstanceId = new();
     private SpriteRenderer hoverHighlightRenderer;
-    private SpriteRenderer conveyorDirectionIndicatorRenderer;
+    private SpriteRenderer directionIndicatorRenderer;
+    private SpriteRenderer inputIndicatorRenderer;
+    private SpriteRenderer inputIndicatorSecondaryRenderer;
+    private SpriteRenderer outputIndicatorRenderer;
     private Sprite defaultHoverSprite;
     private Quaternion defaultHoverRotation = Quaternion.identity;
     private bool suppressHoverUntilTileChange;
@@ -106,9 +114,24 @@ public class FactoryBuildingPlacer : MonoBehaviour
             }
         }
 
-        if (conveyorDirectionIndicator != null)
+        if (directionIndicator != null)
         {
-            conveyorDirectionIndicatorRenderer = conveyorDirectionIndicator.GetComponent<SpriteRenderer>();
+            directionIndicatorRenderer = directionIndicator.GetComponent<SpriteRenderer>();
+        }
+
+        if (inputIndicator != null)
+        {
+            inputIndicatorRenderer = inputIndicator.GetComponent<SpriteRenderer>();
+        }
+
+        if (inputIndicatorSecondary != null)
+        {
+            inputIndicatorSecondaryRenderer = inputIndicatorSecondary.GetComponent<SpriteRenderer>();
+        }
+
+        if (outputIndicator != null)
+        {
+            outputIndicatorRenderer = outputIndicator.GetComponent<SpriteRenderer>();
         }
     }
 
@@ -119,7 +142,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         {
             hasPointerTile = false;
             SetHoverHighlightVisible(false);
-            SetConveyorDirectionIndicatorVisible(false);
+            SetAllIndicatorsVisible(false);
             return;
         }
 
@@ -128,7 +151,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         RefreshPointerState(mouse);
         UpdateHoverHighlight();
-        UpdateConveyorDirectionIndicator();
+        UpdateBuildingIndicators();
 
         if (mouse.leftButton.wasPressedThisFrame)
         {
@@ -198,67 +221,296 @@ public class FactoryBuildingPlacer : MonoBehaviour
         SetHoverHighlightVisible(false);
     }
 
-    private void UpdateConveyorDirectionIndicator()
+    private void UpdateBuildingIndicators()
     {
-        if (conveyorDirectionIndicator == null)
+        if (!hasPointerTile || suppressHoverUntilTileChange && pointerGridPosition == suppressedHoverTile)
         {
+            SetAllIndicatorsVisible(false);
             return;
         }
 
-        if (!hasPointerTile || suppressHoverUntilTileChange && pointerGridPosition == suppressedHoverTile)
+        IndicatorState indicatorState;
+
+        if (spawnedByCell.TryGetValue(pointerGridPosition, out PlacedBuildingRecord record)
+            && record != null
+            && TryBuildIndicatorState(
+                record.Definition,
+                record.TopLeftGridPosition,
+                record.FootprintSize,
+                record.PlacedRotationQuarterTurns,
+                out indicatorState))
         {
-            SetConveyorDirectionIndicatorVisible(false);
+            ApplyIndicatorState(indicatorState);
             return;
         }
 
         BuildingDefinition selectedDef = GetSelectedBuildingDefinition();
-        if (selectedDef == null || !IsConveyorDefinition(selectedDef))
+        if (selectedDef == null)
         {
-            SetConveyorDirectionIndicatorVisible(false);
+            SetAllIndicatorsVisible(false);
             return;
         }
 
         Vector2Int footprintSize = GetRotatedFootprintSize(selectedDef.FootprintSize);
         Vector2Int optimalTopLeft = CalculateOptimalPlacementPosition(pointerGridPosition, footprintSize);
 
-        // The output direction is always the belt's facing direction regardless of turn type.
-        // Turns only affect which side input is received from, not where items exit.
-        Vector2Int outputDirection = ConveyorVisualResolver.DirectionFromQuarterTurns(selectedRotationQuarterTurns);
-        Vector2Int outputTile = optimalTopLeft + outputDirection;
-
-        if (spawnedByCell.TryGetValue(outputTile, out PlacedBuildingRecord outputOccupant)
-            && IsConveyorDefinition(outputOccupant?.Definition))
+        if (!TryBuildIndicatorState(
+                selectedDef,
+                optimalTopLeft,
+                footprintSize,
+                selectedRotationQuarterTurns,
+                out indicatorState))
         {
-            SetConveyorDirectionIndicatorVisible(false);
+            SetAllIndicatorsVisible(false);
             return;
         }
 
-        Vector3 indicatorPos = tileManager.GridToWorld(outputTile);
-        indicatorPos.z = tileManager.GridPlaneZ + hoverZOffset;
-
-        conveyorDirectionIndicator.position = indicatorPos;
-        conveyorDirectionIndicator.localScale = new Vector3(tileManager.TileSize, tileManager.TileSize, 1f);
-        conveyorDirectionIndicator.rotation = Quaternion.Euler(0f, 0f, selectedRotationQuarterTurns * 90f);
-
-        if (conveyorDirectionIndicatorRenderer != null)
-        {
-            conveyorDirectionIndicatorRenderer.color = conveyorIndicatorColor;
-        }
-
-        SetConveyorDirectionIndicatorVisible(true);
+        ApplyIndicatorState(indicatorState);
     }
 
-    private void SetConveyorDirectionIndicatorVisible(bool isVisible)
+    private void ApplyIndicatorState(IndicatorState state)
     {
-        if (conveyorDirectionIndicator == null)
+        ApplyIndicator(
+            directionIndicator,
+            directionIndicatorRenderer,
+            state.HasDirection,
+            state.DirectionWorldPosition,
+            state.DirectionQuarterTurns,
+            indicatorColor);
+
+        ApplyIndicator(
+            inputIndicator,
+            inputIndicatorRenderer,
+            state.HasInput,
+            state.InputTile,
+            state.InputQuarterTurns,
+            indicatorColor);
+
+        ApplyIndicator(
+            inputIndicatorSecondary,
+            inputIndicatorSecondaryRenderer,
+            state.HasSecondaryInput,
+            state.SecondaryInputTile,
+            state.SecondaryInputQuarterTurns,
+            indicatorColor);
+
+        ApplyIndicator(
+            outputIndicator,
+            outputIndicatorRenderer,
+            state.HasOutput,
+            state.OutputTile,
+            state.OutputQuarterTurns,
+            indicatorColor);
+    }
+
+    private bool TryBuildIndicatorState(
+        BuildingDefinition definition,
+        Vector2Int topLeftGridPosition,
+        Vector2Int footprintSize,
+        int rotationQuarterTurns,
+        out IndicatorState indicatorState)
+    {
+        indicatorState = default;
+
+        if (definition == null || tileManager == null)
+        {
+            return false;
+        }
+
+        int normalizedQuarterTurns = Mathf.Abs(rotationQuarterTurns) % 4;
+
+        if (IsConveyorDefinition(definition))
+        {
+            Vector2Int outputDirection = ConveyorVisualResolver.DirectionFromQuarterTurns(normalizedQuarterTurns);
+            Vector2Int outputTile = topLeftGridPosition + outputDirection;
+            if (!tileManager.IsInBounds(outputTile))
+            {
+                return false;
+            }
+
+            indicatorState.HasDirection = true;
+            indicatorState.DirectionWorldPosition = tileManager.GridToWorld(outputTile);
+            indicatorState.DirectionQuarterTurns = normalizedQuarterTurns;
+            return true;
+        }
+
+        GeneratorBuildingSettings generatorSettings = definition.GeneratorSettings;
+        if (generatorSettings == null)
+        {
+            return false;
+        }
+
+        Vector2Int baseDirection = GetBaseDirection(generatorSettings.OutputSide);
+        Vector2Int worldDirection = RotateDirection(baseDirection, rotationQuarterTurns);
+        Vector2Int generatorOutputTile = topLeftGridPosition + GetSideOffset(worldDirection, footprintSize);
+
+        if (tileManager.IsInBounds(generatorOutputTile))
+        {
+            indicatorState.HasOutput = true;
+            indicatorState.OutputTile = generatorOutputTile;
+            indicatorState.OutputQuarterTurns = DirectionToQuarterTurns(worldDirection);
+        }
+
+        return indicatorState.HasOutput;
+    }
+
+    private static Vector2Int GetBaseDirection(GeneratorBuilding.OutputSide side)
+    {
+        switch (side)
+        {
+            case GeneratorBuilding.OutputSide.Up:
+                return Vector2Int.up;
+            case GeneratorBuilding.OutputSide.Left:
+                return Vector2Int.left;
+            case GeneratorBuilding.OutputSide.Down:
+                return Vector2Int.down;
+            default:
+                return Vector2Int.right;
+        }
+    }
+
+    private static Vector2Int RotateDirection(Vector2Int direction, int quarterTurns)
+    {
+        Vector2Int rotated = direction;
+        int normalizedQuarterTurns = Mathf.Abs(quarterTurns) % 4;
+
+        for (int i = 0; i < normalizedQuarterTurns; i++)
+        {
+            rotated = new Vector2Int(-rotated.y, rotated.x);
+        }
+
+        return rotated;
+    }
+
+    private static Vector2Int GetSideOffset(Vector2Int direction, Vector2Int footprintSize)
+    {
+        if (direction == Vector2Int.right)
+        {
+            return new Vector2Int(footprintSize.x, (footprintSize.y - 1) / 2);
+        }
+
+        if (direction == Vector2Int.left)
+        {
+            return new Vector2Int(-1, (footprintSize.y - 1) / 2);
+        }
+
+        if (direction == Vector2Int.up)
+        {
+            return new Vector2Int((footprintSize.x - 1) / 2, footprintSize.y);
+        }
+
+        return new Vector2Int((footprintSize.x - 1) / 2, -1);
+    }
+
+    private static int DirectionToQuarterTurns(Vector2Int direction)
+    {
+        if (direction == Vector2Int.up)
+        {
+            return 1;
+        }
+
+        if (direction == Vector2Int.left)
+        {
+            return 2;
+        }
+
+        if (direction == Vector2Int.down)
+        {
+            return 3;
+        }
+
+        return 0;
+    }
+
+    private void SetAllIndicatorsVisible(bool isVisible)
+    {
+        SetIndicatorVisible(directionIndicator, isVisible);
+        SetIndicatorVisible(inputIndicator, isVisible);
+        SetIndicatorVisible(inputIndicatorSecondary, isVisible);
+        SetIndicatorVisible(outputIndicator, isVisible);
+    }
+
+    private void ApplyIndicator(
+        Transform indicator,
+        SpriteRenderer renderer,
+        bool shouldShow,
+        Vector2Int tile,
+        int quarterTurns,
+        Color color)
+    {
+        if (!shouldShow || tileManager == null)
+        {
+            SetIndicatorVisible(indicator, false);
+            return;
+        }
+
+        Vector3 worldPosition = tileManager.GridToWorld(tile);
+        worldPosition.z = tileManager.GridPlaneZ + hoverZOffset;
+        ApplyIndicator(indicator, renderer, shouldShow, worldPosition, quarterTurns, color);
+    }
+
+    private void ApplyIndicator(
+        Transform indicator,
+        SpriteRenderer renderer,
+        bool shouldShow,
+        Vector3 worldPosition,
+        int quarterTurns,
+        Color color)
+    {
+        if (indicator == null)
         {
             return;
         }
 
-        if (conveyorDirectionIndicator.gameObject.activeSelf != isVisible)
+        if (!shouldShow || tileManager == null)
         {
-            conveyorDirectionIndicator.gameObject.SetActive(isVisible);
+            SetIndicatorVisible(indicator, false);
+            return;
         }
+
+        worldPosition.z = tileManager.GridPlaneZ + hoverZOffset;
+        indicator.position = worldPosition;
+        indicator.localScale = new Vector3(tileManager.TileSize, tileManager.TileSize, 1f);
+        indicator.rotation = Quaternion.Euler(0f, 0f, quarterTurns * 90f);
+
+        if (renderer != null)
+        {
+            renderer.color = color;
+        }
+
+        SetIndicatorVisible(indicator, true);
+    }
+
+    private void SetIndicatorVisible(Transform indicator, bool isVisible)
+    {
+        if (indicator == null)
+        {
+            return;
+        }
+
+        if (indicator.gameObject.activeSelf != isVisible)
+        {
+            indicator.gameObject.SetActive(isVisible);
+        }
+    }
+
+    private struct IndicatorState
+    {
+        public bool HasDirection;
+        public Vector3 DirectionWorldPosition;
+        public int DirectionQuarterTurns;
+
+        public bool HasInput;
+        public Vector2Int InputTile;
+        public int InputQuarterTurns;
+
+        public bool HasSecondaryInput;
+        public Vector2Int SecondaryInputTile;
+        public int SecondaryInputQuarterTurns;
+
+        public bool HasOutput;
+        public Vector2Int OutputTile;
+        public int OutputQuarterTurns;
     }
 
     private Vector3 GetFootprintWorldCenter(Vector2Int topLeft, Vector2Int footprintSize)
@@ -345,7 +597,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         suppressedHoverTile = pointerGridPosition;
         suppressHoverUntilTileChange = true;
         SetHoverHighlightVisible(false);
-        SetConveyorDirectionIndicatorVisible(false);
+        SetAllIndicatorsVisible(false);
     }
 
     private void SetHoverHighlightVisible(bool isVisible)

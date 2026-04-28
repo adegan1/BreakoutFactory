@@ -124,4 +124,6 @@ MonoBehaviour:
   tileManager: {fileID: 0}
   itemEntityPrefab: {fileID: 2516040793068894578, guid: 0a56ed66f26a64e40bd0711497550c30, type: 3}
   spawnedItemParent: {fileID: 0}
+  autoAssignSpawnedItemParent: 1
+  runtimeItemsParentName: Factory Items Container
   itemSpawnOffset: {x: 0, y: 0, z: 0}
