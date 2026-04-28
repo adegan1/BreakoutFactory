@@ -10,9 +10,11 @@ public class ItemEntity : MonoBehaviour
 
     private int quantity = 1;
     private bool hasWarnedMissingRenderer;
+    private Object movementOwner;
 
     public ItemDefinition ItemDefinition => itemDefinition;
     public int Quantity => quantity;
+    public bool IsClaimed => movementOwner != null;
 
     private void Reset()
     {
@@ -52,6 +54,40 @@ public class ItemEntity : MonoBehaviour
     public void SetQuantity(int newQuantity)
     {
         quantity = Mathf.Max(0, newQuantity);
+    }
+
+    public bool TryClaim(Object owner)
+    {
+        if (owner == null)
+        {
+            return false;
+        }
+
+        if (movementOwner != null && movementOwner != owner)
+        {
+            return false;
+        }
+
+        movementOwner = owner;
+        return true;
+    }
+
+    public bool IsClaimedBy(Object owner)
+    {
+        return movementOwner != null && movementOwner == owner;
+    }
+
+    public void ReleaseClaim(Object owner)
+    {
+        if (owner == null)
+        {
+            return;
+        }
+
+        if (movementOwner == owner)
+        {
+            movementOwner = null;
+        }
     }
 
     public void ApplyDefinitionVisuals()

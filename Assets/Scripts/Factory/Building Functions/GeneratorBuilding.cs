@@ -194,23 +194,7 @@ public class GeneratorBuilding : MonoBehaviour
 
     private bool HasItemOnTile(Vector2Int gridPosition)
     {
-        ItemEntity[] itemsInScene = FindObjectsByType<ItemEntity>(FindObjectsSortMode.None);
-        for (int i = 0; i < itemsInScene.Length; i++)
-        {
-            ItemEntity item = itemsInScene[i];
-            if (item == null)
-            {
-                continue;
-            }
-
-            Vector2Int itemGridPosition = tileManager.WorldToGrid(item.transform.position);
-            if (itemGridPosition == gridPosition)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return ItemEntitySceneQuery.HasItemAtTile(tileManager, gridPosition);
     }
 
     private void OnDrawGizmosSelected()

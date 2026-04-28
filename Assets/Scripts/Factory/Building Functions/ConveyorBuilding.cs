@@ -44,6 +44,13 @@ public class ConveyorBuilding : MonoBehaviour
             return;
         }
 
+        if (carriedItem != null && !carriedItem.IsClaimedBy(this))
+        {
+            carriedItem = null;
+            isMoving = false;
+            moveTimer = 0f;
+        }
+
         if (carriedItem == null)
         {
             isMoving = false;
@@ -90,7 +97,7 @@ public class ConveyorBuilding : MonoBehaviour
             return;
         }
 
-        ItemEntity[] itemsInScene = FindObjectsByType<ItemEntity>(FindObjectsSortMode.None);
+        ItemEntity[] itemsInScene = ItemEntitySceneQuery.GetItems();
         for (int i = 0; i < itemsInScene.Length; i++)
         {
             ItemEntity item = itemsInScene[i];
@@ -99,8 +106,18 @@ public class ConveyorBuilding : MonoBehaviour
                 continue;
             }
 
+            if (item.IsClaimed && !item.IsClaimedBy(this))
+            {
+                continue;
+            }
+
             Vector2Int itemTile = tileManager.WorldToGrid(item.transform.position);
             if (itemTile != conveyorTile)
+            {
+                continue;
+            }
+
+            if (!item.TryClaim(this))
             {
                 continue;
             }
@@ -158,23 +175,7 @@ public class ConveyorBuilding : MonoBehaviour
 
     private bool HasBlockingItemAt(Vector2Int tile, ItemEntity ignoreItem)
     {
-        ItemEntity[] itemsInScene = FindObjectsByType<ItemEntity>(FindObjectsSortMode.None);
-        for (int i = 0; i < itemsInScene.Length; i++)
-        {
-            ItemEntity item = itemsInScene[i];
-            if (item == null || item == ignoreItem)
-            {
-                continue;
-            }
-
-            Vector2Int itemTile = tileManager.WorldToGrid(item.transform.position);
-            if (itemTile == tile)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return ItemEntitySceneQuery.HasItemAtTile(tileManager, tile, ignoreItem);
     }
 
     private void BeginMoveToTile(Vector2Int outputTile)
@@ -207,7 +208,20 @@ public class ConveyorBuilding : MonoBehaviour
         }
 
         carriedItem.transform.position = moveTargetWorldPosition;
+        carriedItem.ReleaseClaim(this);
         carriedItem = null;
+        isMoving = false;
+        moveTimer = 0f;
+    }
+
+    private void OnDisable()
+    {
+        if (carriedItem != null)
+        {
+            carriedItem.ReleaseClaim(this);
+            carriedItem = null;
+        }
+
         isMoving = false;
         moveTimer = 0f;
     }
