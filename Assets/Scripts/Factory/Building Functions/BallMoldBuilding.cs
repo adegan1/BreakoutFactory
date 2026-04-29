@@ -112,13 +112,10 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
             return false;
         }
 
-        Vector2Int baseInputOffset = GetInputTileOffset(GetBaseDirection(inputSide), footprintSize);
-        Vector2Int rotatedInputOffset = FactoryGridDirectionUtility.RotateOffsetAroundFootprintCenter(
-            baseInputOffset,
+        inputGridPosition = BuildInputGridPosition(
+            buildingInstance.GridPosition,
             footprintSize,
             buildingInstance.RotationQuarterTurns);
-
-        inputGridPosition = buildingInstance.GridPosition + rotatedInputOffset;
         return tileManager.IsInBounds(inputGridPosition);
     }
 
@@ -143,14 +140,21 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
             return;
         }
 
+        inputTiles.Add(BuildInputGridPosition(topLeftGridPosition, footprintSize, rotationQuarterTurns));
+    }
+
+    private Vector2Int BuildInputGridPosition(
+        Vector2Int topLeftGridPosition,
+        Vector2Int footprintSize,
+        int rotationQuarterTurns)
+    {
         Vector2Int baseInputOffset = GetInputTileOffset(GetBaseDirection(inputSide), footprintSize);
         Vector2Int rotatedInputOffset = FactoryGridDirectionUtility.RotateOffsetAroundFootprintCenter(
             baseInputOffset,
             footprintSize,
             rotationQuarterTurns);
 
-        Vector2Int inputGridPosition = topLeftGridPosition + rotatedInputOffset;
-        inputTiles.Add(inputGridPosition);
+        return topLeftGridPosition + rotatedInputOffset;
     }
 
     private void AddToInventory(ItemDefinition itemDefinition, int amount)
@@ -225,17 +229,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
     private static Vector2Int GetBaseDirection(InputSide side)
     {
-        switch (side)
-        {
-            case InputSide.Up:
-                return Vector2Int.up;
-            case InputSide.Left:
-                return Vector2Int.left;
-            case InputSide.Down:
-                return Vector2Int.down;
-            default:
-                return Vector2Int.right;
-        }
+        return FactoryGridDirectionUtility.DirectionFromQuarterTurns((int)side);
     }
 
     private void RebuildRuntimeInventoryFromSerialized()

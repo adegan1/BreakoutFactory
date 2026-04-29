@@ -5,6 +5,8 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class MachineRadialProgressView : MonoBehaviour
 {
+    private const float VisibleAlphaThreshold = 0.001f;
+
     [Header("References")]
     [SerializeField] private Image radialFillImage;
     [SerializeField] private bool resolveProviderFromParents = true;
@@ -27,6 +29,14 @@ public class MachineRadialProgressView : MonoBehaviour
     private BuildingInstance machineInstance;
     private int machineInstanceId = -1;
     private float visibilityAlpha;
+
+    private struct DisplayState
+    {
+        public bool HasProvider;
+        public float TargetFill;
+        public Color TargetColor;
+        public float TargetAlpha;
+    }
 
     private void Reset()
     {
@@ -110,17 +120,11 @@ public class MachineRadialProgressView : MonoBehaviour
             return;
         }
 
-        bool hasProvider = provider != null;
-        float targetFill = hasProvider ? provider.NormalizedResourceAmount : 0f;
-        Color targetColor = hasProvider ? provider.ResourceTint : Color.white;
-        bool shouldBeVisible = hasProvider
-            ? IsVisibleByInteractionContext() && !(hideWhenZero && targetFill <= 0f)
-            : !hideWhenNoProvider;
-
-        radialFillImage.fillAmount = targetFill;
-        visibilityAlpha = shouldBeVisible ? 1f : 0f;
-        ApplyTintWithVisibility(targetColor, visibilityAlpha);
-        SetFillVisible(visibilityAlpha > 0.001f);
+        DisplayState state = BuildDisplayState();
+        radialFillImage.fillAmount = state.TargetFill;
+        visibilityAlpha = state.TargetAlpha;
+        ApplyTintWithVisibility(state.TargetColor, visibilityAlpha);
+        SetFillVisible(visibilityAlpha > VisibleAlphaThreshold);
     }
 
     private void UpdateFill()
@@ -130,14 +134,9 @@ public class MachineRadialProgressView : MonoBehaviour
             return;
         }
 
-        bool hasProvider = provider != null;
-        float targetFill = hasProvider ? provider.NormalizedResourceAmount : 0f;
-        Color targetColor = hasProvider ? provider.ResourceTint : Color.white;
-        bool shouldBeVisible = hasProvider
-            ? IsVisibleByInteractionContext() && !(hideWhenZero && targetFill <= 0f)
-            : !hideWhenNoProvider;
+        DisplayState state = BuildDisplayState();
 
-        if (hasProvider)
+        if (state.HasProvider)
         {
             if (smoothFill)
             {
@@ -145,34 +144,53 @@ public class MachineRadialProgressView : MonoBehaviour
                 if (speed > 0f)
                 {
                     float t = 1f - Mathf.Exp(-speed * Time.deltaTime);
-                    radialFillImage.fillAmount = Mathf.Lerp(radialFillImage.fillAmount, targetFill, t);
+                    radialFillImage.fillAmount = Mathf.Lerp(radialFillImage.fillAmount, state.TargetFill, t);
                 }
                 else
                 {
-                    radialFillImage.fillAmount = targetFill;
+                    radialFillImage.fillAmount = state.TargetFill;
                 }
             }
             else
             {
-                radialFillImage.fillAmount = targetFill;
+                radialFillImage.fillAmount = state.TargetFill;
             }
         }
 
-        float targetAlpha = shouldBeVisible ? 1f : 0f;
         if (smoothVisibility)
         {
             float speed = Mathf.Max(0f, visibilityLerpSpeed);
             visibilityAlpha = speed > 0f
-                ? Mathf.MoveTowards(visibilityAlpha, targetAlpha, speed * Time.deltaTime)
-                : targetAlpha;
+                ? Mathf.MoveTowards(visibilityAlpha, state.TargetAlpha, speed * Time.deltaTime)
+                : state.TargetAlpha;
         }
         else
         {
-            visibilityAlpha = targetAlpha;
+            visibilityAlpha = state.TargetAlpha;
         }
 
-        ApplyTintWithVisibility(targetColor, visibilityAlpha);
-        SetFillVisible(visibilityAlpha > 0.001f);
+        ApplyTintWithVisibility(state.TargetColor, visibilityAlpha);
+        SetFillVisible(visibilityAlpha > VisibleAlphaThreshold);
+    }
+
+    private DisplayState BuildDisplayState()
+    {
+        bool hasProvider = provider != null;
+        float targetFill = hasProvider ? provider.NormalizedResourceAmount : 0f;
+        Color targetColor = hasProvider ? provider.ResourceTint : Color.white;
+        bool shouldBeVisible = hasProvider
+            ? IsVisibleByInteractionContext() && !(hideWhenZero && targetFill <= 0f)
+            : !hideWhenNoProvider;
+
+        DisplayState state = new DisplayState
+        {
+            HasProvider = hasProvider,
+            TargetFill = targetFill,
+            TargetColor = targetColor,
+            TargetAlpha = shouldBeVisible ? 1f : 0f
+        };
+
+        return state;
     }
 
     private void ApplyTintWithVisibility(Color tint, float alpha)

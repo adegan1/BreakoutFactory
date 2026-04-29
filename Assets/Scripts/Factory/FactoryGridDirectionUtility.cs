@@ -30,6 +30,21 @@ public static class FactoryGridDirectionUtility
         return rotated;
     }
 
+    public static Vector2Int DirectionFromQuarterTurns(int quarterTurns)
+    {
+        switch (Mathf.Abs(quarterTurns) % 4)
+        {
+            case 1:
+                return Vector2Int.up;
+            case 2:
+                return Vector2Int.left;
+            case 3:
+                return Vector2Int.down;
+            default:
+                return Vector2Int.right;
+        }
+    }
+
     public static Vector2Int GetSideOffset(Vector2Int direction, Vector2Int footprintSize)
     {
         if (direction == Vector2Int.right)

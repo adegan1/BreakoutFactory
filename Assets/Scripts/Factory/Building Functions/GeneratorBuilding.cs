@@ -114,18 +114,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
             return false;
         }
 
-        Vector2Int worldDirection = FactoryGridDirectionUtility.RotateDirection(
-            FactoryGridDirectionUtility.GetBaseDirection(settings.OutputSide),
-            buildingInstance.RotationQuarterTurns);
-        Vector2Int anchor = buildingInstance.GridPosition;
-        Vector2Int baseSideOffset = FactoryGridDirectionUtility.GetSideOffset(
-            FactoryGridDirectionUtility.GetBaseDirection(settings.OutputSide),
-            footprintSize);
-        Vector2Int sideOffset = FactoryGridDirectionUtility.RotateOffsetAroundFootprintCenter(
-            baseSideOffset,
-            footprintSize,
-            buildingInstance.RotationQuarterTurns);
-        outputGridPosition = anchor + sideOffset;
+        outputGridPosition = BuildOutputGridPosition(settings, buildingInstance.GridPosition, footprintSize, buildingInstance.RotationQuarterTurns);
         return tileManager.IsInBounds(outputGridPosition);
     }
 
@@ -144,7 +133,14 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
             return false;
         }
 
-        if (!TryGetOutputData(out Vector2Int outputGridPosition, out Vector2Int outputDirection))
+        Vector2Int outputDirection = GetOutputDirection(settings, buildingInstance.RotationQuarterTurns);
+        Vector2Int outputGridPosition = BuildOutputGridPosition(
+            settings,
+            buildingInstance.GridPosition,
+            buildingInstance.FootprintSize,
+            buildingInstance.RotationQuarterTurns);
+
+        if (!tileManager.IsInBounds(outputGridPosition))
         {
             return false;
         }
@@ -189,26 +185,29 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
             && spawnedItemCount < settings.MaxItemsToSpawn;
     }
 
-    private bool TryGetOutputData(out Vector2Int outputGridPosition, out Vector2Int outputDirection)
+    private static Vector2Int GetOutputDirection(GeneratorBuildingSettings settings, int rotationQuarterTurns)
     {
-        outputGridPosition = default;
-        outputDirection = default;
-
-        if (!TryGetOutputGridPosition(out outputGridPosition))
-        {
-            return false;
-        }
-
-        GeneratorBuildingSettings settings = GetGeneratorSettings();
-        if (settings == null)
-        {
-            return false;
-        }
-
-        outputDirection = FactoryGridDirectionUtility.RotateDirection(
+        return FactoryGridDirectionUtility.RotateDirection(
             FactoryGridDirectionUtility.GetBaseDirection(settings.OutputSide),
-            buildingInstance.RotationQuarterTurns);
-        return true;
+            rotationQuarterTurns);
+    }
+
+    private static Vector2Int BuildOutputGridPosition(
+        GeneratorBuildingSettings settings,
+        Vector2Int anchor,
+        Vector2Int footprintSize,
+        int rotationQuarterTurns)
+    {
+        Vector2Int baseSideOffset = FactoryGridDirectionUtility.GetSideOffset(
+            FactoryGridDirectionUtility.GetBaseDirection(settings.OutputSide),
+            footprintSize);
+
+        Vector2Int sideOffset = FactoryGridDirectionUtility.RotateOffsetAroundFootprintCenter(
+            baseSideOffset,
+            footprintSize,
+            rotationQuarterTurns);
+
+        return anchor + sideOffset;
     }
 
     private void BeginLaunch(ItemEntity item, Vector3 startWorldPosition, Vector3 targetWorldPosition)
