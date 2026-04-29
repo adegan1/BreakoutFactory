@@ -50,6 +50,37 @@ public static class FactoryGridDirectionUtility
         return new Vector2Int((footprintSize.x - 1) / 2, -1);
     }
 
+    public static Vector2Int RotateOffsetAroundFootprintCenter(
+        Vector2Int baseOffset,
+        Vector2Int footprintSize,
+        int quarterTurns)
+    {
+        // Rotate on a doubled-coordinate grid so even-sized footprints keep stable pivot behavior.
+        int centerX2 = footprintSize.x - 1;
+        int centerY2 = footprintSize.y - 1;
+        int pointX2 = baseOffset.x * 2;
+        int pointY2 = baseOffset.y * 2;
+
+        int relX2 = pointX2 - centerX2;
+        int relY2 = pointY2 - centerY2;
+
+        int normalizedQuarterTurns = Mathf.Abs(quarterTurns) % 4;
+        for (int i = 0; i < normalizedQuarterTurns; i++)
+        {
+            int rotatedRelX2 = -relY2;
+            int rotatedRelY2 = relX2;
+            relX2 = rotatedRelX2;
+            relY2 = rotatedRelY2;
+        }
+
+        int rotatedPointX2 = centerX2 + relX2;
+        int rotatedPointY2 = centerY2 + relY2;
+
+        return new Vector2Int(
+            Mathf.RoundToInt(rotatedPointX2 * 0.5f),
+            Mathf.RoundToInt(rotatedPointY2 * 0.5f));
+    }
+
     public static int DirectionToQuarterTurns(Vector2Int direction)
     {
         if (direction == Vector2Int.up)

@@ -75,6 +75,60 @@ public static class ItemEntitySceneQuery
         return false;
     }
 
+    public static bool HasReservedAtTile(TileManager tileManager, Vector2Int tile, ItemEntity ignoredItem = null)
+    {
+        if (tileManager == null)
+        {
+            return false;
+        }
+
+        ItemEntity[] items = GetItems();
+        for (int i = 0; i < items.Length; i++)
+        {
+            ItemEntity item = items[i];
+            if (item == null || item == ignoredItem)
+            {
+                continue;
+            }
+
+            if (item.TryGetReservedDestination(out Vector2Int reservedTile) && reservedTile == tile)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool TryGetFirstItemAtTile(TileManager tileManager, Vector2Int tile, out ItemEntity foundItem)
+    {
+        foundItem = null;
+
+        if (tileManager == null)
+        {
+            return false;
+        }
+
+        ItemEntity[] items = GetItems();
+        for (int i = 0; i < items.Length; i++)
+        {
+            ItemEntity item = items[i];
+            if (item == null)
+            {
+                continue;
+            }
+
+            Vector2Int itemTile = tileManager.WorldToGrid(item.transform.position);
+            if (itemTile == tile)
+            {
+                foundItem = item;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static ItemEntity[] FindItems()
     {
 #if UNITY_2023_1_OR_NEWER

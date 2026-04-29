@@ -67,7 +67,7 @@ public class ConveyorBuilding : MonoBehaviour
                 return;
             }
 
-            if (!CanOutputToTile(outputTile))
+            if (!CanOutputToTile(outputTile, carriedItem))
             {
                 return;
             }
@@ -184,7 +184,7 @@ public class ConveyorBuilding : MonoBehaviour
         return ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, tile, ignoreItem);
     }
 
-    private bool CanOutputToTile(Vector2Int tile)
+    private bool CanOutputToTile(Vector2Int tile, ItemEntity item)
     {
         if (!BuildingInstanceSceneQuery.TryGetBuildingAtTile(tile, out BuildingInstance destinationBuilding)
             || destinationBuilding == null)
@@ -193,7 +193,36 @@ public class ConveyorBuilding : MonoBehaviour
         }
 
         BuildingDefinition destinationDefinition = destinationBuilding.BuildingDefinition;
-        return destinationDefinition != null && destinationDefinition.IsConveyor;
+        if (destinationDefinition != null && destinationDefinition.IsConveyor)
+        {
+            return true;
+        }
+
+        IItemInputReceiver inputReceiver = destinationBuilding.GetComponent<IItemInputReceiver>();
+        return inputReceiver != null && inputReceiver.CanAcceptItemAtTile(tile, item);
+    }
+
+    private bool TryDeliverToInputReceiver(Vector2Int tile)
+    {
+        if (carriedItem == null)
+        {
+            return false;
+        }
+
+        if (!BuildingInstanceSceneQuery.TryGetBuildingAtTile(tile, out BuildingInstance destinationBuilding)
+            || destinationBuilding == null)
+        {
+            return false;
+        }
+
+        BuildingDefinition destinationDefinition = destinationBuilding.BuildingDefinition;
+        if (destinationDefinition != null && destinationDefinition.IsConveyor)
+        {
+            return false;
+        }
+
+        IItemInputReceiver inputReceiver = destinationBuilding.GetComponent<IItemInputReceiver>();
+        return inputReceiver != null && inputReceiver.TryAcceptItem(carriedItem, tile);
     }
 
     private void BeginMoveToTile(Vector2Int outputTile)
@@ -231,6 +260,16 @@ public class ConveyorBuilding : MonoBehaviour
         }
 
         carriedItem.transform.position = moveTargetWorldPosition;
+
+        Vector2Int destinationTile = tileManager.WorldToGrid(moveTargetWorldPosition);
+        if (TryDeliverToInputReceiver(destinationTile))
+        {
+            carriedItem = null;
+            isMoving = false;
+            moveTimer = 0f;
+            return;
+        }
+
         carriedItem.ClearReservedDestination(this);
         carriedItem.ReleaseClaim(this);
         carriedItem = null;

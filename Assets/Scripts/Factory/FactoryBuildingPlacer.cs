@@ -35,6 +35,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [FormerlySerializedAs("conveyorIndicatorColor")]
     [SerializeField] private Color indicatorColor = new Color(1f, 1f, 1f, 0.85f);
 
+    [Header("Debug Gizmos")]
+    [SerializeField] private bool drawSelectedInputTileGizmo = true;
+    [SerializeField] private Color inputTileGizmoColor = new Color(1f, 0.85f, 0.15f, 0.9f);
+    [SerializeField, Min(0.01f)] private float inputTileGizmoRadius = 0.12f;
+
     private readonly Dictionary<Vector2Int, PlacedBuildingRecord> spawnedByCell = new();
     private readonly Dictionary<int, PlacedBuildingRecord> buildingsByInstanceId = new();
     private SpriteRenderer hoverHighlightRenderer;
@@ -50,6 +55,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private Vector2Int pointerGridPosition;
     private Vector3 pointerWorldPoint;
     private int selectedRotationQuarterTurns;
+    private readonly List<Vector2Int> reusableInputTiles = new();
+    private readonly List<ItemEntity> reusableItemsOnInput = new();
     private static readonly Vector2Int[] CardinalDirections =
     {
         Vector2Int.up,
@@ -334,6 +341,32 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return true;
         }
 
+        if (TryGetInputTilesForDefinition(definition, topLeftGridPosition, footprintSize, rotationQuarterTurns, reusableInputTiles)
+            && reusableInputTiles.Count > 0)
+        {
+            indicatorState.HasInput = true;
+            
+            // Position indicator outside the building, one tile away from the input
+            Vector2Int primaryInputTile = reusableInputTiles[0];
+            indicatorState.InputTile = GetIndicatorTileOutsideBuilding(primaryInputTile, topLeftGridPosition, footprintSize, rotationQuarterTurns);
+            
+            Vector2Int inputDirection = primaryInputTile - indicatorState.InputTile;
+            indicatorState.InputQuarterTurns = FactoryGridDirectionUtility.DirectionToQuarterTurns(NormalizeCardinal(inputDirection));
+
+            if (reusableInputTiles.Count > 1)
+            {
+                indicatorState.HasSecondaryInput = true;
+                
+                Vector2Int secondaryInputTile = reusableInputTiles[1];
+                indicatorState.SecondaryInputTile = GetIndicatorTileOutsideBuilding(secondaryInputTile, topLeftGridPosition, footprintSize, rotationQuarterTurns);
+                
+                Vector2Int secondaryInputDirection = secondaryInputTile - indicatorState.SecondaryInputTile;
+                indicatorState.SecondaryInputQuarterTurns = FactoryGridDirectionUtility.DirectionToQuarterTurns(NormalizeCardinal(secondaryInputDirection));
+            }
+
+            return true;
+        }
+
         GeneratorBuildingSettings generatorSettings = definition.GeneratorSettings;
         if (generatorSettings == null)
         {
@@ -342,7 +375,12 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         Vector2Int baseDirection = FactoryGridDirectionUtility.GetBaseDirection(generatorSettings.OutputSide);
         Vector2Int worldDirection = FactoryGridDirectionUtility.RotateDirection(baseDirection, rotationQuarterTurns);
-        Vector2Int generatorOutputTile = topLeftGridPosition + FactoryGridDirectionUtility.GetSideOffset(worldDirection, footprintSize);
+        Vector2Int baseOutputOffset = FactoryGridDirectionUtility.GetSideOffset(baseDirection, footprintSize);
+        Vector2Int rotatedOutputOffset = FactoryGridDirectionUtility.RotateOffsetAroundFootprintCenter(
+            baseOutputOffset,
+            footprintSize,
+            rotationQuarterTurns);
+        Vector2Int generatorOutputTile = topLeftGridPosition + rotatedOutputOffset;
 
         if (tileManager.IsInBounds(generatorOutputTile))
         {
@@ -352,6 +390,39 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         return indicatorState.HasOutput;
+    }
+
+    private bool TryGetInputTilesForDefinition(
+        BuildingDefinition definition,
+        Vector2Int topLeftGridPosition,
+        Vector2Int footprintSize,
+        int rotationQuarterTurns,
+        List<Vector2Int> inputTiles)
+    {
+        inputTiles.Clear();
+
+        if (definition == null || definition.BehaviorPrefab == null || tileManager == null)
+        {
+            return false;
+        }
+
+        IBuildingInputPreview inputPreviewProvider = definition.BehaviorPrefab.GetComponent<IBuildingInputPreview>();
+        if (inputPreviewProvider == null)
+        {
+            return false;
+        }
+
+        inputPreviewProvider.GetInputTiles(topLeftGridPosition, footprintSize, rotationQuarterTurns, inputTiles);
+
+        for (int i = inputTiles.Count - 1; i >= 0; i--)
+        {
+            if (!tileManager.IsInBounds(inputTiles[i]))
+            {
+                inputTiles.RemoveAt(i);
+            }
+        }
+
+        return inputTiles.Count > 0;
     }
 
     private void SetAllIndicatorsVisible(bool isVisible)
@@ -423,6 +494,39 @@ public class FactoryBuildingPlacer : MonoBehaviour
         if (indicator.gameObject.activeSelf != isVisible)
         {
             indicator.gameObject.SetActive(isVisible);
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (!drawSelectedInputTileGizmo || tileManager == null || !hasPointerTile)
+        {
+            return;
+        }
+
+        BuildingDefinition selectedDef = GetSelectedBuildingDefinition();
+        if (selectedDef == null)
+        {
+            return;
+        }
+
+        Vector2Int footprintSize = GetRotatedFootprintSize(selectedDef.FootprintSize);
+        Vector2Int optimalTopLeft = CalculateOptimalPlacementPosition(pointerGridPosition, footprintSize);
+
+        if (!TryGetInputTilesForDefinition(selectedDef, optimalTopLeft, footprintSize, selectedRotationQuarterTurns, reusableInputTiles)
+            || reusableInputTiles.Count == 0)
+        {
+            return;
+        }
+
+        float radius = Mathf.Max(0.01f, inputTileGizmoRadius) * tileManager.TileSize;
+        Gizmos.color = inputTileGizmoColor;
+
+        for (int i = 0; i < reusableInputTiles.Count; i++)
+        {
+            Vector3 worldPos = tileManager.GridToWorld(reusableInputTiles[i]);
+            worldPos.z = tileManager.GridPlaneZ;
+            Gizmos.DrawSphere(worldPos, radius);
         }
     }
 
@@ -572,6 +676,12 @@ public class FactoryBuildingPlacer : MonoBehaviour
         Vector2Int footprintSize = GetRotatedFootprintSize(selectedBuildingDefinition.FootprintSize);
         Vector2Int optimalTopLeft = CalculateOptimalPlacementPosition(pointerGridPosition, footprintSize);
 
+        if (!CanPlaceWithItemExceptions(selectedBuildingDefinition, optimalTopLeft, footprintSize, selectedRotationQuarterTurns))
+        {
+            inventoryManager.AddBuilding(selectedBuildingDefinition, 1);
+            return false;
+        }
+
         if (!tileManager.CanOccupyFootprint(optimalTopLeft, footprintSize))
         {
             if (!CanReplaceConveyorAt(optimalTopLeft, footprintSize, selectedBuildingDefinition)
@@ -602,6 +712,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
             buildingInstance.SetGridPosition(optimalTopLeft, footprintSize, selectedRotationQuarterTurns);
             buildingInstance.Initialize(selectedBuildingDefinition);
         }
+
+        TryFeedItemsIntoPlacedInputBuilding(spawned, selectedBuildingDefinition, optimalTopLeft, footprintSize, selectedRotationQuarterTurns);
 
         PlacedBuildingRecord record = new PlacedBuildingRecord(spawned, selectedBuildingDefinition, optimalTopLeft, footprintSize, selectedRotationQuarterTurns);
         buildingsByInstanceId[spawned.GetInstanceID()] = record;
@@ -959,7 +1071,209 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         return (tileManager.CanOccupyFootprint(optimalTopLeft, footprintSize)
             || CanReplaceConveyorAt(optimalTopLeft, footprintSize, selectedBuildingDefinition))
+            && CanPlaceWithItemExceptions(selectedBuildingDefinition, optimalTopLeft, footprintSize, selectedRotationQuarterTurns)
             && inventoryManager.HasBuilding(selectedBuildingDefinition, 1);
+    }
+
+    private bool CanPlaceWithItemExceptions(
+        BuildingDefinition definition,
+        Vector2Int topLeftGridPosition,
+        Vector2Int footprintSize,
+        int rotationQuarterTurns)
+    {
+        if (tileManager == null)
+        {
+            return true;
+        }
+
+        bool hasBlockingTiles = false;
+
+        if (definition != null && definition.IsConveyor)
+        {
+            return true;
+        }
+
+        bool hasInputPreview = TryGetInputTilesForDefinition(definition, topLeftGridPosition, footprintSize, rotationQuarterTurns, reusableInputTiles);
+
+        for (int x = 0; x < footprintSize.x; x++)
+        {
+            for (int y = 0; y < footprintSize.y; y++)
+            {
+                Vector2Int tilePos = topLeftGridPosition + new Vector2Int(x, y);
+
+                bool hasActualItem = ItemEntitySceneQuery.TryGetFirstItemAtTile(tileManager, tilePos, out _);
+                bool hasReservedOnly = ItemEntitySceneQuery.HasReservedAtTile(tileManager, tilePos) && !hasActualItem;
+
+                if (!hasActualItem && !hasReservedOnly)
+                {
+                    continue;
+                }
+
+                hasBlockingTiles = true;
+
+                if (!hasInputPreview)
+                {
+                    return false;
+                }
+
+                if (hasReservedOnly)
+                {
+                    return false;
+                }
+
+                if (!reusableInputTiles.Contains(tilePos))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return !hasBlockingTiles || hasInputPreview;
+    }
+
+    private void TryFeedItemsIntoPlacedInputBuilding(
+        GameObject spawnedBuilding,
+        BuildingDefinition definition,
+        Vector2Int topLeftGridPosition,
+        Vector2Int footprintSize,
+        int rotationQuarterTurns)
+    {
+        if (spawnedBuilding == null)
+        {
+            return;
+        }
+
+        IItemInputReceiver inputReceiver = spawnedBuilding.GetComponent<IItemInputReceiver>();
+        if (inputReceiver == null)
+        {
+            return;
+        }
+
+        if (!TryGetInputTilesForDefinition(definition, topLeftGridPosition, footprintSize, rotationQuarterTurns, reusableInputTiles)
+            || reusableInputTiles.Count == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < reusableInputTiles.Count; i++)
+        {
+            CollectItemsAtTile(reusableInputTiles[i], reusableItemsOnInput);
+
+            for (int itemIndex = 0; itemIndex < reusableItemsOnInput.Count; itemIndex++)
+            {
+                ItemEntity item = reusableItemsOnInput[itemIndex];
+                if (item == null)
+                {
+                    continue;
+                }
+
+                inputReceiver.TryAcceptItem(item, reusableInputTiles[i]);
+            }
+        }
+    }
+
+    private void CollectItemsAtTile(Vector2Int tile, List<ItemEntity> result)
+    {
+        result.Clear();
+
+        if (tileManager == null)
+        {
+            return;
+        }
+
+        ItemEntity[] items = ItemEntitySceneQuery.GetItems();
+        for (int i = 0; i < items.Length; i++)
+        {
+            ItemEntity item = items[i];
+            if (item == null)
+            {
+                continue;
+            }
+
+            if (tileManager.WorldToGrid(item.transform.position) == tile)
+            {
+                result.Add(item);
+            }
+        }
+    }
+
+    private static Vector2Int GetFootprintWorldCenterAsGrid(Vector2Int topLeftGridPosition, Vector2Int footprintSize)
+    {
+        return topLeftGridPosition + new Vector2Int((footprintSize.x - 1) / 2, (footprintSize.y - 1) / 2);
+    }
+
+    private static Vector2Int GetIndicatorTileOutsideBuilding(
+        Vector2Int inputTile,
+        Vector2Int topLeftGridPosition,
+        Vector2Int footprintSize,
+        int rotationQuarterTurns)
+    {
+        Vector2Int bottomRightGridPosition = topLeftGridPosition + new Vector2Int(footprintSize.x - 1, footprintSize.y - 1);
+        Vector2Int indicatorTile = inputTile;
+
+        bool isOnLeft = inputTile.x == topLeftGridPosition.x;
+        bool isOnRight = inputTile.x == bottomRightGridPosition.x;
+        bool isOnBottom = inputTile.y == topLeftGridPosition.y;
+        bool isOnTop = inputTile.y == bottomRightGridPosition.y;
+
+        // Corner inputs touch two edges. Resolve which edge to extend from using rotation
+        // so the indicator tracks predictably across all quarter turns.
+        bool isCorner = (isOnLeft || isOnRight) && (isOnBottom || isOnTop);
+        if (isCorner)
+        {
+            int normalizedQuarterTurns = Mathf.Abs(rotationQuarterTurns) % 4;
+            bool preferHorizontal = (normalizedQuarterTurns & 1) == 0;
+
+            if (preferHorizontal)
+            {
+                indicatorTile.x += isOnLeft ? -1 : 1;
+            }
+            else
+            {
+                indicatorTile.y += isOnBottom ? -1 : 1;
+            }
+
+            return indicatorTile;
+        }
+
+        // Determine which single edge the input is on and extend outward in that direction only
+        if (isOnLeft)
+        {
+            // Left edge - extend further left
+            indicatorTile.x--;
+        }
+        else if (isOnRight)
+        {
+            // Right edge - extend further right
+            indicatorTile.x++;
+        }
+        else if (isOnBottom)
+        {
+            // Bottom edge - extend further down
+            indicatorTile.y--;
+        }
+        else if (isOnTop)
+        {
+            // Top edge - extend further up
+            indicatorTile.y++;
+        }
+
+        return indicatorTile;
+    }
+
+    private static Vector2Int NormalizeCardinal(Vector2Int direction)
+    {
+        if (direction == Vector2Int.zero)
+        {
+            return Vector2Int.right;
+        }
+
+        if (Mathf.Abs(direction.x) >= Mathf.Abs(direction.y))
+        {
+            return direction.x >= 0 ? Vector2Int.right : Vector2Int.left;
+        }
+
+        return direction.y >= 0 ? Vector2Int.up : Vector2Int.down;
     }
 
     private Vector2Int GetRotatedFootprintSize(Vector2Int baseFootprint)

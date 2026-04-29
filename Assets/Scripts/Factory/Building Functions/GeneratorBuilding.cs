@@ -112,7 +112,13 @@ public class GeneratorBuilding : MonoBehaviour
             FactoryGridDirectionUtility.GetBaseDirection(settings.OutputSide),
             buildingInstance.RotationQuarterTurns);
         Vector2Int anchor = buildingInstance.GridPosition;
-        Vector2Int sideOffset = FactoryGridDirectionUtility.GetSideOffset(worldDirection, footprintSize);
+        Vector2Int baseSideOffset = FactoryGridDirectionUtility.GetSideOffset(
+            FactoryGridDirectionUtility.GetBaseDirection(settings.OutputSide),
+            footprintSize);
+        Vector2Int sideOffset = FactoryGridDirectionUtility.RotateOffsetAroundFootprintCenter(
+            baseSideOffset,
+            footprintSize,
+            buildingInstance.RotationQuarterTurns);
         outputGridPosition = anchor + sideOffset;
         return tileManager.IsInBounds(outputGridPosition);
     }
