@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [DisallowMultipleComponent]
-public class GeneratorBuilding : MonoBehaviour
+public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
 {
     public enum OutputSide
     {
@@ -37,6 +37,12 @@ public class GeneratorBuilding : MonoBehaviour
     public int SpawnedItemCount => spawnedItemCount;
     public int RemainingItemCount => Mathf.Max(0, MaxItemsToSpawn - spawnedItemCount);
     public OutputSide CurrentOutputSide => GetGeneratorSettings()?.OutputSide ?? OutputSide.Right;
+    public int CurrentResourceAmount => RemainingItemCount;
+    public int MaxResourceAmount => MaxItemsToSpawn;
+    public float NormalizedResourceAmount => MaxItemsToSpawn > 0
+        ? Mathf.Clamp01((float)RemainingItemCount / MaxItemsToSpawn)
+        : 0f;
+    public Color ResourceTint => ItemDefinition != null ? ItemDefinition.Tint : Color.white;
 
     private void Reset()
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [DisallowMultipleComponent]
-public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInputPreview
+public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInputPreview, IMachineResourceProgressProvider
 {
     public enum InputSide
     {
@@ -32,14 +32,24 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
     [Header("Input")]
     [SerializeField] private InputSide inputSide = InputSide.Left;
+    [SerializeField, Min(1)] private int maxResources = 10;
 
     [Header("Debug Inventory")]
     [SerializeField] private List<StoredItemEntry> storedItems = new();
 
     private readonly Dictionary<ItemDefinition, int> inventoryByItem = new();
+    private ItemDefinition lastAcceptedItemDefinition;
 
     public int DistinctItemCount => inventoryByItem.Count;
     public InputSide ConfiguredInputSide => inputSide;
+    public int MaxResources => maxResources;
+    public int CurrentResourceCount => GetTotalStoredAmount();
+    public int CurrentResourceAmount => CurrentResourceCount;
+    public int MaxResourceAmount => maxResources;
+    public float NormalizedResourceAmount => maxResources > 0
+        ? Mathf.Clamp01((float)CurrentResourceCount / maxResources)
+        : 0f;
+    public Color ResourceTint => lastAcceptedItemDefinition != null ? lastAcceptedItemDefinition.Tint : Color.white;
 
     private void Reset()
     {
@@ -69,7 +79,8 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
             return false;
         }
 
-        return tile == inputTile;
+        int incomingAmount = Mathf.Max(1, item.Quantity);
+        return tile == inputTile && HasCapacityFor(incomingAmount);
     }
 
     public bool TryAcceptItem(ItemEntity item, Vector2Int tile)
@@ -151,7 +162,30 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
         inventoryByItem.TryGetValue(itemDefinition, out int current);
         inventoryByItem[itemDefinition] = current + amount;
+        lastAcceptedItemDefinition = itemDefinition;
         SyncSerializedInventory();
+    }
+
+    private bool HasCapacityFor(int incomingAmount)
+    {
+        if (incomingAmount <= 0)
+        {
+            return false;
+        }
+
+        int currentStored = GetTotalStoredAmount();
+        return currentStored + incomingAmount <= maxResources;
+    }
+
+    private int GetTotalStoredAmount()
+    {
+        int total = 0;
+        foreach (KeyValuePair<ItemDefinition, int> pair in inventoryByItem)
+        {
+            total += Mathf.Max(0, pair.Value);
+        }
+
+        return total;
     }
 
     private void ResolveDependenciesIfNeeded()
@@ -207,6 +241,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     private void RebuildRuntimeInventoryFromSerialized()
     {
         inventoryByItem.Clear();
+        lastAcceptedItemDefinition = null;
 
         for (int i = 0; i < storedItems.Count; i++)
         {
@@ -218,6 +253,11 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
             inventoryByItem.TryGetValue(entry.Item, out int current);
             inventoryByItem[entry.Item] = current + entry.Quantity;
+
+            if (lastAcceptedItemDefinition == null)
+            {
+                lastAcceptedItemDefinition = entry.Item;
+            }
         }
     }
 
@@ -228,5 +268,10 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         {
             storedItems.Add(new StoredItemEntry(pair.Key, pair.Value));
         }
+    }
+
+    private void OnValidate()
+    {
+        maxResources = Mathf.Max(1, maxResources);
     }
 }

@@ -640,6 +640,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   selectedBuildingIndex: 0
+  hasSelectedBuilding: 1
   enableNumberKeySelection: 1
   enableRotationInput: 1
   refundBuildingToInventoryOnRemove: 1
@@ -652,6 +653,9 @@ MonoBehaviour:
   inputIndicatorSecondary: {fileID: 387747834}
   outputIndicator: {fileID: 1530720853}
   indicatorColor: {r: 1, g: 1, b: 1, a: 0.7058824}
+  drawSelectedInputTileGizmo: 1
+  inputTileGizmoColor: {r: 1, g: 0.85, b: 0.15, a: 0.9}
+  inputTileGizmoRadius: 0.12
 --- !u!4 &1025983502
 Transform:
   m_ObjectHideFlags: 0
@@ -1438,9 +1442,9 @@ MonoBehaviour:
   - buildingDefinition: {fileID: 11400000, guid: 9ee3ce427af21a547a30648e8e8e5a21, type: 2}
     quantity: 100
   - buildingDefinition: {fileID: 11400000, guid: 05b5143009930014699e691bf67154f0, type: 2}
-    quantity: 10
+    quantity: 5
   - buildingDefinition: {fileID: 11400000, guid: a163862e1e67beb41880159dba5f80d9, type: 2}
-    quantity: 10
+    quantity: 5
   buildingInventory: []
   startingScrap: 0
   startingScore: 0

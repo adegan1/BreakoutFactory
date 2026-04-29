@@ -16,6 +16,6 @@ MonoBehaviour:
   displayName: Test
   description: This is just a test item
   icon: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  tint: {r: 1, g: 0, b: 0.82385063, a: 1}
+  tint: {r: 0.6509434, g: 0, b: 0.53607094, a: 1}
   maxStackSize: 100
   baseValue: 1

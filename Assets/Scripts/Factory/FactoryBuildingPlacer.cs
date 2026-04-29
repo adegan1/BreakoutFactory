@@ -5,6 +5,10 @@ using UnityEngine.Serialization;
 
 public class FactoryBuildingPlacer : MonoBehaviour
 {
+    public static bool AreMachineProgressBarsPinnedVisible { get; private set; }
+    public static int HoveredMachineInstanceId { get; private set; } = -1;
+    public static int SelectedMachineInstanceId { get; private set; } = -1;
+
     [SerializeField] private TileManager tileManager;
     [SerializeField] private Camera worldCamera;
     [SerializeField] private InventoryManager inventoryManager;
@@ -145,6 +149,9 @@ public class FactoryBuildingPlacer : MonoBehaviour
         {
             outputIndicatorRenderer = outputIndicator.GetComponent<SpriteRenderer>();
         }
+
+        HoveredMachineInstanceId = -1;
+        SelectedMachineInstanceId = -1;
     }
 
     private void Update()
@@ -153,6 +160,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         if (mouse == null)
         {
             hasPointerTile = false;
+            HoveredMachineInstanceId = -1;
             SetHoverHighlightVisible(false);
             SetAllIndicatorsVisible(false);
             return;
@@ -163,6 +171,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         RefreshSelectionAvailability();
 
         RefreshPointerState(mouse);
+        UpdateMachineProgressVisibilityContext();
         UpdateHoverHighlight();
         UpdateBuildingIndicators();
 
@@ -172,6 +181,10 @@ public class FactoryBuildingPlacer : MonoBehaviour
             if (didPlace)
             {
                 SuppressHoverAtPointerTile();
+            }
+            else
+            {
+                TrySelectMachineAtPointer();
             }
         }
 
@@ -777,6 +790,18 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         int instanceId = record.SpawnedObject.GetInstanceID();
+        int progressContextId = GetMachineProgressContextId(record);
+
+        if (SelectedMachineInstanceId == instanceId || SelectedMachineInstanceId == progressContextId)
+        {
+            SelectedMachineInstanceId = -1;
+        }
+
+        if (HoveredMachineInstanceId == instanceId || HoveredMachineInstanceId == progressContextId)
+        {
+            HoveredMachineInstanceId = -1;
+        }
+
         Destroy(record.SpawnedObject);
         buildingsByInstanceId.Remove(instanceId);
 
@@ -948,6 +973,74 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         pointerGridPosition = tileManager.WorldToGrid(pointerWorldPoint);
         hasPointerTile = tileManager.IsInBounds(pointerGridPosition);
+    }
+
+    private void UpdateMachineProgressVisibilityContext()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard != null && (keyboard.leftAltKey.wasPressedThisFrame || keyboard.rightAltKey.wasPressedThisFrame))
+        {
+            AreMachineProgressBarsPinnedVisible = !AreMachineProgressBarsPinnedVisible;
+        }
+
+        if (!TryGetPointerGridPositionForMachineHover(out Vector2Int hoverGridPosition)
+            || !spawnedByCell.TryGetValue(hoverGridPosition, out PlacedBuildingRecord hoveredRecord)
+            || hoveredRecord?.SpawnedObject == null)
+        {
+            HoveredMachineInstanceId = -1;
+            return;
+        }
+
+        HoveredMachineInstanceId = GetMachineProgressContextId(hoveredRecord);
+    }
+
+    private bool TryGetPointerGridPositionForMachineHover(out Vector2Int gridPosition)
+    {
+        gridPosition = default;
+
+        if (Mouse.current == null || tileManager == null || worldCamera == null)
+        {
+            return false;
+        }
+
+        float distanceToGridPlane = Mathf.Abs(tileManager.GridPlaneZ - worldCamera.transform.position.z);
+        Vector2 mousePosition = Mouse.current.position.ReadValue();
+        Vector3 mouseScreenPoint = new Vector3(mousePosition.x, mousePosition.y, distanceToGridPlane);
+        Vector3 mouseWorldPoint = worldCamera.ScreenToWorldPoint(mouseScreenPoint);
+        mouseWorldPoint.z = tileManager.GridPlaneZ;
+
+        gridPosition = tileManager.WorldToGrid(mouseWorldPoint);
+        return tileManager.IsInBounds(gridPosition);
+    }
+
+    private bool TrySelectMachineAtPointer()
+    {
+        if (!hasPointerTile
+            || !spawnedByCell.TryGetValue(pointerGridPosition, out PlacedBuildingRecord hoveredRecord)
+            || hoveredRecord?.SpawnedObject == null)
+        {
+            SelectedMachineInstanceId = -1;
+            return false;
+        }
+
+        SelectedMachineInstanceId = GetMachineProgressContextId(hoveredRecord);
+        return true;
+    }
+
+    private static int GetMachineProgressContextId(PlacedBuildingRecord record)
+    {
+        if (record?.SpawnedObject == null)
+        {
+            return -1;
+        }
+
+        BuildingInstance buildingInstance = record.SpawnedObject.GetComponentInChildren<BuildingInstance>();
+        if (buildingInstance != null)
+        {
+            return buildingInstance.gameObject.GetInstanceID();
+        }
+
+        return record.SpawnedObject.GetInstanceID();
     }
 
     private bool TryGetPointerHitPoint(Mouse mouse, out Vector3 hitPoint)
@@ -1397,6 +1490,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private void DeselectBuilding()
     {
         hasSelectedBuilding = false;
+        SelectedMachineInstanceId = -1;
         suppressHoverUntilTileChange = false;
         SetHoverHighlightVisible(false);
         SetAllIndicatorsVisible(false);
