@@ -14,6 +14,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     [Header("Building Selection")]
     [SerializeField] private int selectedBuildingIndex;
+    [SerializeField] private bool hasSelectedBuilding = true;
     [SerializeField] private bool enableNumberKeySelection = true;
     [SerializeField] private bool enableRotationInput = true;
 
@@ -109,6 +110,10 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         EnsureInventoryManagerAssigned();
+        if (inventoryManager == null || inventoryManager.BuildingItems.Count == 0)
+        {
+            hasSelectedBuilding = false;
+        }
         ClampSelectedBuildingIndex();
 
         if (hoverHighlight != null)
@@ -155,6 +160,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         HandleBuildingSelectionInput();
         HandleRotationInput();
+        RefreshSelectionAvailability();
 
         RefreshPointerState(mouse);
         UpdateHoverHighlight();
@@ -729,6 +735,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         RefreshConveyorVisualsAround(optimalTopLeft, footprintSize);
 
+        if (inventoryManager != null && !inventoryManager.HasBuilding(selectedBuildingDefinition, 1))
+        {
+            DeselectBuilding();
+        }
+
         return true;
     }
 
@@ -742,6 +753,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         Vector2Int gridPosition = pointerGridPosition;
         if (!spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord record) || record?.SpawnedObject == null)
         {
+            DeselectBuilding();
             return;
         }
 
@@ -1032,12 +1044,14 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         selectedBuildingIndex = index;
+        hasSelectedBuilding = true;
+        suppressHoverUntilTileChange = false;
         return true;
     }
 
     private BuildingDefinition GetSelectedBuildingDefinition()
     {
-        if (inventoryManager == null)
+        if (!hasSelectedBuilding || inventoryManager == null)
         {
             return null;
         }
@@ -1351,6 +1365,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         if (inventoryManager == null)
         {
             selectedBuildingIndex = 0;
+            hasSelectedBuilding = false;
             return;
         }
 
@@ -1358,9 +1373,32 @@ public class FactoryBuildingPlacer : MonoBehaviour
         if (buildingCount == 0)
         {
             selectedBuildingIndex = 0;
+            hasSelectedBuilding = false;
             return;
         }
 
         selectedBuildingIndex = Mathf.Clamp(selectedBuildingIndex, 0, buildingCount - 1);
+    }
+
+    private void RefreshSelectionAvailability()
+    {
+        if (!hasSelectedBuilding || inventoryManager == null)
+        {
+            return;
+        }
+
+        BuildingDefinition selectedDefinition = GetSelectedBuildingDefinition();
+        if (selectedDefinition == null || !inventoryManager.HasBuilding(selectedDefinition, 1))
+        {
+            DeselectBuilding();
+        }
+    }
+
+    private void DeselectBuilding()
+    {
+        hasSelectedBuilding = false;
+        suppressHoverUntilTileChange = false;
+        SetHoverHighlightVisible(false);
+        SetAllIndicatorsVisible(false);
     }
 }
