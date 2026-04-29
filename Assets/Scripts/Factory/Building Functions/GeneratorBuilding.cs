@@ -23,9 +23,14 @@ public class GeneratorBuilding : MonoBehaviour
 
     [Header("Output")]
     [SerializeField] private Vector3 itemSpawnOffset = Vector3.zero;
+    [SerializeField, Min(0.01f)] private float outputTravelDurationSeconds = 0.5f;
 
     private float spawnTimer;
     private int spawnedItemCount;
+    private ItemEntity launchingItem;
+    private float launchMoveTimer;
+    private Vector3 launchStartWorldPosition;
+    private Vector3 launchTargetWorldPosition;
 
     public ItemDefinition ItemDefinition => GetGeneratorSettings()?.ItemDefinition;
     public int MaxItemsToSpawn => GetGeneratorSettings()?.MaxItemsToSpawn ?? 0;
@@ -50,6 +55,13 @@ public class GeneratorBuilding : MonoBehaviour
 
     private void Update()
     {
+        TickLaunchMovement();
+
+        if (launchingItem != null)
+        {
+            return;
+        }
+
         GeneratorBuildingSettings settings = GetGeneratorSettings();
         if (!CanGenerateItems(settings))
         {
@@ -109,25 +121,45 @@ public class GeneratorBuilding : MonoBehaviour
     {
         ResolveDependenciesIfNeeded();
 
+        if (launchingItem != null)
+        {
+            return false;
+        }
+
         GeneratorBuildingSettings settings = GetGeneratorSettings();
         if (!CanGenerateItems(settings))
         {
             return false;
         }
 
-        if (!TryGetOutputGridPosition(out Vector2Int outputGridPosition))
+        if (!TryGetOutputData(out Vector2Int outputGridPosition, out Vector2Int outputDirection))
         {
             return false;
         }
 
-        if (HasItemOnTile(outputGridPosition))
+        Vector2Int launchStartTile = outputGridPosition - outputDirection;
+        if (!tileManager.IsInBounds(launchStartTile))
         {
             return false;
         }
 
-        Vector3 spawnPosition = tileManager.GridToWorld(outputGridPosition) + itemSpawnOffset;
+        if (HasItemOnTile(outputGridPosition) || HasItemOnTile(launchStartTile))
+        {
+            return false;
+        }
+
+        Vector3 spawnPosition = tileManager.GridToWorld(launchStartTile) + itemSpawnOffset;
+        Vector3 targetPosition = tileManager.GridToWorld(outputGridPosition) + itemSpawnOffset;
+
         ItemEntity spawnedItem = Instantiate(itemEntityPrefab, spawnPosition, Quaternion.identity, spawnedItemParent);
         spawnedItem.Initialize(settings.ItemDefinition, settings.QuantityPerSpawn);
+        if (!spawnedItem.TryClaim(this))
+        {
+            Destroy(spawnedItem.gameObject);
+            return false;
+        }
+
+        BeginLaunch(spawnedItem, spawnPosition, targetPosition);
         spawnedItemCount++;
         return true;
     }
@@ -141,7 +173,73 @@ public class GeneratorBuilding : MonoBehaviour
             && itemEntityPrefab != null
             && tileManager != null
             && buildingInstance != null
+            && launchingItem == null
             && spawnedItemCount < settings.MaxItemsToSpawn;
+    }
+
+    private bool TryGetOutputData(out Vector2Int outputGridPosition, out Vector2Int outputDirection)
+    {
+        outputGridPosition = default;
+        outputDirection = default;
+
+        if (!TryGetOutputGridPosition(out outputGridPosition))
+        {
+            return false;
+        }
+
+        GeneratorBuildingSettings settings = GetGeneratorSettings();
+        if (settings == null)
+        {
+            return false;
+        }
+
+        outputDirection = FactoryGridDirectionUtility.RotateDirection(
+            FactoryGridDirectionUtility.GetBaseDirection(settings.OutputSide),
+            buildingInstance.RotationQuarterTurns);
+        return true;
+    }
+
+    private void BeginLaunch(ItemEntity item, Vector3 startWorldPosition, Vector3 targetWorldPosition)
+    {
+        Vector2Int reservedOutputTile = tileManager != null
+            ? tileManager.WorldToGrid(targetWorldPosition)
+            : default;
+
+        if (!item.TryReserveDestination(this, reservedOutputTile))
+        {
+            Destroy(item.gameObject);
+            launchingItem = null;
+            launchMoveTimer = 0f;
+            return;
+        }
+
+        launchingItem = item;
+        launchStartWorldPosition = startWorldPosition;
+        launchTargetWorldPosition = targetWorldPosition;
+        launchMoveTimer = 0f;
+    }
+
+    private void TickLaunchMovement()
+    {
+        if (launchingItem == null)
+        {
+            return;
+        }
+
+        launchMoveTimer += Time.deltaTime;
+        float t = Mathf.Clamp01(launchMoveTimer / outputTravelDurationSeconds);
+        launchingItem.transform.position = Vector3.Lerp(launchStartWorldPosition, launchTargetWorldPosition, t);
+
+        if (t < 1f)
+        {
+            return;
+        }
+
+        launchingItem.transform.position = launchTargetWorldPosition;
+        launchingItem.ClearReservedDestination(this);
+        launchingItem.ReleaseClaim(this);
+        launchingItem = null;
+        launchMoveTimer = 0f;
     }
 
     private void ResolveDependenciesIfNeeded()
@@ -194,7 +292,7 @@ public class GeneratorBuilding : MonoBehaviour
 
     private bool HasItemOnTile(Vector2Int gridPosition)
     {
-        return ItemEntitySceneQuery.HasItemAtTile(tileManager, gridPosition);
+        return ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, gridPosition);
     }
 
     private void OnDrawGizmosSelected()
@@ -210,5 +308,17 @@ public class GeneratorBuilding : MonoBehaviour
         Gizmos.color = new Color(0.3f, 1f, 0.8f, 0.9f);
         Gizmos.DrawLine(buildingCenter, outputCenter);
         Gizmos.DrawWireSphere(outputCenter, tileManager.TileSize * 0.2f);
+    }
+
+    private void OnDisable()
+    {
+        if (launchingItem != null)
+        {
+            launchingItem.ClearReservedDestination(this);
+            launchingItem.ReleaseClaim(this);
+            launchingItem = null;
+        }
+
+        launchMoveTimer = 0f;
     }
 }

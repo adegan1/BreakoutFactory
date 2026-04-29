@@ -46,6 +46,7 @@ public class ConveyorBuilding : MonoBehaviour
 
         if (carriedItem != null && !carriedItem.IsClaimedBy(this))
         {
+            carriedItem.ClearReservedDestination(this);
             carriedItem = null;
             isMoving = false;
             moveTimer = 0f;
@@ -62,6 +63,11 @@ public class ConveyorBuilding : MonoBehaviour
         if (!isMoving)
         {
             if (!TryGetOutputTile(out Vector2Int outputTile))
+            {
+                return;
+            }
+
+            if (!CanOutputToTile(outputTile))
             {
                 return;
             }
@@ -175,12 +181,29 @@ public class ConveyorBuilding : MonoBehaviour
 
     private bool HasBlockingItemAt(Vector2Int tile, ItemEntity ignoreItem)
     {
-        return ItemEntitySceneQuery.HasItemAtTile(tileManager, tile, ignoreItem);
+        return ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, tile, ignoreItem);
+    }
+
+    private bool CanOutputToTile(Vector2Int tile)
+    {
+        if (!BuildingInstanceSceneQuery.TryGetBuildingAtTile(tile, out BuildingInstance destinationBuilding)
+            || destinationBuilding == null)
+        {
+            return true;
+        }
+
+        BuildingDefinition destinationDefinition = destinationBuilding.BuildingDefinition;
+        return destinationDefinition != null && destinationDefinition.IsConveyor;
     }
 
     private void BeginMoveToTile(Vector2Int outputTile)
     {
         if (carriedItem == null)
+        {
+            return;
+        }
+
+        if (!carriedItem.TryReserveDestination(this, outputTile))
         {
             return;
         }
@@ -208,6 +231,7 @@ public class ConveyorBuilding : MonoBehaviour
         }
 
         carriedItem.transform.position = moveTargetWorldPosition;
+        carriedItem.ClearReservedDestination(this);
         carriedItem.ReleaseClaim(this);
         carriedItem = null;
         isMoving = false;
@@ -218,6 +242,7 @@ public class ConveyorBuilding : MonoBehaviour
     {
         if (carriedItem != null)
         {
+            carriedItem.ClearReservedDestination(this);
             carriedItem.ReleaseClaim(this);
             carriedItem = null;
         }

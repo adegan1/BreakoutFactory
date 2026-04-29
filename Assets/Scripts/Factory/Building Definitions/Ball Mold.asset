@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dda42522ed0f7e440a28bb05e45858a8, type: 3}
+  m_Name: Ball Mold
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
+  displayName: Ball Mold
+  description: A mold for turning resources into balls
+  buildingSprite: {fileID: 7482667652216324306, guid: aaa3a88405f852449a8bf191b46d71c0, type: 3}
+  buildingColor: {r: 0.7169812, g: 0.7169812, b: 0.7169812, a: 1}
+  footprintWidth: 2
+  footprintHeight: 2
+  behaviorPrefab: {fileID: 1276502763047268258, guid: 74abf8241bbe3c740b263c2b8a4b8f29, type: 3}
+  generatorSettings: {fileID: 0}
+  isConveyor: 0
+  conveyorStraightSprite: {fileID: 0}
+  conveyorTurnLeftSprite: {fileID: 0}
+  conveyorTurnRightSprite: {fileID: 0}
+  scrapDropAmount: 5

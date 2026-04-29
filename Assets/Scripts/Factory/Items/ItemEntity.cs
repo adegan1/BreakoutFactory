@@ -11,6 +11,9 @@ public class ItemEntity : MonoBehaviour
     private int quantity = 1;
     private bool hasWarnedMissingRenderer;
     private Object movementOwner;
+    private Object reservedDestinationOwner;
+    private bool hasReservedDestination;
+    private Vector2Int reservedDestinationTile;
 
     public ItemDefinition ItemDefinition => itemDefinition;
     public int Quantity => quantity;
@@ -87,6 +90,45 @@ public class ItemEntity : MonoBehaviour
         if (movementOwner == owner)
         {
             movementOwner = null;
+            ClearReservedDestination(owner);
+        }
+    }
+
+    public bool TryReserveDestination(Object owner, Vector2Int tile)
+    {
+        if (owner == null)
+        {
+            return false;
+        }
+
+        if (reservedDestinationOwner != null && reservedDestinationOwner != owner)
+        {
+            return false;
+        }
+
+        reservedDestinationOwner = owner;
+        reservedDestinationTile = tile;
+        hasReservedDestination = true;
+        return true;
+    }
+
+    public bool TryGetReservedDestination(out Vector2Int tile)
+    {
+        tile = reservedDestinationTile;
+        return hasReservedDestination;
+    }
+
+    public void ClearReservedDestination(Object owner)
+    {
+        if (owner == null)
+        {
+            return;
+        }
+
+        if (reservedDestinationOwner == owner)
+        {
+            reservedDestinationOwner = null;
+            hasReservedDestination = false;
         }
     }
 
