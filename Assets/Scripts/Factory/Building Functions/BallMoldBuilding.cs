@@ -371,13 +371,13 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
         previewBaseLocalPosition = ballPreviewRenderer.transform.localPosition;
         previewBaseScale = ballPreviewRenderer.transform.localScale;
-        previewBaseWorldRotation = CalculateUnrotatedWorldRotation(ballPreviewRenderer.transform);
+        previewBaseWorldRotation = FactoryGridDirectionUtility.CalculateUnrotatedWorldRotation(ballPreviewRenderer.transform);
 
         if (ballPreviewMaskTransform != null)
         {
             maskBaseLocalPosition = ballPreviewMaskTransform.localPosition;
             maskBaseScale = ballPreviewMaskTransform.localScale;
-            maskBaseWorldRotation = CalculateUnrotatedWorldRotation(ballPreviewMaskTransform);
+            maskBaseWorldRotation = FactoryGridDirectionUtility.CalculateUnrotatedWorldRotation(ballPreviewMaskTransform);
             ballPreviewRenderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
         }
     }
@@ -478,22 +478,6 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         {
             ballPreviewMaskTransform.rotation = maskBaseWorldRotation;
         }
-    }
-
-    private static Quaternion CalculateUnrotatedWorldRotation(Transform target)
-    {
-        if (target == null)
-        {
-            return Quaternion.identity;
-        }
-
-        Transform parent = target.parent;
-        if (parent == null)
-        {
-            return target.rotation;
-        }
-
-        return Quaternion.Inverse(parent.rotation) * target.rotation;
     }
 
     private BallTypeData ResolvePreviewBallType(ItemDefinition itemDefinition)

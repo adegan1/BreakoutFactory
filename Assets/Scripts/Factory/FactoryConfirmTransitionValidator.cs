@@ -85,8 +85,7 @@ public class FactoryConfirmTransitionValidator : MonoBehaviour
             return queue;
         }
 
-        BallMoldBuilding[] molds = FindObjectsByType<BallMoldBuilding>(FindObjectsSortMode.None);
-        int moldCount = molds != null ? molds.Length : 0;
+        int moldCount = FindObjectsByType<BallMoldBuilding>(FindObjectsSortMode.None).Length;
         while (queue.Count < moldCount)
         {
             queue.Add(defaultBallType);

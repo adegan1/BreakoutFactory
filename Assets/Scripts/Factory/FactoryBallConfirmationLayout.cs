@@ -51,8 +51,7 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
             return;
         }
 
-        BallMoldBuilding[] molds = FindObjectsByType<BallMoldBuilding>(FindObjectsSortMode.None);
-        int moldCount = molds != null ? molds.Length : 0;
+        int moldCount = FindObjectsByType<BallMoldBuilding>(FindObjectsSortMode.None).Length;
 
         EnsureIconPool(moldCount);
         for (int i = 0; i < iconPool.Count; i++)
@@ -65,8 +64,10 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
             return;
         }
 
-        List<BallTypeData> craftedBalls = GetCraftedBallsSnapshot();
-        int craftedShown = Mathf.Min(craftedBalls.Count, moldCount);
+        IReadOnlyList<BallTypeData> craftedBalls = InventoryManager.HasInstance
+            ? InventoryManager.Instance.CraftedBalls
+            : null;
+        int craftedShown = craftedBalls != null ? Mathf.Min(craftedBalls.Count, moldCount) : 0;
 
         for (int i = 0; i < craftedShown; i++)
         {
@@ -77,17 +78,6 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         {
             ApplyIcon(iconPool[i], defaultBallType);
         }
-    }
-
-    private List<BallTypeData> GetCraftedBallsSnapshot()
-    {
-        if (!InventoryManager.HasInstance)
-        {
-            return new List<BallTypeData>();
-        }
-
-        IReadOnlyList<BallTypeData> craftedBalls = InventoryManager.Instance.CraftedBalls;
-        return craftedBalls != null ? new List<BallTypeData>(craftedBalls) : new List<BallTypeData>();
     }
 
     private void EnsureIconPool(int count)

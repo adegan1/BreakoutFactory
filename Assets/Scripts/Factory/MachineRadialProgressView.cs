@@ -47,7 +47,7 @@ public class MachineRadialProgressView : MonoBehaviour
 
     private void Awake()
     {
-        defaultWorldRotation = CalculateUnrotatedWorldRotation(transform);
+        defaultWorldRotation = FactoryGridDirectionUtility.CalculateUnrotatedWorldRotation(transform);
         ResolveReferencesIfNeeded();
         ResolveProviderIfNeeded();
         ResolveMachineInstanceIfNeeded();
@@ -289,19 +289,4 @@ public class MachineRadialProgressView : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(cameraForward, Vector3.up);
     }
 
-    private static Quaternion CalculateUnrotatedWorldRotation(Transform target)
-    {
-        if (target == null)
-        {
-            return Quaternion.identity;
-        }
-
-        Transform parent = target.parent;
-        if (parent == null)
-        {
-            return target.rotation;
-        }
-
-        return Quaternion.Inverse(parent.rotation) * target.rotation;
-    }
 }

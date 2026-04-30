@@ -96,6 +96,22 @@ public static class FactoryGridDirectionUtility
             Mathf.RoundToInt(rotatedPointY2 * 0.5f));
     }
 
+    public static Quaternion CalculateUnrotatedWorldRotation(Transform target)
+    {
+        if (target == null)
+        {
+            return Quaternion.identity;
+        }
+
+        Transform parent = target.parent;
+        if (parent == null)
+        {
+            return target.rotation;
+        }
+
+        return Quaternion.Inverse(parent.rotation) * target.rotation;
+    }
+
     public static int DirectionToQuarterTurns(Vector2Int direction)
     {
         if (direction == Vector2Int.up)
