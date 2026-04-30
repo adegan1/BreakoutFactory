@@ -218,6 +218,7 @@ MonoBehaviour:
   maxResources: 10
   ballPreviewRenderer: {fileID: 1149899853033068752}
   ballPreviewMaskTransform: {fileID: 8540936663858501692}
+  keepPreviewDefaultRotation: 1
   ballGenerations:
   - Item: {fileID: 11400000, guid: a32a82f89e2ecff4d9022211fa49279c, type: 2}
     BallType: {fileID: 11400000, guid: 888835b7651346349a8f66b820c195ad, type: 2}

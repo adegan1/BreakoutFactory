@@ -216,6 +216,25 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
+    public void SetCraftedBalls(IEnumerable<BallTypeData> ballTypes)
+    {
+        EnsureInitialized();
+
+        craftedBalls.Clear();
+        if (ballTypes != null)
+        {
+            foreach (BallTypeData ballType in ballTypes)
+            {
+                if (ballType != null)
+                {
+                    craftedBalls.Add(ballType);
+                }
+            }
+        }
+
+        InventoryChanged?.Invoke();
+    }
+
     public List<BallTypeData> ConsumeCraftedBalls()
     {
         EnsureInitialized();

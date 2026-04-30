@@ -22,6 +22,7 @@ public class MachineRadialProgressView : MonoBehaviour
     [SerializeField] private bool onlyShowWhenHoveredOrSelected = true;
 
     [Header("Billboard")]
+    [SerializeField] private bool keepDefaultRotation = true;
     [SerializeField] private bool faceWorldCamera = true;
     [SerializeField] private Camera worldCamera;
 
@@ -29,6 +30,7 @@ public class MachineRadialProgressView : MonoBehaviour
     private BuildingInstance machineInstance;
     private int machineInstanceId = -1;
     private float visibilityAlpha;
+    private Quaternion defaultWorldRotation = Quaternion.identity;
 
     private struct DisplayState
     {
@@ -45,6 +47,7 @@ public class MachineRadialProgressView : MonoBehaviour
 
     private void Awake()
     {
+        defaultWorldRotation = CalculateUnrotatedWorldRotation(transform);
         ResolveReferencesIfNeeded();
         ResolveProviderIfNeeded();
         ResolveMachineInstanceIfNeeded();
@@ -271,6 +274,12 @@ public class MachineRadialProgressView : MonoBehaviour
 
     private void UpdateBillboard()
     {
+        if (keepDefaultRotation)
+        {
+            transform.rotation = defaultWorldRotation;
+            return;
+        }
+
         if (!faceWorldCamera || worldCamera == null)
         {
             return;
@@ -278,5 +287,21 @@ public class MachineRadialProgressView : MonoBehaviour
 
         Vector3 cameraForward = worldCamera.transform.forward;
         transform.rotation = Quaternion.LookRotation(cameraForward, Vector3.up);
+    }
+
+    private static Quaternion CalculateUnrotatedWorldRotation(Transform target)
+    {
+        if (target == null)
+        {
+            return Quaternion.identity;
+        }
+
+        Transform parent = target.parent;
+        if (parent == null)
+        {
+            return target.rotation;
+        }
+
+        return Quaternion.Inverse(parent.rotation) * target.rotation;
     }
 }
