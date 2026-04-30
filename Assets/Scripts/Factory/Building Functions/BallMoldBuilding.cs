@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [DisallowMultipleComponent]
-public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInputPreview, IMachineResourceProgressProvider
+public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInputPreview
 {
     public enum InputSide
     {
@@ -26,6 +27,13 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         }
     }
 
+    [Serializable]
+    private class BallPreviewBallTypeEntry
+    {
+        public ItemDefinition Item;
+        public BallTypeData BallType;
+    }
+
     [Header("References")]
     [SerializeField] private BuildingInstance buildingInstance;
     [SerializeField] private TileManager tileManager;
@@ -34,22 +42,27 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     [SerializeField] private InputSide inputSide = InputSide.Left;
     [SerializeField, Min(1)] private int maxResources = 10;
 
+    [Header("Ball Preview")]
+    [SerializeField] private SpriteRenderer ballPreviewRenderer;
+    [SerializeField] private List<BallPreviewBallTypeEntry> ballGenerations = new();
+    [SerializeField] private BallTypeData defaultBallType;
+    [SerializeField, Range(0f, 1f)] private float defaultBallFallbackFillThreshold = 0.9f;
+    [SerializeField, Min(0f)] private float previewFillLerpSpeed = 6f;
+    [SerializeField] private bool hidePreviewWhenEmpty = true;
+
     [Header("Debug Inventory")]
     [SerializeField] private List<StoredItemEntry> storedItems = new();
 
     private readonly Dictionary<ItemDefinition, int> inventoryByItem = new();
-    private ItemDefinition lastAcceptedItemDefinition;
+    private ItemDefinition acceptedResourceDefinition;
+    private float previewFillVisual;
+    private Vector3 previewBaseLocalPosition;
+    private Vector3 previewBaseScale = Vector3.one;
 
     public int DistinctItemCount => inventoryByItem.Count;
     public InputSide ConfiguredInputSide => inputSide;
     public int MaxResources => maxResources;
     public int CurrentResourceCount => GetTotalStoredAmount();
-    public int CurrentResourceAmount => CurrentResourceCount;
-    public int MaxResourceAmount => maxResources;
-    public float NormalizedResourceAmount => maxResources > 0
-        ? Mathf.Clamp01((float)CurrentResourceCount / maxResources)
-        : 0f;
-    public Color ResourceTint => lastAcceptedItemDefinition != null ? lastAcceptedItemDefinition.Tint : Color.white;
 
     private void Reset()
     {
@@ -65,6 +78,14 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     {
         ResolveDependenciesIfNeeded();
         RebuildRuntimeInventoryFromSerialized();
+        ResolveAcceptedResourceDefinition();
+        CachePreviewBaseTransform();
+        ApplyBallPreviewVisualImmediate();
+    }
+
+    private void Update()
+    {
+        UpdateBallPreviewVisual();
     }
 
     public bool CanAcceptItemAtTile(Vector2Int tile, ItemEntity item)
@@ -80,7 +101,9 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         }
 
         int incomingAmount = Mathf.Max(1, item.Quantity);
-        return tile == inputTile && HasCapacityFor(incomingAmount);
+        return tile == inputTile
+            && IsResourceTypeAccepted(item.ItemDefinition)
+            && HasCapacityFor(incomingAmount);
     }
 
     public bool TryAcceptItem(ItemEntity item, Vector2Int tile)
@@ -166,8 +189,27 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
         inventoryByItem.TryGetValue(itemDefinition, out int current);
         inventoryByItem[itemDefinition] = current + amount;
-        lastAcceptedItemDefinition = itemDefinition;
+        if (acceptedResourceDefinition == null)
+        {
+            acceptedResourceDefinition = itemDefinition;
+        }
+
         SyncSerializedInventory();
+    }
+
+    private bool IsResourceTypeAccepted(ItemDefinition incomingItemDefinition)
+    {
+        if (incomingItemDefinition == null)
+        {
+            return false;
+        }
+
+        if (CurrentResourceCount <= 0)
+        {
+            return true;
+        }
+
+        return acceptedResourceDefinition == null || acceptedResourceDefinition == incomingItemDefinition;
     }
 
     private bool HasCapacityFor(int incomingAmount)
@@ -235,7 +277,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     private void RebuildRuntimeInventoryFromSerialized()
     {
         inventoryByItem.Clear();
-        lastAcceptedItemDefinition = null;
+        acceptedResourceDefinition = null;
 
         for (int i = 0; i < storedItems.Count; i++)
         {
@@ -248,11 +290,149 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
             inventoryByItem.TryGetValue(entry.Item, out int current);
             inventoryByItem[entry.Item] = current + entry.Quantity;
 
-            if (lastAcceptedItemDefinition == null)
+            if (acceptedResourceDefinition == null)
             {
-                lastAcceptedItemDefinition = entry.Item;
+                acceptedResourceDefinition = entry.Item;
             }
         }
+    }
+
+    private void ResolveAcceptedResourceDefinition()
+    {
+        if (acceptedResourceDefinition != null || CurrentResourceCount <= 0)
+        {
+            return;
+        }
+
+        foreach (KeyValuePair<ItemDefinition, int> pair in inventoryByItem)
+        {
+            if (pair.Key != null && pair.Value > 0)
+            {
+                acceptedResourceDefinition = pair.Key;
+                return;
+            }
+        }
+    }
+
+    private void CachePreviewBaseTransform()
+    {
+        if (ballPreviewRenderer == null)
+        {
+            return;
+        }
+
+        previewBaseLocalPosition = ballPreviewRenderer.transform.localPosition;
+        previewBaseScale = ballPreviewRenderer.transform.localScale;
+    }
+
+    private void ApplyBallPreviewVisualImmediate()
+    {
+        float targetFill = GetTargetPreviewFill();
+        previewFillVisual = targetFill;
+        ApplyPreviewRendererVisual(targetFill, targetFill);
+    }
+
+    private void UpdateBallPreviewVisual()
+    {
+        if (ballPreviewRenderer == null)
+        {
+            return;
+        }
+
+        float targetFill = GetTargetPreviewFill();
+        float speed = Mathf.Max(0f, previewFillLerpSpeed);
+        if (speed > 0f)
+        {
+            float t = 1f - Mathf.Exp(-speed * Time.deltaTime);
+            previewFillVisual = Mathf.Lerp(previewFillVisual, targetFill, t);
+        }
+        else
+        {
+            previewFillVisual = targetFill;
+        }
+
+        ApplyPreviewRendererVisual(previewFillVisual, targetFill);
+    }
+
+    private float GetTargetPreviewFill()
+    {
+        if (acceptedResourceDefinition == null || maxResources <= 0)
+        {
+            return 0f;
+        }
+
+        int storedAmount = GetStoredAmount(acceptedResourceDefinition);
+        return Mathf.Clamp01((float)storedAmount / maxResources);
+    }
+
+    private void ApplyPreviewRendererVisual(float visualFill, float logicalFill)
+    {
+        if (ballPreviewRenderer == null)
+        {
+            return;
+        }
+
+        ItemDefinition previewItem = acceptedResourceDefinition;
+        BallTypeData previewBallType = ResolvePreviewBallType(previewItem, logicalFill);
+        bool shouldShow = previewBallType != null && (!hidePreviewWhenEmpty || visualFill > 0.001f);
+        ballPreviewRenderer.enabled = shouldShow;
+        if (!shouldShow)
+        {
+            return;
+        }
+
+        ballPreviewRenderer.sprite = previewBallType.BallSprite;
+        ballPreviewRenderer.color = previewBallType.DisplayColor;
+
+        // Scale vertically from the bottom: shrink Y and shift down so the top stays fixed
+        float clampedFill = Mathf.Max(0.001f, visualFill);
+        Vector3 scale = previewBaseScale;
+        scale.y = previewBaseScale.y * clampedFill;
+        ballPreviewRenderer.transform.localScale = scale;
+
+        // Offset Y so the bottom of the sprite stays at the same world position
+        Vector3 localPos = previewBaseLocalPosition;
+        localPos.y = previewBaseLocalPosition.y - previewBaseScale.y * (1f - clampedFill) * 0.5f;
+        ballPreviewRenderer.transform.localPosition = localPos;
+    }
+
+    private BallTypeData ResolvePreviewBallType(ItemDefinition itemDefinition, float fill)
+    {
+        // At a configurable "almost complete" threshold, fall back to a default ball type
+        // while still below full completion (e.g. 9/10).
+        if (defaultBallType != null
+            && fill >= defaultBallFallbackFillThreshold
+            && fill < 1f)
+        {
+            return defaultBallType;
+        }
+
+        BallTypeData mappedBallType = ResolveMappedBallType(itemDefinition);
+        if (mappedBallType != null)
+        {
+            return mappedBallType;
+        }
+
+        return null;
+    }
+
+    private BallTypeData ResolveMappedBallType(ItemDefinition itemDefinition)
+    {
+        if (itemDefinition == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < ballGenerations.Count; i++)
+        {
+            BallPreviewBallTypeEntry entry = ballGenerations[i];
+            if (entry != null && entry.Item == itemDefinition && entry.BallType != null)
+            {
+                return entry.BallType;
+            }
+        }
+
+        return null;
     }
 
     private void SyncSerializedInventory()
@@ -267,5 +447,6 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     private void OnValidate()
     {
         maxResources = Mathf.Max(1, maxResources);
+        defaultBallFallbackFillThreshold = Mathf.Clamp01(defaultBallFallbackFillThreshold);
     }
 }

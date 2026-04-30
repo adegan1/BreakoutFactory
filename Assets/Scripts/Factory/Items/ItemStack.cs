@@ -21,19 +21,6 @@ public struct ItemStack : IEquatable<ItemStack>
             && Item == other.Item;
     }
 
-    public int SpaceLeft
-    {
-        get
-        {
-            if (Item == null)
-            {
-                return 0;
-            }
-
-            return Math.Max(0, Item.MaxStackSize - Quantity);
-        }
-    }
-
     public int Add(int amount)
     {
         if (Item == null || amount <= 0)
@@ -41,9 +28,8 @@ public struct ItemStack : IEquatable<ItemStack>
             return amount;
         }
 
-        int accepted = Math.Min(amount, SpaceLeft);
-        Quantity += accepted;
-        return amount - accepted;
+        Quantity += amount;
+        return 0;
     }
 
     public int Remove(int amount)

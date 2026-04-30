@@ -19,4 +19,9 @@ MonoBehaviour:
   footprintWidth: 2
   footprintHeight: 2
   behaviorPrefab: {fileID: 1276502763047268258, guid: 4f1855806b1d9574c9d28be9647eb577, type: 3}
+  generatorSettings: {fileID: 11400000, guid: dcbb91c02d5544c49afb7caeae098f43, type: 2}
+  isConveyor: 0
+  conveyorStraightSprite: {fileID: 0}
+  conveyorTurnLeftSprite: {fileID: 0}
+  conveyorTurnRightSprite: {fileID: 0}
   scrapDropAmount: 3

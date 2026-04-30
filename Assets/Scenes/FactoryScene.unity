@@ -1441,10 +1441,20 @@ MonoBehaviour:
   startingBuildings:
   - buildingDefinition: {fileID: 11400000, guid: 9ee3ce427af21a547a30648e8e8e5a21, type: 2}
     quantity: 100
-  - buildingDefinition: {fileID: 11400000, guid: 05b5143009930014699e691bf67154f0, type: 2}
-    quantity: 5
   - buildingDefinition: {fileID: 11400000, guid: a163862e1e67beb41880159dba5f80d9, type: 2}
-    quantity: 5
+    quantity: 3
+  - buildingDefinition: {fileID: 11400000, guid: d916ecbf3d00aa34085b40b06ea73067, type: 2}
+    quantity: 1
+  - buildingDefinition: {fileID: 11400000, guid: af82f016ca79a914eac8da8b08de15ab, type: 2}
+    quantity: 1
+  - buildingDefinition: {fileID: 11400000, guid: 6e1d22f1e9eae6e42b88d58539de63b6, type: 2}
+    quantity: 1
+  - buildingDefinition: {fileID: 11400000, guid: 85db426e8d942384285a483aff32176a, type: 2}
+    quantity: 1
+  - buildingDefinition: {fileID: 11400000, guid: fa46ecb9e6ac6c24d8d11ce263dcb1a5, type: 2}
+    quantity: 1
+  - buildingDefinition: {fileID: 11400000, guid: ef800fcd4d6ec5740bd5b340b8e28091, type: 2}
+    quantity: 1
   buildingInventory: []
   startingScrap: 0
   startingScore: 0

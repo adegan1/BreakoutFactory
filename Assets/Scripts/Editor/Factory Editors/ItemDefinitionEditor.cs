@@ -8,7 +8,6 @@ public class ItemDefinitionEditor : BreakoutDataEditorBase
     private SerializedProperty descriptionProperty;
     private SerializedProperty iconProperty;
     private SerializedProperty tintProperty;
-    private SerializedProperty maxStackSizeProperty;
     private SerializedProperty baseValueProperty;
 
     private void OnEnable()
@@ -18,7 +17,6 @@ public class ItemDefinitionEditor : BreakoutDataEditorBase
         descriptionProperty = FindProperty("description");
         iconProperty = FindProperty("icon");
         tintProperty = FindProperty("tint");
-        maxStackSizeProperty = FindProperty("maxStackSize");
         baseValueProperty = FindProperty("baseValue");
     }
 
@@ -28,7 +26,7 @@ public class ItemDefinitionEditor : BreakoutDataEditorBase
 
         DrawSection("Identity", itemIdProperty, displayNameProperty, descriptionProperty);
         DrawSection("Visual", iconProperty, tintProperty);
-        DrawSection("Balance", maxStackSizeProperty, baseValueProperty);
+        DrawSection("Balance", baseValueProperty);
 
         serializedObject.ApplyModifiedProperties();
     }

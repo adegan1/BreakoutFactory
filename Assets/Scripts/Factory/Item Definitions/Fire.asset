@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bd729ac963a23a44196e6c80a38e66d8, type: 3}
-  m_Name: Test Item
+  m_Name: Fire
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
-  itemId: Test
-  displayName: Test
-  description: This is just a test item
+  itemId: item.fire
+  displayName: Fire
+  description: A scorching flame. Don't touch it!
   icon: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  tint: {r: 0.6509434, g: 0, b: 0.53607094, a: 1}
+  tint: {r: 0.8584906, g: 0.26779583, b: 0, a: 1}
   maxStackSize: 100
   baseValue: 1

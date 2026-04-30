@@ -15,15 +15,13 @@ public class ItemDefinition : ScriptableObject
     [SerializeField] private Color tint = Color.white;
 
     // Balance
-    [SerializeField, Min(1)] private int maxStackSize = 100;
-    [SerializeField, Min(0)] private int baseValue;
+    [SerializeField, Min(0)] private int baseValue = 1;
 
     public string ItemId => itemId;
     public string DisplayName => displayName;
     public string Description => description;
     public Sprite Icon => icon;
     public Color Tint => tint;
-    public int MaxStackSize => maxStackSize;
     public int BaseValue => baseValue;
 
     private string BuildDefaultItemId()
@@ -40,7 +38,6 @@ public class ItemDefinition : ScriptableObject
         }
 
         itemId = itemId.Trim();
-        maxStackSize = Mathf.Max(1, maxStackSize);
         baseValue = Mathf.Max(0, baseValue);
     }
 }
