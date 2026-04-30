@@ -44,9 +44,8 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
     [Header("Ball Preview")]
     [SerializeField] private SpriteRenderer ballPreviewRenderer;
+    [SerializeField] private Transform ballPreviewMaskTransform;
     [SerializeField] private List<BallPreviewBallTypeEntry> ballGenerations = new();
-    [SerializeField] private BallTypeData defaultBallType;
-    [SerializeField, Range(0f, 1f)] private float defaultBallFallbackFillThreshold = 0.9f;
     [SerializeField, Min(0f)] private float previewFillLerpSpeed = 6f;
     [SerializeField] private bool hidePreviewWhenEmpty = true;
 
@@ -58,6 +57,8 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     private float previewFillVisual;
     private Vector3 previewBaseLocalPosition;
     private Vector3 previewBaseScale = Vector3.one;
+    private Vector3 maskBaseLocalPosition;
+    private Vector3 maskBaseScale = Vector3.one;
 
     public int DistinctItemCount => inventoryByItem.Count;
     public InputSide ConfiguredInputSide => inputSide;
@@ -323,6 +324,13 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
         previewBaseLocalPosition = ballPreviewRenderer.transform.localPosition;
         previewBaseScale = ballPreviewRenderer.transform.localScale;
+
+        if (ballPreviewMaskTransform != null)
+        {
+            maskBaseLocalPosition = ballPreviewMaskTransform.localPosition;
+            maskBaseScale = ballPreviewMaskTransform.localScale;
+            ballPreviewRenderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+        }
     }
 
     private void ApplyBallPreviewVisualImmediate()
@@ -384,29 +392,27 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         ballPreviewRenderer.sprite = previewBallType.BallSprite;
         ballPreviewRenderer.color = previewBallType.DisplayColor;
 
-        // Scale vertically from the bottom: shrink Y and shift down so the top stays fixed
-        float clampedFill = Mathf.Max(0.001f, visualFill);
-        Vector3 scale = previewBaseScale;
-        scale.y = previewBaseScale.y * clampedFill;
-        ballPreviewRenderer.transform.localScale = scale;
+        // Keep the sprite unsquished and reveal fill using a vertically resized mask.
+        ballPreviewRenderer.transform.localPosition = previewBaseLocalPosition;
+        ballPreviewRenderer.transform.localScale = previewBaseScale;
 
-        // Offset Y so the bottom of the sprite stays at the same world position
-        Vector3 localPos = previewBaseLocalPosition;
-        localPos.y = previewBaseLocalPosition.y - previewBaseScale.y * (1f - clampedFill) * 0.5f;
-        ballPreviewRenderer.transform.localPosition = localPos;
+        if (ballPreviewMaskTransform == null)
+        {
+            return;
+        }
+
+        float clampedFill = Mathf.Clamp01(visualFill);
+        Vector3 maskScale = maskBaseScale;
+        maskScale.y = maskBaseScale.y * clampedFill;
+        ballPreviewMaskTransform.localScale = maskScale;
+
+        Vector3 maskLocalPos = maskBaseLocalPosition;
+        maskLocalPos.y = maskBaseLocalPosition.y - maskBaseScale.y * (1f - clampedFill) * 0.5f;
+        ballPreviewMaskTransform.localPosition = maskLocalPos;
     }
 
     private BallTypeData ResolvePreviewBallType(ItemDefinition itemDefinition, float fill)
     {
-        // At a configurable "almost complete" threshold, fall back to a default ball type
-        // while still below full completion (e.g. 9/10).
-        if (defaultBallType != null
-            && fill >= defaultBallFallbackFillThreshold
-            && fill < 1f)
-        {
-            return defaultBallType;
-        }
-
         BallTypeData mappedBallType = ResolveMappedBallType(itemDefinition);
         if (mappedBallType != null)
         {
@@ -447,6 +453,5 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     private void OnValidate()
     {
         maxResources = Mathf.Max(1, maxResources);
-        defaultBallFallbackFillThreshold = Mathf.Clamp01(defaultBallFallbackFillThreshold);
     }
 }
