@@ -148,8 +148,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32ee9ebbc53e5b94d9f790dc8a02a1c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
-  startingItems: []
-  inventoryItems: []
+  startingBuildings: []
+  buildingInventory: []
+  craftedBalls: []
+  startingScrap: 0
+  startingScore: 0
+  scrap: 0
+  score: 0
 --- !u!4 &279415087
 Transform:
   m_ObjectHideFlags: 0
@@ -594,8 +599,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1061997462}
   - component: {fileID: 1061997461}
+  - component: {fileID: 1061997463}
   m_Layer: 0
-  m_Name: Breakout HUD Controller
+  m_Name: UI Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -635,6 +641,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1061997463
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1061997460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29d89ea58a88b234592c7d9d4fad400e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneLoader
+  targetSceneName: FactoryScene
 --- !u!1 &1210710718
 GameObject:
   m_ObjectHideFlags: 0
@@ -1179,12 +1198,8 @@ MonoBehaviour:
   paddleTransform: {fileID: 1324807477}
   ballsToDispense:
   - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
-  - {fileID: 11400000, guid: 888835b7651346349a8f66b820c195ad, type: 2}
-  - {fileID: 11400000, guid: 35df350068fd84740aa7d5f9b5f3729f, type: 2}
-  - {fileID: 11400000, guid: 44027800606afc54bbb4640d9d61f5e8, type: 2}
-  - {fileID: 11400000, guid: f95a714814ad4854b92e441e36a62204, type: 2}
-  - {fileID: 11400000, guid: 0e8a17272e09ba14da90ce240a2820c2, type: 2}
-  - {fileID: 11400000, guid: ae022bdd654522c44817311679a16035, type: 2}
+  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}
   onOutOfBalls:

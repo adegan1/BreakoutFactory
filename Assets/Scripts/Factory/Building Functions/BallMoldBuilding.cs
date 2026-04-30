@@ -54,6 +54,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
     private readonly Dictionary<ItemDefinition, int> inventoryByItem = new();
     private ItemDefinition acceptedResourceDefinition;
+    private BallTypeData lastCreatedBallType;
     private float previewFillVisual;
     private Vector3 previewBaseLocalPosition;
     private Vector3 previewBaseScale = Vector3.one;
@@ -195,7 +196,50 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
             acceptedResourceDefinition = itemDefinition;
         }
 
+        TryCreateBallsFromStoredResources();
         SyncSerializedInventory();
+    }
+
+    private void TryCreateBallsFromStoredResources()
+    {
+        if (acceptedResourceDefinition == null || maxResources <= 0)
+        {
+            return;
+        }
+
+        BallTypeData createdBallType = ResolveMappedBallType(acceptedResourceDefinition);
+        if (createdBallType == null)
+        {
+            return;
+        }
+
+        int storedAmount = GetStoredAmount(acceptedResourceDefinition);
+        if (storedAmount < maxResources)
+        {
+            return;
+        }
+
+        int createdCount = storedAmount / maxResources;
+        for (int i = 0; i < createdCount; i++)
+        {
+            InventoryManager.Instance.AddCraftedBall(createdBallType);
+        }
+
+        if (createdCount > 0)
+        {
+            lastCreatedBallType = createdBallType;
+        }
+
+        int remainingAmount = storedAmount - createdCount * maxResources;
+        if (remainingAmount > 0)
+        {
+            inventoryByItem[acceptedResourceDefinition] = remainingAmount;
+        }
+        else
+        {
+            inventoryByItem.Remove(acceptedResourceDefinition);
+            acceptedResourceDefinition = null;
+        }
     }
 
     private bool IsResourceTypeAccepted(ItemDefinition incomingItemDefinition)
@@ -337,7 +381,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     {
         float targetFill = GetTargetPreviewFill();
         previewFillVisual = targetFill;
-        ApplyPreviewRendererVisual(targetFill, targetFill);
+        ApplyPreviewRendererVisual(targetFill);
     }
 
     private void UpdateBallPreviewVisual()
@@ -359,21 +403,21 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
             previewFillVisual = targetFill;
         }
 
-        ApplyPreviewRendererVisual(previewFillVisual, targetFill);
+        ApplyPreviewRendererVisual(previewFillVisual);
     }
 
     private float GetTargetPreviewFill()
     {
         if (acceptedResourceDefinition == null || maxResources <= 0)
         {
-            return 0f;
+            return lastCreatedBallType != null ? 1f : 0f;
         }
 
         int storedAmount = GetStoredAmount(acceptedResourceDefinition);
         return Mathf.Clamp01((float)storedAmount / maxResources);
     }
 
-    private void ApplyPreviewRendererVisual(float visualFill, float logicalFill)
+    private void ApplyPreviewRendererVisual(float visualFill)
     {
         if (ballPreviewRenderer == null)
         {
@@ -381,7 +425,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         }
 
         ItemDefinition previewItem = acceptedResourceDefinition;
-        BallTypeData previewBallType = ResolvePreviewBallType(previewItem, logicalFill);
+        BallTypeData previewBallType = ResolvePreviewBallType(previewItem);
         bool shouldShow = previewBallType != null && (!hidePreviewWhenEmpty || visualFill > 0.001f);
         ballPreviewRenderer.enabled = shouldShow;
         if (!shouldShow)
@@ -411,8 +455,13 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         ballPreviewMaskTransform.localPosition = maskLocalPos;
     }
 
-    private BallTypeData ResolvePreviewBallType(ItemDefinition itemDefinition, float fill)
+    private BallTypeData ResolvePreviewBallType(ItemDefinition itemDefinition)
     {
+        if (itemDefinition == null)
+        {
+            return lastCreatedBallType;
+        }
+
         BallTypeData mappedBallType = ResolveMappedBallType(itemDefinition);
         if (mappedBallType != null)
         {

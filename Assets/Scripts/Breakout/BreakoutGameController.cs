@@ -40,12 +40,36 @@ public class BreakoutGameController : MonoBehaviour
 
     private void Start()
     {
+        LoadBallQueueFromInventory();
         nextBallIndex = 0;
         score = 0;
         outOfBallsInvoked = false;
         NotifyScoreChanged();
         NotifyBallsQueueChanged();
         TryInvokeOutOfBalls();
+    }
+
+    private void LoadBallQueueFromInventory()
+    {
+        if (!InventoryManager.HasInstance)
+        {
+            return;
+        }
+
+        List<BallTypeData> transferredBalls = InventoryManager.Instance.ConsumeCraftedBalls();
+        if (transferredBalls.Count == 0)
+        {
+            return;
+        }
+
+        ballsToDispense.Clear();
+        for (int i = 0; i < transferredBalls.Count; i++)
+        {
+            if (transferredBalls[i] != null)
+            {
+                ballsToDispense.Add(transferredBalls[i]);
+            }
+        }
     }
 
     private void Update()

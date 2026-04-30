@@ -35,6 +35,9 @@ public class InventoryManager : MonoBehaviour
     [Header("Runtime Building Inventory")]
     [SerializeField] private List<InventoryEntry> buildingInventory = new();
 
+    [Header("Crafted Balls")]
+    [SerializeField] private List<BallTypeData> craftedBalls = new();
+
     [Header("Progress")]
     [SerializeField, Min(0)] private int startingScrap;
     [SerializeField, Min(0)] private int startingScore;
@@ -73,6 +76,15 @@ public class InventoryManager : MonoBehaviour
         {
             EnsureInitialized();
             return score;
+        }
+    }
+
+    public IReadOnlyList<BallTypeData> CraftedBalls
+    {
+        get
+        {
+            EnsureInitialized();
+            return craftedBalls;
         }
     }
 
@@ -150,17 +162,73 @@ public class InventoryManager : MonoBehaviour
         EnsureInitialized();
 
         bool hasAnyBuildings = buildingInventory.Count > 0;
+        bool hasAnyBalls = craftedBalls.Count > 0;
         bool hasProgress = scrap > 0 || score > 0;
-        if (!hasAnyBuildings && !hasProgress)
+        if (!hasAnyBuildings && !hasAnyBalls && !hasProgress)
         {
             return;
         }
 
         buildingInventory.Clear();
         buildingsByDefinition.Clear();
+        craftedBalls.Clear();
         scrap = 0;
         score = 0;
         InventoryChanged?.Invoke();
+    }
+
+    public void AddCraftedBall(BallTypeData ballType)
+    {
+        if (ballType == null)
+        {
+            return;
+        }
+
+        EnsureInitialized();
+        craftedBalls.Add(ballType);
+        InventoryChanged?.Invoke();
+    }
+
+    public void AddCraftedBalls(IEnumerable<BallTypeData> ballTypes)
+    {
+        if (ballTypes == null)
+        {
+            return;
+        }
+
+        EnsureInitialized();
+
+        bool changed = false;
+        foreach (BallTypeData ballType in ballTypes)
+        {
+            if (ballType == null)
+            {
+                continue;
+            }
+
+            craftedBalls.Add(ballType);
+            changed = true;
+        }
+
+        if (changed)
+        {
+            InventoryChanged?.Invoke();
+        }
+    }
+
+    public List<BallTypeData> ConsumeCraftedBalls()
+    {
+        EnsureInitialized();
+
+        if (craftedBalls.Count == 0)
+        {
+            return new List<BallTypeData>();
+        }
+
+        List<BallTypeData> consumed = new List<BallTypeData>(craftedBalls);
+        craftedBalls.Clear();
+        InventoryChanged?.Invoke();
+        return consumed;
     }
 
     public int GetBuildingQuantity(BuildingDefinition buildingDefinition)
