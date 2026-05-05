@@ -131,10 +131,6 @@ public class PlayerStats : MonoBehaviour
         {
             GameOver?.Invoke();
         }
-        else
-        {
-            ResetHealthForNewLife();
-        }
     }
 
     private void NotifyLivesChanged()

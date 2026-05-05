@@ -38,6 +38,13 @@ public class BreakoutConfirmTransitionValidator : MonoBehaviour
             return;
         }
 
+        bool lifeLost = breakoutGameController != null &&
+            (breakoutGameController.LastLevelEndReason == BreakoutGameController.LevelEndReason.OutOfBalls ||
+             breakoutGameController.LastLevelEndReason == BreakoutGameController.LevelEndReason.OutOfHealth);
+
+        if (lifeLost && PlayerStats.Instance != null)
+            PlayerStats.Instance.ResetHealthForNewLife();
+
         sceneLoader.LoadTargetScene();
     }
 }

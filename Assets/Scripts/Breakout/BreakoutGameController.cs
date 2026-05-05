@@ -66,6 +66,7 @@ public class BreakoutGameController : MonoBehaviour
     private bool outOfBallsInvoked;
     private bool allBricksClearedInvoked;
     private bool levelEndTriggered;
+    private bool outOfHealthEndQueued;
     private bool isLevelCompleteLocked;
     private Coroutine allBricksClearedRoutine;
     private Coroutine brickSlowStopRoutine;
@@ -78,6 +79,8 @@ public class BreakoutGameController : MonoBehaviour
     public event Action MachinesCollectedChanged;
     public event Action AllBricksCleared;
     public event Action<LevelEndReason> LevelEnded;
+
+    public LevelEndReason LastLevelEndReason { get; private set; }
 
     private void OnEnable()
     {
@@ -107,6 +110,7 @@ public class BreakoutGameController : MonoBehaviour
         outOfBallsInvoked = false;
         allBricksClearedInvoked = false;
         levelEndTriggered = false;
+        outOfHealthEndQueued = false;
         isLevelCompleteLocked = false;
         CachePaddleController();
         NotifyScoreChanged();
@@ -371,6 +375,7 @@ public class BreakoutGameController : MonoBehaviour
 
         levelEndTriggered = true;
         outOfBallsInvoked = true;
+        LastLevelEndReason = reason;
 
         if (reason == LevelEndReason.OutOfBalls)
         {
@@ -421,20 +426,24 @@ public class BreakoutGameController : MonoBehaviour
 
         int remainingLives = Mathf.Max(0, PlayerStats.Instance.Lives - 1);
         PlayerStats.Instance.SetLives(remainingLives);
-        if (remainingLives > 0)
-        {
-            PlayerStats.Instance.ResetHealthForNewLife();
-        }
     }
 
     private void HandlePlayerHealthChanged(int current, int max)
     {
-        if (current > 0)
+        if (current > 0 || levelEndTriggered || outOfHealthEndQueued)
         {
             return;
         }
 
-        BeginLevelEnd(LevelEndReason.OutOfHealth);
+        outOfHealthEndQueued = true;
+        StartCoroutine(BeginLevelEndNextFrame(LevelEndReason.OutOfHealth));
+    }
+
+    private IEnumerator BeginLevelEndNextFrame(LevelEndReason reason)
+    {
+        yield return null;
+        outOfHealthEndQueued = false;
+        BeginLevelEnd(reason);
     }
 
     private void CollectAllMachineDropsOnField()
