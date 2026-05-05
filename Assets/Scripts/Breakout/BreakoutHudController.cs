@@ -14,6 +14,8 @@ public class BreakoutHudController : MonoBehaviour
     [Header("References")]
     [SerializeField] private BreakoutGameController gameController;
     [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private Image healthFillImage;
+    [SerializeField] private TextMeshProUGUI livesText;
     [SerializeField] private Transform upcomingBallIconsRoot;
     [SerializeField] private Image upcomingBallIconPrefab;
     [SerializeField] private Transform collectedMachineIconsRoot;
@@ -22,6 +24,7 @@ public class BreakoutHudController : MonoBehaviour
     [SerializeField] private Sprite fallbackMachineSprite;
 
     [Header("Labels")]
+    [SerializeField] private string livesLabel = "Lives";
     [SerializeField] private string scoreLabel = "Score";
     [SerializeField, Min(1)] private int previewLimit = 12;
     [SerializeField, Min(1)] private int collectedMachinePreviewLimit = 24;
@@ -46,27 +49,36 @@ public class BreakoutHudController : MonoBehaviour
 
     private void OnEnable()
     {
-        if (gameController == null)
+        if (gameController != null)
         {
-            return;
+            gameController.ScoreChanged += HandleScoreChanged;
+            gameController.BallsQueueChanged += HandleQueueChanged;
+            gameController.MachinesCollectedChanged += HandleMachinesCollectedChanged;
         }
 
-        gameController.ScoreChanged += HandleScoreChanged;
-        gameController.BallsQueueChanged += HandleQueueChanged;
-        gameController.MachinesCollectedChanged += HandleMachinesCollectedChanged;
+        if (PlayerStats.HasInstance)
+        {
+            PlayerStats.Instance.HealthChanged += HandleHealthChanged;
+            PlayerStats.Instance.LivesChanged += HandleLivesChanged;
+        }
+
         RefreshAll();
     }
 
     private void OnDisable()
     {
-        if (gameController == null)
+        if (gameController != null)
         {
-            return;
+            gameController.ScoreChanged -= HandleScoreChanged;
+            gameController.BallsQueueChanged -= HandleQueueChanged;
+            gameController.MachinesCollectedChanged -= HandleMachinesCollectedChanged;
         }
 
-        gameController.ScoreChanged -= HandleScoreChanged;
-        gameController.BallsQueueChanged -= HandleQueueChanged;
-        gameController.MachinesCollectedChanged -= HandleMachinesCollectedChanged;
+        if (PlayerStats.HasInstance)
+        {
+            PlayerStats.Instance.HealthChanged -= HandleHealthChanged;
+            PlayerStats.Instance.LivesChanged -= HandleLivesChanged;
+        }
     }
 
     private void HandleScoreChanged(int currentScore)
@@ -84,11 +96,27 @@ public class BreakoutHudController : MonoBehaviour
         UpdateCollectedMachineIcons();
     }
 
+    private void HandleHealthChanged(int current, int max)
+    {
+        UpdateHealthSlider(current, max);
+    }
+
+    private void HandleLivesChanged(int current)
+    {
+        UpdateLivesText(current);
+    }
+
     private void RefreshAll()
     {
         UpdateScoreText(gameController != null ? gameController.Score : 0);
         UpdateQueueIcons();
         UpdateCollectedMachineIcons();
+
+        if (PlayerStats.HasInstance)
+        {
+            UpdateHealthSlider(PlayerStats.Instance.Health, PlayerStats.Instance.MaxHealth);
+            UpdateLivesText(PlayerStats.Instance.Lives);
+        }
     }
 
     private void UpdateScoreText(int currentScore)
@@ -99,6 +127,26 @@ public class BreakoutHudController : MonoBehaviour
         }
 
         scoreText.text = scoreLabel + ": " + currentScore;
+    }
+
+    private void UpdateHealthSlider(int current, int max)
+    {
+        if (healthFillImage == null)
+        {
+            return;
+        }
+
+        healthFillImage.fillAmount = max > 0 ? (float)current / max : 0f;
+    }
+
+    private void UpdateLivesText(int current)
+    {
+        if (livesText == null)
+        {
+            return;
+        }
+
+        livesText.text = livesLabel + ": " + current;
     }
 
     private void UpdateQueueIcons()

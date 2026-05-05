@@ -1393,6 +1393,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelSettings
   nextLevelRowsToSpawn: 12
   nextLevelBrickMoveSpeed: 0.15
+  nextLevelBrickHealth: 1
   nextLevelBrickOdds:
   - typeData: {fileID: 0}
     weight: 100
@@ -2391,6 +2392,55 @@ MonoBehaviour:
   clampToBounds: 1
   minBounds: {x: 5, y: 2.5}
   maxBounds: {x: 45, y: 47.5}
+--- !u!1 &1467489171
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1467489173}
+  - component: {fileID: 1467489172}
+  m_Layer: 0
+  m_Name: Player Stats
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1467489172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1467489171}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 060d6c70ca98dbe45b7c96c005169510, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
+  startingLives: 3
+  startingMaxHealth: 100
+  lives: 0
+  health: 0
+  maxHealth: 0
+--- !u!4 &1467489173
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1467489171}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 408.83044, y: 144.14615, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1493723446
 GameObject:
   m_ObjectHideFlags: 0
@@ -3003,6 +3053,8 @@ MonoBehaviour:
   - buildingDefinition: {fileID: 11400000, guid: ef800fcd4d6ec5740bd5b340b8e28091, type: 2}
     quantity: 1
   buildingInventory: []
+  startingItems: []
+  itemInventory: []
   craftedBalls: []
   startingScrap: 0
   startingScore: 0
@@ -3019,6 +3071,7 @@ SceneRoots:
   - {fileID: 252107172}
   - {fileID: 1822554082}
   - {fileID: 1995175672}
+  - {fileID: 1467489173}
   - {fileID: 941752517}
   - {fileID: 1277036739}
   - {fileID: 228283569}
