@@ -120,8 +120,13 @@ public class FactoryStatePersistence : MonoBehaviour
     [ContextMenu("Clear Factory Save")]
     public void ClearSave()
     {
+        ClearSaveData();
+        Debug.Log("FactoryStatePersistence: Save data cleared.");
+    }
+
+    public static void ClearSaveData()
+    {
         PlayerPrefs.DeleteKey(SaveKey);
         PlayerPrefs.Save();
-        Debug.Log("FactoryStatePersistence: Save data cleared.");
     }
 }

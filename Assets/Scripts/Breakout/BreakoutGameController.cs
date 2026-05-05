@@ -85,12 +85,14 @@ public class BreakoutGameController : MonoBehaviour
     private void OnEnable()
     {
         BrickController.BrickDestroyed += HandleBrickDestroyed;
+        BrickController.BrickRemovedByDanger += HandleBrickRemovedByDanger;
         PlayerStats.Instance.HealthChanged += HandlePlayerHealthChanged;
     }
 
     private void OnDisable()
     {
         BrickController.BrickDestroyed -= HandleBrickDestroyed;
+        BrickController.BrickRemovedByDanger -= HandleBrickRemovedByDanger;
 
         if (PlayerStats.HasInstance)
         {
@@ -272,6 +274,18 @@ public class BreakoutGameController : MonoBehaviour
         TryInvokeAllBricksCleared();
     }
 
+    private void HandleBrickRemovedByDanger(BrickController removedBrick)
+    {
+        // Destroy() is end-of-frame, so check completion next frame after removals are finalized.
+        StartCoroutine(TryInvokeAllBricksClearedNextFrame());
+    }
+
+    private IEnumerator TryInvokeAllBricksClearedNextFrame()
+    {
+        yield return null;
+        TryInvokeAllBricksCleared();
+    }
+
     private void TrySpawnItemDropFromBrick(BrickController destroyedBrick)
     {
         if (!enableBrickDrops || destroyedBrick == null || itemDropPrefab == null)
@@ -342,6 +356,11 @@ public class BreakoutGameController : MonoBehaviour
     private void TryInvokeAllBricksCleared()
     {
         if (allBricksClearedInvoked || levelEndTriggered)
+        {
+            return;
+        }
+
+        if (outOfHealthEndQueued || (PlayerStats.HasInstance && PlayerStats.Instance.Health <= 0))
         {
             return;
         }

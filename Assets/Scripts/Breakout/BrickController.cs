@@ -56,6 +56,7 @@ public class BrickController : MonoBehaviour
     private Vector3 dangerBasePosition;
 
     public static event System.Action<BrickController, int> BrickDestroyed;
+    public static event System.Action<BrickController> BrickRemovedByDanger;
 
     public int CurrentHitPoints => currentHitPoints;
     public BrickTypeData TypeData => typeData;
@@ -322,6 +323,7 @@ public class BrickController : MonoBehaviour
             PlayerStats.Instance.TakeDamage(damageToPlayer);
         }
 
+        BrickRemovedByDanger?.Invoke(this);
         Destroy(gameObject);
     }
 

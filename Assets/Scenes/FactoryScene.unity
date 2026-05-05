@@ -5028,7 +5028,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95d2dc3f38ad0304fbd28fc192cb5501, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FactoryStatePersistence
-  buildingPlacer: {fileID: 0}
+  buildingPlacer: {fileID: 1025983501}
   buildingRegistry:
   - {fileID: 11400000, guid: 9ee3ce427af21a547a30648e8e8e5a21, type: 2}
   - {fileID: 11400000, guid: a163862e1e67beb41880159dba5f80d9, type: 2}

@@ -2714,7 +2714,7 @@ MonoBehaviour:
   itemDropBottomKillY: -6
   weightedBuildingDrops:
   - buildingDefinition: {fileID: 11400000, guid: 9ee3ce427af21a547a30648e8e8e5a21, type: 2}
-    weight: 12
+    weight: 9
     minQuantity: 3
     maxQuantity: 12
   - buildingDefinition: {fileID: 11400000, guid: d916ecbf3d00aa34085b40b06ea73067, type: 2}

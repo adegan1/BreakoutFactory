@@ -1528,6 +1528,55 @@ public class FactoryBuildingPlacer : MonoBehaviour
         SetAllIndicatorsVisible(false);
     }
 
+    public void ClearAllPlacedBuildings(bool refundToInventory = false, bool clearLooseItems = true)
+    {
+        EnsureInventoryManagerAssigned();
+
+        var uniqueRecords = new HashSet<PlacedBuildingRecord>(buildingsByInstanceId.Values);
+        foreach (PlacedBuildingRecord record in uniqueRecords)
+        {
+            if (record == null)
+            {
+                continue;
+            }
+
+            if (refundToInventory && inventoryManager != null && record.Definition != null)
+            {
+                inventoryManager.AddBuilding(record.Definition, 1);
+            }
+
+            if (record.SpawnedObject != null)
+            {
+                Destroy(record.SpawnedObject);
+            }
+        }
+
+        if (clearLooseItems)
+        {
+            ItemEntity[] looseItems = ItemEntitySceneQuery.GetItems();
+            for (int i = 0; i < looseItems.Length; i++)
+            {
+                if (looseItems[i] != null)
+                {
+                    Destroy(looseItems[i].gameObject);
+                }
+            }
+        }
+
+        if (tileManager != null)
+        {
+            tileManager.InitializeGrid();
+        }
+
+        spawnedByCell.Clear();
+        buildingsByInstanceId.Clear();
+        HoveredMachineInstanceId = -1;
+        SelectedMachineInstanceId = -1;
+        suppressHoverUntilTileChange = false;
+        SetHoverHighlightVisible(false);
+        SetAllIndicatorsVisible(false);
+    }
+
     // ── Persistence ──────────────────────────────────────────────────────────
 
     [System.Serializable]

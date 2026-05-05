@@ -155,12 +155,24 @@ public class InventoryManager : MonoBehaviour
 
     private void ImportStartingDataFrom(InventoryManager source)
     {
-        if (source == null || source == this || hasImportedSceneStartingData)
+        if (source == null || source == this)
         {
             return;
         }
 
         EnsureInitialized();
+
+        if (!SourceHasStartingData(source))
+        {
+            return;
+        }
+
+        CaptureStartingDataFromSource(source);
+
+        if (hasImportedSceneStartingData)
+        {
+            return;
+        }
 
         // Apply scene-configured starting values one time to the persistent runtime inventory.
         MergeStartingBuildings(source.startingBuildings);
@@ -178,6 +190,56 @@ public class InventoryManager : MonoBehaviour
 
         hasImportedSceneStartingData = true;
         InventoryChanged?.Invoke();
+    }
+
+    private static bool SourceHasStartingData(InventoryManager source)
+    {
+        if (source == null)
+        {
+            return false;
+        }
+
+        bool hasStartingBuildings = source.startingBuildings != null && source.startingBuildings.Count > 0;
+        bool hasStartingItems = source.startingItems != null && source.startingItems.Count > 0;
+        bool hasStartingScrap = source.startingScrap > 0;
+        bool hasStartingScore = source.startingScore > 0;
+        return hasStartingBuildings || hasStartingItems || hasStartingScrap || hasStartingScore;
+    }
+
+    private void CaptureStartingDataFromSource(InventoryManager source)
+    {
+        startingBuildings.Clear();
+        if (source.startingBuildings != null)
+        {
+            for (int i = 0; i < source.startingBuildings.Count; i++)
+            {
+                InventoryEntry entry = source.startingBuildings[i];
+                if (entry == null || entry.BuildingDefinition == null || entry.Quantity <= 0)
+                {
+                    continue;
+                }
+
+                startingBuildings.Add(new InventoryEntry(entry.BuildingDefinition, entry.Quantity));
+            }
+        }
+
+        startingItems.Clear();
+        if (source.startingItems != null)
+        {
+            for (int i = 0; i < source.startingItems.Count; i++)
+            {
+                ItemInventoryEntry entry = source.startingItems[i];
+                if (entry == null || entry.ItemDefinition == null || entry.Quantity <= 0)
+                {
+                    continue;
+                }
+
+                startingItems.Add(new ItemInventoryEntry(entry.ItemDefinition, entry.Quantity));
+            }
+        }
+
+        startingScrap = Mathf.Max(0, source.startingScrap);
+        startingScore = Mathf.Max(0, source.startingScore);
     }
 
     private void MergeStartingBuildings(List<InventoryEntry> sourceEntries)
@@ -550,6 +612,28 @@ public class InventoryManager : MonoBehaviour
         }
 
         SetBuildingQuantityInternal(buildingDefinition, quantity, true);
+    }
+
+    public void ResetToStartingData()
+    {
+        EnsureInitialized();
+
+        buildingInventory.Clear();
+        buildingsByDefinition.Clear();
+        buildingHotbarSlots.Clear();
+        EnsureHotbarSlotList();
+
+        itemInventory.Clear();
+        itemsByDefinition.Clear();
+        craftedBalls.Clear();
+
+        MergeStartingBuildings(startingBuildings);
+        MergeStartingItems(startingItems);
+
+        scrap = Mathf.Max(0, startingScrap);
+        score = Mathf.Max(0, startingScore);
+
+        InventoryChanged?.Invoke();
     }
 
     private static InventoryManager EnsureInstance()
