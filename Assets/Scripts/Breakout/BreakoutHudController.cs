@@ -16,6 +16,9 @@ public class BreakoutHudController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private Image healthFillImage;
     [SerializeField] private TextMeshProUGUI livesText;
+    [SerializeField] private GameObject levelCompletePopup;
+    [SerializeField] private Transform levelCompleteMachineIconsRoot;
+    [SerializeField] private Image levelCompleteMachineIconPrefab;
     [SerializeField] private Transform upcomingBallIconsRoot;
     [SerializeField] private Image upcomingBallIconPrefab;
     [SerializeField] private Transform collectedMachineIconsRoot;
@@ -30,11 +33,16 @@ public class BreakoutHudController : MonoBehaviour
     [SerializeField, Min(1)] private int collectedMachinePreviewLimit = 24;
     [SerializeField] private bool autoConfigureCollectedMachineGrid = true;
     [SerializeField, Min(1)] private int collectedMachineColumns = 6;
+    [SerializeField] private bool hideLevelCompletePopupOnEnable = true;
+    [SerializeField] private bool autoConfigureLevelCompleteMachineGrid = true;
+    [SerializeField, Min(1)] private int levelCompleteMachineColumns = 6;
     [SerializeField] private string quantityPrefix = "x";
 
     private readonly List<Image> iconPool = new List<Image>();
     private readonly List<Image> collectedMachineIconPool = new List<Image>();
     private readonly List<TextMeshProUGUI> collectedMachineCountLabelPool = new List<TextMeshProUGUI>();
+    private readonly List<Image> levelCompleteMachineIconPool = new List<Image>();
+    private readonly List<TextMeshProUGUI> levelCompleteMachineCountLabelPool = new List<TextMeshProUGUI>();
     private readonly List<CollectedMachineDisplayEntry> collectedMachineDisplayEntries = new List<CollectedMachineDisplayEntry>();
 
     private void Awake()
@@ -45,15 +53,22 @@ public class BreakoutHudController : MonoBehaviour
         }
 
         ConfigureCollectedMachineLayout();
+        ConfigureLevelCompleteMachineLayout();
     }
 
     private void OnEnable()
     {
+        if (hideLevelCompletePopupOnEnable && levelCompletePopup != null)
+        {
+            levelCompletePopup.SetActive(false);
+        }
+
         if (gameController != null)
         {
             gameController.ScoreChanged += HandleScoreChanged;
             gameController.BallsQueueChanged += HandleQueueChanged;
             gameController.MachinesCollectedChanged += HandleMachinesCollectedChanged;
+            gameController.AllBricksCleared += HandleAllBricksCleared;
         }
 
         if (PlayerStats.HasInstance)
@@ -72,6 +87,7 @@ public class BreakoutHudController : MonoBehaviour
             gameController.ScoreChanged -= HandleScoreChanged;
             gameController.BallsQueueChanged -= HandleQueueChanged;
             gameController.MachinesCollectedChanged -= HandleMachinesCollectedChanged;
+            gameController.AllBricksCleared -= HandleAllBricksCleared;
         }
 
         if (PlayerStats.HasInstance)
@@ -94,6 +110,21 @@ public class BreakoutHudController : MonoBehaviour
     private void HandleMachinesCollectedChanged()
     {
         UpdateCollectedMachineIcons();
+
+        if (levelCompletePopup != null && levelCompletePopup.activeSelf)
+        {
+            UpdateLevelCompleteMachineIcons();
+        }
+    }
+
+    private void HandleAllBricksCleared()
+    {
+        if (levelCompletePopup != null)
+        {
+            levelCompletePopup.SetActive(true);
+        }
+
+        UpdateLevelCompleteMachineIcons();
     }
 
     private void HandleHealthChanged(int current, int max)
@@ -256,6 +287,50 @@ public class BreakoutHudController : MonoBehaviour
         }
     }
 
+    private void UpdateLevelCompleteMachineIcons()
+    {
+        if (levelCompleteMachineIconsRoot == null || levelCompleteMachineIconPrefab == null)
+        {
+            return;
+        }
+
+        int maxIcons = Mathf.Max(1, collectedMachinePreviewLimit);
+        EnsureLevelCompleteMachineIconPool(maxIcons);
+
+        for (int i = 0; i < levelCompleteMachineIconPool.Count; i++)
+        {
+            levelCompleteMachineIconPool[i].gameObject.SetActive(false);
+        }
+
+        if (gameController == null)
+        {
+            return;
+        }
+
+        BuildCollectedMachineDisplayEntries(gameController.GetCollectedMachinesSnapshot());
+
+        int shown = Mathf.Min(maxIcons, collectedMachineDisplayEntries.Count);
+        for (int i = 0; i < shown; i++)
+        {
+            CollectedMachineDisplayEntry entry = collectedMachineDisplayEntries[i];
+            Image iconImage = levelCompleteMachineIconPool[i];
+            iconImage.sprite = ResolveMachineSprite(entry.Definition);
+            iconImage.color = ResolveMachineTint(entry.Definition);
+            iconImage.gameObject.SetActive(iconImage.sprite != null);
+
+            TextMeshProUGUI countLabel = levelCompleteMachineCountLabelPool[i];
+            if (countLabel != null)
+            {
+                bool showLabel = entry.Quantity > 1;
+                countLabel.gameObject.SetActive(showLabel);
+                if (showLabel)
+                {
+                    countLabel.text = quantityPrefix + entry.Quantity;
+                }
+            }
+        }
+    }
+
     private void EnsureCollectedMachineIconPool(int count)
     {
         for (int i = collectedMachineIconPool.Count; i < count; i++)
@@ -272,6 +347,25 @@ public class BreakoutHudController : MonoBehaviour
             }
 
             collectedMachineCountLabelPool.Add(countLabel);
+        }
+    }
+
+    private void EnsureLevelCompleteMachineIconPool(int count)
+    {
+        for (int i = levelCompleteMachineIconPool.Count; i < count; i++)
+        {
+            Image spawnedIcon = Instantiate(levelCompleteMachineIconPrefab, levelCompleteMachineIconsRoot);
+            spawnedIcon.gameObject.name = "LevelCompleteMachineIcon_" + i;
+            spawnedIcon.gameObject.SetActive(false);
+            levelCompleteMachineIconPool.Add(spawnedIcon);
+
+            TextMeshProUGUI countLabel = EnsureCountLabel(spawnedIcon.transform, i);
+            if (countLabel != null)
+            {
+                countLabel.gameObject.SetActive(false);
+            }
+
+            levelCompleteMachineCountLabelPool.Add(countLabel);
         }
     }
 
@@ -367,6 +461,25 @@ public class BreakoutHudController : MonoBehaviour
         gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
         gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         gridLayout.constraintCount = Mathf.Max(1, collectedMachineColumns);
+    }
+
+    private void ConfigureLevelCompleteMachineLayout()
+    {
+        if (!autoConfigureLevelCompleteMachineGrid || levelCompleteMachineIconsRoot == null)
+        {
+            return;
+        }
+
+        GridLayoutGroup gridLayout = levelCompleteMachineIconsRoot.GetComponent<GridLayoutGroup>();
+        if (gridLayout == null)
+        {
+            gridLayout = levelCompleteMachineIconsRoot.gameObject.AddComponent<GridLayoutGroup>();
+        }
+
+        gridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
+        gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
+        gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        gridLayout.constraintCount = Mathf.Max(1, levelCompleteMachineColumns);
     }
 
     private Sprite ResolveMachineSprite(BuildingDefinition machineDefinition)

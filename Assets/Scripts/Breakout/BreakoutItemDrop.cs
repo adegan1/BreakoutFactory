@@ -14,6 +14,7 @@ public class BreakoutItemDrop : MonoBehaviour
     private float fallSpeed;
     private float bottomKillY;
     private bool isCollected;
+    private bool isMovementLocked;
 
     public BuildingDefinition BuildingDefinition => buildingDefinition;
     public int Quantity => quantity;
@@ -41,7 +42,7 @@ public class BreakoutItemDrop : MonoBehaviour
 
     private void Update()
     {
-        if (isCollected)
+        if (isCollected || isMovementLocked)
         {
             return;
         }
@@ -92,9 +93,37 @@ public class BreakoutItemDrop : MonoBehaviour
             return;
         }
 
+        CollectImmediately();
+    }
+
+    public void CollectImmediately()
+    {
+        if (isCollected || owningController == null)
+        {
+            return;
+        }
+
         isCollected = true;
         owningController.HandleItemDropCollected(buildingDefinition, quantity);
         Destroy(gameObject);
+    }
+
+    public void StopMovement()
+    {
+        isMovementLocked = true;
+    }
+
+    public void ApplyLevelCompletePauseVisual(float grayscaleBlend, float alphaMultiplier)
+    {
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        Color baseColor = spriteRenderer.color;
+        float gray = baseColor.grayscale;
+        Color pausedColor = new Color(gray, gray, gray, baseColor.a * Mathf.Clamp01(alphaMultiplier));
+        spriteRenderer.color = Color.Lerp(baseColor, pausedColor, Mathf.Clamp01(grayscaleBlend));
     }
 
     private void ApplyItemVisuals()

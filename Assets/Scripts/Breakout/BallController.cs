@@ -69,6 +69,31 @@ public class BallController : MonoBehaviour
     public BallTypeData TypeData => typeData;
     public bool PassThroughBallsEnabled => passThroughBalls;
 
+    public void StopMovement()
+    {
+        launched = false;
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+        }
+    }
+
+    public void ApplyLevelCompletePauseVisual(float grayscaleBlend, float alphaMultiplier)
+    {
+        if (spriteRenderer != null)
+        {
+            Color baseColor = spriteRenderer.color;
+            float gray = baseColor.grayscale;
+            Color pausedColor = new Color(gray, gray, gray, baseColor.a * Mathf.Clamp01(alphaMultiplier));
+            spriteRenderer.color = Color.Lerp(baseColor, pausedColor, Mathf.Clamp01(grayscaleBlend));
+        }
+
+        if (trailRenderer != null)
+        {
+            trailRenderer.emitting = false;
+        }
+    }
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();

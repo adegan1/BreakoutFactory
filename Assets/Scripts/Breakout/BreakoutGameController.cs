@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine.InputSystem;
 
 public class BreakoutGameController : MonoBehaviour
@@ -40,19 +41,32 @@ public class BreakoutGameController : MonoBehaviour
 
     [Header("Events")]
     [SerializeField] private UnityEvent onOutOfBalls;
+    [SerializeField] private UnityEvent onAllBricksCleared;
+    [SerializeField, Min(0f)] private float allBricksClearedDelaySeconds = 0.75f;
+
+    [Header("Level Complete Pause Visuals")]
+    [SerializeField, Range(0f, 1f)] private float pauseGrayscaleBlend = 0.6f;
+    [SerializeField, Range(0f, 1f)] private float pauseAlphaMultiplier = 0.7f;
 
     private int nextBallIndex;
     private int score;
     private int dropsSpawnedThisLevel;
+    private int initialBrickCount;
+    private int destroyedBrickCount;
     private readonly List<BuildingDefinition> collectedMachinesThisLevel = new List<BuildingDefinition>();
     private readonly HashSet<BallController> activeBalls = new HashSet<BallController>();
     private bool outOfBallsInvoked;
+    private bool allBricksClearedInvoked;
+    private bool isLevelCompleteLocked;
+    private Coroutine allBricksClearedRoutine;
+    private PaddleController cachedPaddleController;
 
     public int BallsRemaining => Mathf.Max(0, ballsToDispense.Count - nextBallIndex);
     public int Score => score;
     public event Action<int> ScoreChanged;
     public event Action BallsQueueChanged;
     public event Action MachinesCollectedChanged;
+    public event Action AllBricksCleared;
 
     private void OnEnable()
     {
@@ -70,8 +84,13 @@ public class BreakoutGameController : MonoBehaviour
         nextBallIndex = 0;
         score = 0;
         dropsSpawnedThisLevel = 0;
+        initialBrickCount = 0;
+        destroyedBrickCount = 0;
         collectedMachinesThisLevel.Clear();
         outOfBallsInvoked = false;
+        allBricksClearedInvoked = false;
+        isLevelCompleteLocked = false;
+        CachePaddleController();
         NotifyScoreChanged();
         NotifyBallsQueueChanged();
         NotifyMachinesCollectedChanged();
@@ -103,6 +122,11 @@ public class BreakoutGameController : MonoBehaviour
 
     private void Update()
     {
+        if (isLevelCompleteLocked)
+        {
+            return;
+        }
+
         if (!CanDispenseBall())
         {
             return;
@@ -116,6 +140,12 @@ public class BreakoutGameController : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (allBricksClearedRoutine != null)
+        {
+            StopCoroutine(allBricksClearedRoutine);
+            allBricksClearedRoutine = null;
+        }
+
         foreach (BallController activeBall in activeBalls)
         {
             if (activeBall != null)
@@ -192,8 +222,21 @@ public class BreakoutGameController : MonoBehaviour
         return new List<BuildingDefinition>(collectedMachinesThisLevel);
     }
 
+    public void ClearCollectedMachinesThisLevel()
+    {
+        if (collectedMachinesThisLevel.Count == 0)
+        {
+            return;
+        }
+
+        collectedMachinesThisLevel.Clear();
+        NotifyMachinesCollectedChanged();
+    }
+
     private void HandleBrickDestroyed(BrickController destroyedBrick, int awardedScore)
     {
+        destroyedBrickCount++;
+
         if (awardedScore > 0)
         {
             score += awardedScore;
@@ -201,6 +244,7 @@ public class BreakoutGameController : MonoBehaviour
         }
 
         TrySpawnItemDropFromBrick(destroyedBrick);
+        TryInvokeAllBricksCleared();
     }
 
     private void TrySpawnItemDropFromBrick(BrickController destroyedBrick)
@@ -210,8 +254,7 @@ public class BreakoutGameController : MonoBehaviour
             return;
         }
 
-        int dropsStillOwed = minimumDropsPerLevel - dropsSpawnedThisLevel;
-        bool mustDrop = dropsStillOwed > 0 && CountRemainingBricks() <= dropsStillOwed;
+        bool mustDrop = ShouldForceGuaranteedDropByProgress();
 
         if (!mustDrop && (brickDropChance <= 0f || UnityEngine.Random.value > brickDropChance))
         {
@@ -234,9 +277,189 @@ public class BreakoutGameController : MonoBehaviour
         dropsSpawnedThisLevel++;
     }
 
-    private static int CountRemainingBricks()
+    private bool ShouldForceGuaranteedDropByProgress()
     {
-        return FindObjectsByType<BrickController>(FindObjectsSortMode.None).Length;
+        if (minimumDropsPerLevel <= 0)
+        {
+            return false;
+        }
+
+        // Keep the total-brick baseline in sync with runtime spawning/order.
+        int totalBricksSeenThisLevel = destroyedBrickCount + CountLivingBricks();
+        initialBrickCount = Mathf.Max(initialBrickCount, totalBricksSeenThisLevel);
+
+        if (initialBrickCount <= 0)
+        {
+            return false;
+        }
+
+        int requiredDropsByNow = Mathf.FloorToInt((float)destroyedBrickCount * minimumDropsPerLevel / initialBrickCount);
+        requiredDropsByNow = Mathf.Clamp(requiredDropsByNow, 0, minimumDropsPerLevel);
+        return dropsSpawnedThisLevel < requiredDropsByNow;
+    }
+
+    private static int CountLivingBricks()
+    {
+        BrickController[] bricks = FindObjectsByType<BrickController>(FindObjectsSortMode.None);
+        int aliveCount = 0;
+        for (int i = 0; i < bricks.Length; i++)
+        {
+            BrickController brick = bricks[i];
+            if (brick != null && brick.CurrentHitPoints > 0)
+            {
+                aliveCount++;
+            }
+        }
+
+        return aliveCount;
+    }
+
+    private void TryInvokeAllBricksCleared()
+    {
+        if (allBricksClearedInvoked)
+        {
+            return;
+        }
+
+        BrickController[] bricks = FindObjectsByType<BrickController>(FindObjectsSortMode.None);
+        for (int i = 0; i < bricks.Length; i++)
+        {
+            BrickController brick = bricks[i];
+            if (brick != null && brick.CurrentHitPoints > 0)
+            {
+                return;
+            }
+        }
+
+        allBricksClearedInvoked = true;
+        EnterLevelCompleteLock();
+        if (allBricksClearedRoutine != null)
+        {
+            StopCoroutine(allBricksClearedRoutine);
+        }
+
+        allBricksClearedRoutine = StartCoroutine(InvokeAllBricksClearedAfterDelay());
+    }
+
+    private IEnumerator InvokeAllBricksClearedAfterDelay()
+    {
+        float delay = Mathf.Max(0f, allBricksClearedDelaySeconds);
+        if (delay > 0f)
+        {
+            yield return new WaitForSeconds(delay);
+        }
+
+        CollectAllMachineDropsOnField();
+        onAllBricksCleared?.Invoke();
+        AllBricksCleared?.Invoke();
+        allBricksClearedRoutine = null;
+    }
+
+    private void CollectAllMachineDropsOnField()
+    {
+        BreakoutItemDrop[] remainingDrops = FindObjectsByType<BreakoutItemDrop>(FindObjectsSortMode.None);
+        for (int i = 0; i < remainingDrops.Length; i++)
+        {
+            BreakoutItemDrop drop = remainingDrops[i];
+            if (drop == null)
+            {
+                continue;
+            }
+
+            drop.CollectImmediately();
+        }
+    }
+
+    private void EnterLevelCompleteLock()
+    {
+        isLevelCompleteLocked = true;
+        CachePaddleController();
+
+        if (cachedPaddleController != null)
+        {
+            cachedPaddleController.enabled = false;
+        }
+
+        ApplyPauseVisualToPaddle();
+        FreezeAndDimMachineDrops();
+
+        CleanupInactiveBalls();
+        foreach (BallController activeBall in activeBalls)
+        {
+            if (activeBall == null)
+            {
+                continue;
+            }
+
+            activeBall.StopMovement();
+            activeBall.ApplyLevelCompletePauseVisual(pauseGrayscaleBlend, pauseAlphaMultiplier);
+        }
+    }
+
+    private void FreezeAndDimMachineDrops()
+    {
+        BreakoutItemDrop[] drops = FindObjectsByType<BreakoutItemDrop>(FindObjectsSortMode.None);
+        for (int i = 0; i < drops.Length; i++)
+        {
+            BreakoutItemDrop drop = drops[i];
+            if (drop == null)
+            {
+                continue;
+            }
+
+            drop.StopMovement();
+            drop.ApplyLevelCompletePauseVisual(pauseGrayscaleBlend, pauseAlphaMultiplier);
+        }
+    }
+
+    private void ApplyPauseVisualToPaddle()
+    {
+        if (paddleTransform == null)
+        {
+            return;
+        }
+
+        SpriteRenderer[] paddleRenderers = paddleTransform.GetComponentsInChildren<SpriteRenderer>(true);
+        for (int i = 0; i < paddleRenderers.Length; i++)
+        {
+            SpriteRenderer paddleRenderer = paddleRenderers[i];
+            if (paddleRenderer == null)
+            {
+                continue;
+            }
+
+            Color baseColor = paddleRenderer.color;
+            float gray = baseColor.grayscale;
+            Color pausedColor = new Color(gray, gray, gray, baseColor.a * Mathf.Clamp01(pauseAlphaMultiplier));
+            paddleRenderer.color = Color.Lerp(baseColor, pausedColor, Mathf.Clamp01(pauseGrayscaleBlend));
+        }
+    }
+
+    private void CachePaddleController()
+    {
+        if (cachedPaddleController != null)
+        {
+            return;
+        }
+
+        if (paddleTransform != null)
+        {
+            cachedPaddleController = paddleTransform.GetComponent<PaddleController>();
+            if (cachedPaddleController == null)
+            {
+                cachedPaddleController = paddleTransform.GetComponentInParent<PaddleController>();
+            }
+
+            if (cachedPaddleController == null)
+            {
+                cachedPaddleController = paddleTransform.GetComponentInChildren<PaddleController>();
+            }
+        }
+
+        if (cachedPaddleController == null)
+        {
+            cachedPaddleController = FindAnyObjectByType<PaddleController>();
+        }
     }
 
     private bool TrySelectWeightedDrop(out BuildingDropTableEntry selectedDrop)
