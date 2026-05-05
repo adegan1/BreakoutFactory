@@ -15,11 +15,13 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
         [SerializeField] private TextMeshProUGUI quantityText;
         [SerializeField] private TextMeshProUGUI keybindText;
         [SerializeField] private Graphic selectionHighlight;
+        [SerializeField] private TooltipTrigger tooltipTrigger;
 
         public Image IconImage => iconImage;
         public TextMeshProUGUI QuantityText => quantityText;
         public TextMeshProUGUI KeybindText => keybindText;
         public Graphic SelectionHighlight => selectionHighlight;
+        public TooltipTrigger TooltipTrigger => tooltipTrigger;
     }
 
     [Header("References")]
@@ -147,6 +149,11 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
         {
             slot.QuantityText.text = quantity.ToString();
         }
+
+        if (slot.TooltipTrigger != null)
+        {
+            slot.TooltipTrigger.SetContent(definition.DisplayName, definition.Description);
+        }
     }
 
     private void ApplyEmptySlot(HotbarSlotView slot)
@@ -160,6 +167,11 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
         if (slot.QuantityText != null)
         {
             slot.QuantityText.text = string.Empty;
+        }
+
+        if (slot.TooltipTrigger != null)
+        {
+            slot.TooltipTrigger.SetContent(string.Empty, string.Empty);
         }
     }
 

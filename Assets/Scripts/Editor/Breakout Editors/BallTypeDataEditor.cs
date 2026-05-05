@@ -3,6 +3,8 @@ using UnityEditor;
 [CustomEditor(typeof(BallTypeData))]
 public class BallTypeDataEditor : BreakoutDataEditorBase
 {
+    private SerializedProperty displayNameProperty;
+    private SerializedProperty descriptionProperty;
     private SerializedProperty displayColorProperty;
     private SerializedProperty ballSpriteProperty;
     private SerializedProperty sizeProperty;
@@ -33,6 +35,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
 
     private void OnEnable()
     {
+        displayNameProperty = FindProperty("displayName");
+        descriptionProperty = FindProperty("description");
         displayColorProperty = FindProperty("displayColor");
         ballSpriteProperty = FindProperty("ballSprite");
         sizeProperty = FindProperty("size");
@@ -66,7 +70,7 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     {
         serializedObject.Update();
 
-        DrawSection("Visual", displayColorProperty, ballSpriteProperty, sizeProperty);
+        DrawSection("Display", displayNameProperty, descriptionProperty, displayColorProperty, ballSpriteProperty, sizeProperty);
         DrawSection("Movement", movementSpeedProperty);
         DrawSection("Core Combat", damageProperty, bouncesProperty);
         DrawSection("Brick Interaction", passThroughBricksProperty, passThroughBallsProperty, appliesBurnProperty);

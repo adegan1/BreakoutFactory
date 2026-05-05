@@ -14,7 +14,9 @@ public class BallTypeData : ScriptableObject
         Wind
     }
 
-    // Visual
+    // Display
+    [SerializeField] private string displayName;
+    [SerializeField, TextArea(2, 4)] private string description;
     [SerializeField] private Color displayColor = Color.white;
     [SerializeField] private Sprite ballSprite;
     [SerializeField, Range(0.25f, 3f)] private float size = 1f;
@@ -53,6 +55,8 @@ public class BallTypeData : ScriptableObject
     // Strong Against...
     [SerializeField] private BallElement[] strongAgainst = new BallElement[0];
 
+    public string DisplayName => displayName;
+    public string Description => description;
     public Color DisplayColor => displayColor;
     public Sprite BallSprite => ballSprite;
     public float Size => size;
