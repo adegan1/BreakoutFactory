@@ -5,6 +5,8 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class InventoryManager : MonoBehaviour
 {
+    public const int BuildingHotbarSlotCount = 10;
+
     [Serializable]
     public class InventoryEntry
     {
@@ -56,6 +58,7 @@ public class InventoryManager : MonoBehaviour
 
     [Header("Runtime Building Inventory")]
     [SerializeField] private List<InventoryEntry> buildingInventory = new();
+    [SerializeField] private List<BuildingDefinition> buildingHotbarSlots = new();
 
     [Header("Starting Item Inventory")]
     [SerializeField] private List<ItemInventoryEntry> startingItems = new();
@@ -88,6 +91,15 @@ public class InventoryManager : MonoBehaviour
         {
             EnsureInitialized();
             return buildingInventory;
+        }
+    }
+
+    public IReadOnlyList<BuildingDefinition> BuildingHotbarSlots
+    {
+        get
+        {
+            EnsureInitialized();
+            return buildingHotbarSlots;
         }
     }
 
@@ -201,7 +213,33 @@ public class InventoryManager : MonoBehaviour
             InventoryEntry newEntry = new InventoryEntry(definition, quantityToAdd);
             buildingsByDefinition.Add(definition, newEntry);
             buildingInventory.Insert(0, newEntry);
+            AssignBuildingToFirstAvailableHotbarSlot(definition);
         }
+
+        PrioritizeHotbarDefinitionsAtFront(sourceEntries);
+    }
+
+    public bool TryGetBuildingAtHotbarSlot(int slotIndex, out BuildingDefinition buildingDefinition, out int quantity)
+    {
+        buildingDefinition = null;
+        quantity = 0;
+
+        EnsureInitialized();
+        EnsureHotbarSlotList();
+
+        if (!IsValidHotbarSlotIndex(slotIndex))
+        {
+            return false;
+        }
+
+        buildingDefinition = buildingHotbarSlots[slotIndex];
+        if (buildingDefinition == null)
+        {
+            return false;
+        }
+
+        TryGetBuildingQuantityInternal(buildingDefinition, out quantity);
+        return true;
     }
 
     private void MergeStartingItems(List<ItemInventoryEntry> sourceEntries)
@@ -295,6 +333,8 @@ public class InventoryManager : MonoBehaviour
 
         buildingInventory.Clear();
         buildingsByDefinition.Clear();
+        buildingHotbarSlots.Clear();
+        EnsureHotbarSlotList();
         itemInventory.Clear();
         itemsByDefinition.Clear();
         craftedBalls.Clear();
@@ -555,6 +595,7 @@ public class InventoryManager : MonoBehaviour
 
         buildingInventory.Clear();
         buildingsByDefinition.Clear();
+        EnsureHotbarSlotList();
         itemInventory.Clear();
         itemsByDefinition.Clear();
 
@@ -609,22 +650,6 @@ public class InventoryManager : MonoBehaviour
 
         int clampedQuantity = Mathf.Max(0, quantity);
 
-        if (clampedQuantity == 0)
-        {
-            if (buildingsByDefinition.TryGetValue(buildingDefinition, out InventoryEntry existingEntry))
-            {
-                buildingsByDefinition.Remove(buildingDefinition);
-                buildingInventory.Remove(existingEntry);
-
-                if (notifyListeners)
-                {
-                    InventoryChanged?.Invoke();
-                }
-            }
-
-            return;
-        }
-
         if (buildingsByDefinition.TryGetValue(buildingDefinition, out InventoryEntry entry))
         {
             if (entry.Quantity == clampedQuantity)
@@ -639,6 +664,7 @@ public class InventoryManager : MonoBehaviour
             entry = new InventoryEntry(buildingDefinition, clampedQuantity);
             buildingsByDefinition.Add(buildingDefinition, entry);
             buildingInventory.Add(entry);
+            AssignBuildingToFirstAvailableHotbarSlot(buildingDefinition);
         }
 
         if (notifyListeners)
@@ -703,6 +729,135 @@ public class InventoryManager : MonoBehaviour
         if (notifyListeners)
         {
             InventoryChanged?.Invoke();
+        }
+    }
+
+    private void EnsureHotbarSlotList()
+    {
+        if (buildingHotbarSlots == null)
+        {
+            buildingHotbarSlots = new List<BuildingDefinition>(BuildingHotbarSlotCount);
+        }
+
+        if (buildingHotbarSlots.Count > BuildingHotbarSlotCount)
+        {
+            buildingHotbarSlots.RemoveRange(BuildingHotbarSlotCount, buildingHotbarSlots.Count - BuildingHotbarSlotCount);
+        }
+
+        while (buildingHotbarSlots.Count < BuildingHotbarSlotCount)
+        {
+            buildingHotbarSlots.Add(null);
+        }
+
+        // Back-fill any null slots from the runtime inventory so hotbar is always populated.
+        RepopulateHotbarFromInventory();
+    }
+
+    private void RepopulateHotbarFromInventory()
+    {
+        for (int i = 0; i < buildingInventory.Count; i++)
+        {
+            InventoryEntry entry = buildingInventory[i];
+            if (entry == null || entry.BuildingDefinition == null)
+            {
+                continue;
+            }
+
+            AssignBuildingToFirstAvailableHotbarSlot(entry.BuildingDefinition);
+        }
+    }
+
+    private static bool IsValidHotbarSlotIndex(int slotIndex)
+    {
+        return slotIndex >= 0 && slotIndex < BuildingHotbarSlotCount;
+    }
+
+    private void AssignBuildingToFirstAvailableHotbarSlot(BuildingDefinition buildingDefinition)
+    {
+        if (buildingDefinition == null || buildingHotbarSlots == null)
+        {
+            return;
+        }
+
+        // Pad to full size without calling EnsureHotbarSlotList (avoids recursion).
+        while (buildingHotbarSlots.Count < BuildingHotbarSlotCount)
+        {
+            buildingHotbarSlots.Add(null);
+        }
+
+        for (int i = 0; i < buildingHotbarSlots.Count; i++)
+        {
+            if (buildingHotbarSlots[i] == buildingDefinition)
+            {
+                return;
+            }
+        }
+
+        for (int i = 0; i < buildingHotbarSlots.Count; i++)
+        {
+            if (buildingHotbarSlots[i] == null)
+            {
+                buildingHotbarSlots[i] = buildingDefinition;
+                return;
+            }
+        }
+    }
+
+    private void PrioritizeHotbarDefinitionsAtFront(List<InventoryEntry> sourceEntries)
+    {
+        if (sourceEntries == null)
+        {
+            return;
+        }
+
+        EnsureHotbarSlotList();
+
+        List<BuildingDefinition> prioritized = new List<BuildingDefinition>();
+        for (int i = 0; i < sourceEntries.Count; i++)
+        {
+            InventoryEntry entry = sourceEntries[i];
+            if (entry == null || entry.BuildingDefinition == null)
+            {
+                continue;
+            }
+
+            BuildingDefinition definition = entry.BuildingDefinition;
+            if (!prioritized.Contains(definition))
+            {
+                prioritized.Add(definition);
+            }
+        }
+
+        if (prioritized.Count == 0)
+        {
+            return;
+        }
+
+        List<BuildingDefinition> reordered = new List<BuildingDefinition>(BuildingHotbarSlotCount);
+        for (int i = 0; i < prioritized.Count && reordered.Count < BuildingHotbarSlotCount; i++)
+        {
+            reordered.Add(prioritized[i]);
+        }
+
+        for (int i = 0; i < buildingHotbarSlots.Count && reordered.Count < BuildingHotbarSlotCount; i++)
+        {
+            BuildingDefinition definition = buildingHotbarSlots[i];
+            if (definition == null || reordered.Contains(definition))
+            {
+                continue;
+            }
+
+            reordered.Add(definition);
+        }
+
+        while (reordered.Count < BuildingHotbarSlotCount)
+        {
+            reordered.Add(null);
+        }
+
+        for (int i = 0; i < BuildingHotbarSlotCount; i++)
+        {
+            buildingHotbarSlots[i] = reordered[i];
         }
     }
 

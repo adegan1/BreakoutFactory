@@ -1082,7 +1082,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         ClampSelectedBuildingIndex();
 
         Keyboard keyboard = Keyboard.current;
-        if (keyboard == null || inventoryManager == null || inventoryManager.BuildingItems.Count == 0)
+        if (keyboard == null || inventoryManager == null)
         {
             return;
         }
@@ -1094,6 +1094,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
                 TrySelectBuildingByIndex(i);
                 break;
             }
+        }
+
+        if (keyboard.digit0Key.wasPressedThisFrame)
+        {
+            TrySelectBuildingByIndex(InventoryManager.BuildingHotbarSlotCount - 1);
         }
     }
 
@@ -1127,13 +1132,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return false;
         }
 
-        IReadOnlyList<InventoryManager.InventoryEntry> buildingItems = inventoryManager.BuildingItems;
-        if (index < 0 || index >= buildingItems.Count)
-        {
-            return false;
-        }
-
-        if (buildingItems[index] == null || buildingItems[index].BuildingDefinition == null)
+        if (index < 0 || index >= InventoryManager.BuildingHotbarSlotCount)
         {
             return false;
         }
@@ -1151,15 +1150,13 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return null;
         }
 
-        IReadOnlyList<InventoryManager.InventoryEntry> buildingItems = inventoryManager.BuildingItems;
-        if (buildingItems.Count == 0)
+        ClampSelectedBuildingIndex();
+        if (!inventoryManager.TryGetBuildingAtHotbarSlot(selectedBuildingIndex, out BuildingDefinition selectedDefinition, out _))
         {
             return null;
         }
 
-        ClampSelectedBuildingIndex();
-        InventoryManager.InventoryEntry selectedEntry = buildingItems[selectedBuildingIndex];
-        return selectedEntry?.BuildingDefinition;
+        return selectedDefinition;
     }
 
     private bool CanPlaceSelectedBuildingAt(Vector2Int gridPosition)
@@ -1464,15 +1461,14 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return;
         }
 
-        int buildingCount = inventoryManager.BuildingItems.Count;
-        if (buildingCount == 0)
+        if (!HasAnyHotbarBuildingDefinitions())
         {
             selectedBuildingIndex = 0;
             hasSelectedBuilding = false;
             return;
         }
 
-        selectedBuildingIndex = Mathf.Clamp(selectedBuildingIndex, 0, buildingCount - 1);
+        selectedBuildingIndex = Mathf.Clamp(selectedBuildingIndex, 0, InventoryManager.BuildingHotbarSlotCount - 1);
     }
 
     private void RefreshSelectionAvailability()
@@ -1482,8 +1478,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return;
         }
 
-        int buildingCount = inventoryManager.BuildingItems.Count;
-        if (buildingCount == 0)
+        if (!HasAnyHotbarBuildingDefinitions())
         {
             DeselectBuilding();
             return;
@@ -1491,16 +1486,39 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (!hasSelectedBuilding)
         {
-            selectedBuildingIndex = Mathf.Clamp(selectedBuildingIndex, 0, buildingCount - 1);
-            hasSelectedBuilding = true;
-            return;
+            hasSelectedBuilding = TrySelectFirstAvailableHotbarSlot();
+        }
+    }
+
+    private bool HasAnyHotbarBuildingDefinitions()
+    {
+        if (inventoryManager == null)
+        {
+            return false;
         }
 
-        BuildingDefinition selectedDefinition = GetSelectedBuildingDefinition();
-        if (selectedDefinition == null || !inventoryManager.HasBuilding(selectedDefinition, 1))
+        for (int i = 0; i < InventoryManager.BuildingHotbarSlotCount; i++)
         {
-            DeselectBuilding();
+            if (inventoryManager.TryGetBuildingAtHotbarSlot(i, out BuildingDefinition definition, out _) && definition != null)
+            {
+                return true;
+            }
         }
+
+        return false;
+    }
+
+    private bool TrySelectFirstAvailableHotbarSlot()
+    {
+        for (int i = 0; i < InventoryManager.BuildingHotbarSlotCount; i++)
+        {
+            if (TrySelectBuildingByIndex(i))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void DeselectBuilding()
