@@ -11,6 +11,7 @@ public class BrickTypeData : ScriptableObject
     [SerializeField] private bool fireResistant = false;
     [SerializeField] private bool amplifiesLightning = false;
     [SerializeField, Min(0)] private int lightningTargetBonus = 1;
+    [SerializeField, Min(0)] private int damageToPlayer = 1;
 
     // Type
     [SerializeField] private BallTypeData.BallElement type = BallTypeData.BallElement.Basic;
@@ -22,5 +23,6 @@ public class BrickTypeData : ScriptableObject
     public bool FireResistant => fireResistant;
     public bool AmplifiesLightning => amplifiesLightning;
     public int LightningTargetBonus => lightningTargetBonus;
+    public int DamageToPlayer => damageToPlayer;
     public BallTypeData.BallElement Type => type;
 }

@@ -39,6 +39,9 @@ public class BrickGridSpawner : MonoBehaviour
     [SerializeField] private float startingDownwardSpeed = 0.9f;
     [SerializeField] private float speedRampDuration = 4f;
     [SerializeField] private float bottomDangerY = -4.5f;
+    [SerializeField, Min(0f)] private float dangerShakeStartDelay = 0.5f;
+    [SerializeField, Min(0f)] private float dangerShakeDuration = 1.25f;
+    [SerializeField, Min(0f)] private float dangerShakeMagnitude = 0.08f;
 
     [Header("Events")]
     [SerializeField] private UnityEvent onBricksReachedBottom;
@@ -50,6 +53,7 @@ public class BrickGridSpawner : MonoBehaviour
     private float currentDownwardSpeed;
     private float lastAppliedDownwardSpeed = float.MinValue;
     private bool hasStartedSpawning;
+    private readonly HashSet<BrickController> dangerTriggeredBricks = new HashSet<BrickController>();
 
     public int RowsSpawned => rowsSpawned;
     public int TotalRowsToSpawn => totalRowsToSpawn;
@@ -230,20 +234,36 @@ public class BrickGridSpawner : MonoBehaviour
 
     private void CheckBottomDanger()
     {
-        if (bottomEventFired)
-        {
-            return;
-        }
+        bool anyTriggeredThisFrame = false;
 
         for (int i = 0; i < transform.childCount; i++)
         {
             Transform child = transform.GetChild(i);
-            if (child.position.y <= bottomDangerY)
+            if (child == null || child.position.y > bottomDangerY)
             {
-                bottomEventFired = true;
-                onBricksReachedBottom?.Invoke();
-                return;
+                continue;
             }
+
+            if (!child.TryGetComponent<BrickController>(out BrickController brick) || brick == null)
+            {
+                continue;
+            }
+
+            if (!dangerTriggeredBricks.Add(brick))
+            {
+                continue;
+            }
+
+            if (brick.BeginDangerSequence(dangerShakeStartDelay, dangerShakeDuration, dangerShakeMagnitude))
+            {
+                anyTriggeredThisFrame = true;
+            }
+        }
+
+        if (!bottomEventFired && anyTriggeredThisFrame)
+        {
+            bottomEventFired = true;
+            onBricksReachedBottom?.Invoke();
         }
     }
 

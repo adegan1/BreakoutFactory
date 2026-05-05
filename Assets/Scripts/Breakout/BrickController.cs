@@ -43,7 +43,10 @@ public class BrickController : MonoBehaviour
     private float columnSlowTimeRemaining;
     private float columnSlowSpeedMultiplier = 1f;
     private Coroutine lightningPulseRoutine;
+    private Coroutine dangerSequenceRoutine;
     private readonly List<BrickController> nearbyBricksBuffer = new List<BrickController>();
+    private bool inDangerSequence;
+    private Vector3 dangerBasePosition;
 
     public static event System.Action<BrickController, int> BrickDestroyed;
 
@@ -102,13 +105,50 @@ public class BrickController : MonoBehaviour
 
     public void SetDownwardMotion(bool enabled, float speed)
     {
+        if (inDangerSequence)
+        {
+            moveDownward = false;
+            downwardSpeed = 0f;
+            return;
+        }
+
         moveDownward = enabled;
         SetDownwardSpeed(speed);
     }
 
     public void SetDownwardSpeed(float speed)
     {
+        if (inDangerSequence)
+        {
+            downwardSpeed = 0f;
+            return;
+        }
+
         downwardSpeed = Mathf.Max(0f, speed);
+    }
+
+    public bool BeginDangerSequence(float waitBeforeShakeSeconds, float shakeDurationSeconds, float shakeMagnitude)
+    {
+        if (inDangerSequence || currentHitPoints <= 0)
+        {
+            return false;
+        }
+
+        inDangerSequence = true;
+        moveDownward = false;
+        downwardSpeed = 0f;
+        dangerBasePosition = transform.position;
+
+        if (dangerSequenceRoutine != null)
+        {
+            StopCoroutine(dangerSequenceRoutine);
+        }
+
+        dangerSequenceRoutine = StartCoroutine(DangerSequenceCoroutine(
+            Mathf.Max(0f, waitBeforeShakeSeconds),
+            Mathf.Max(0f, shakeDurationSeconds),
+            Mathf.Max(0f, shakeMagnitude)));
+        return true;
     }
 
     public void SetTypeData(BrickTypeData newTypeData)
@@ -247,6 +287,52 @@ public class BrickController : MonoBehaviour
     {
         int scoreValue = typeData != null ? Mathf.Max(0, typeData.ScoreValue) : 0;
         BrickDestroyed?.Invoke(this, scoreValue);
+    }
+
+    private IEnumerator DangerSequenceCoroutine(float waitBeforeShakeSeconds, float shakeDurationSeconds, float shakeMagnitude)
+    {
+        if (waitBeforeShakeSeconds > 0f)
+        {
+            yield return new WaitForSeconds(waitBeforeShakeSeconds);
+        }
+
+        float elapsed = 0f;
+        while (elapsed < shakeDurationSeconds)
+        {
+            elapsed += Time.deltaTime;
+            Vector2 offset = Random.insideUnitCircle * shakeMagnitude;
+            transform.position = dangerBasePosition + new Vector3(offset.x, offset.y, 0f);
+            yield return null;
+        }
+
+        transform.position = dangerBasePosition;
+        ApplyDangerPenaltyAndRemove();
+    }
+
+    private void ApplyDangerPenaltyAndRemove()
+    {
+        int damageToPlayer = typeData != null ? Mathf.Max(0, typeData.DamageToPlayer) : 0;
+        if (damageToPlayer > 0 && PlayerStats.HasInstance)
+        {
+            PlayerStats.Instance.TakeDamage(damageToPlayer);
+        }
+
+        Destroy(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        if (dangerSequenceRoutine != null)
+        {
+            StopCoroutine(dangerSequenceRoutine);
+            dangerSequenceRoutine = null;
+        }
+
+        if (lightningPulseRoutine != null)
+        {
+            StopCoroutine(lightningPulseRoutine);
+            lightningPulseRoutine = null;
+        }
     }
 
     private void UpdateBurning()

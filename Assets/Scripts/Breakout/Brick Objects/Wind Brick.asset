@@ -19,4 +19,5 @@ MonoBehaviour:
   fireResistant: 0
   amplifiesLightning: 0
   lightningTargetBonus: 1
+  damageToPlayer: 10
   type: 6
