@@ -18,6 +18,12 @@ public class LevelSettings : MonoBehaviour
     [SerializeField, Min(1)] private int nextLevelBrickHealth = 1;
     [SerializeField] private List<BrickSpawnOddsEntry> nextLevelBrickOdds = new List<BrickSpawnOddsEntry>();
 
+    [Header("Level Scaling")]
+    [SerializeField] private bool scaleRowsByCurrentLevel = true;
+    [SerializeField, Min(0f)] private float rowsPerLevelMultiplier = 0.5f;
+    [SerializeField] private bool scaleBrickHealthByCurrentLevel = true;
+    [SerializeField, Min(0f)] private float brickHealthPerLevelMultiplier = 0.25f;
+
     private int defaultNextLevelRowsToSpawn;
     private float defaultNextLevelBrickMoveSpeed;
     private int defaultNextLevelBrickHealth;
@@ -25,7 +31,7 @@ public class LevelSettings : MonoBehaviour
 
     public int NextLevelRowsToSpawn
     {
-        get => nextLevelRowsToSpawn;
+        get => ResolveRowsToSpawn();
         set => nextLevelRowsToSpawn = Mathf.Max(0, value);
     }
 
@@ -37,7 +43,7 @@ public class LevelSettings : MonoBehaviour
 
     public int NextLevelBrickHealth
     {
-        get => nextLevelBrickHealth;
+        get => ResolveBrickHealth();
         set => nextLevelBrickHealth = Mathf.Max(1, value);
     }
 
@@ -140,5 +146,41 @@ public class LevelSettings : MonoBehaviour
                 weight = source.weight
             });
         }
+    }
+
+    private int ResolveRowsToSpawn()
+    {
+        int baseRows = Mathf.Max(0, nextLevelRowsToSpawn);
+        if (!scaleRowsByCurrentLevel)
+        {
+            return baseRows;
+        }
+
+        int level = GetCurrentPlayerLevel();
+        float scaledRows = baseRows * level * Mathf.Max(0f, rowsPerLevelMultiplier);
+        return Mathf.Max(0, Mathf.FloorToInt(scaledRows));
+    }
+
+    private int ResolveBrickHealth()
+    {
+        int baseHealth = Mathf.Max(1, nextLevelBrickHealth);
+        if (!scaleBrickHealthByCurrentLevel)
+        {
+            return baseHealth;
+        }
+
+        int level = GetCurrentPlayerLevel();
+        float scaledHealth = baseHealth * level * Mathf.Max(0f, brickHealthPerLevelMultiplier);
+        return Mathf.Max(1, Mathf.CeilToInt(scaledHealth));
+    }
+
+    private static int GetCurrentPlayerLevel()
+    {
+        if (!PlayerStats.HasInstance)
+        {
+            return 1;
+        }
+
+        return Mathf.Max(1, PlayerStats.Instance.CurrentLevel);
     }
 }

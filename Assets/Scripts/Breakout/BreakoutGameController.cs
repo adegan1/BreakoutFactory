@@ -417,6 +417,11 @@ public class BreakoutGameController : MonoBehaviour
 
         if (reason == LevelEndReason.LevelComplete)
         {
+            if (PlayerStats.HasInstance)
+            {
+                PlayerStats.Instance.IncrementLevel();
+            }
+
             onAllBricksCleared?.Invoke();
             AllBricksCleared?.Invoke();
         }

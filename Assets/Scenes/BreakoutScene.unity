@@ -548,9 +548,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   startingLives: 3
   startingMaxHealth: 100
+  startingLevel: 1
   lives: 0
   health: 0
   maxHealth: 0
+  currentLevel: 1
   loadSceneOnGameOver: 1
   gameOverSceneName: GameoverScene
 --- !u!4 &392664724
@@ -2936,9 +2938,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ddf8f2a4ea1090468937792b28d1ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelSettings
-  nextLevelRowsToSpawn: 1
+  nextLevelRowsToSpawn: 6
   nextLevelBrickMoveSpeed: 0.075
-  nextLevelBrickHealth: 1
+  nextLevelBrickHealth: 2
   nextLevelBrickOdds:
   - typeData: {fileID: 11400000, guid: 85e9b8c05e2b7214b819ed976f1dd770, type: 2}
     weight: 40
@@ -2954,6 +2956,10 @@ MonoBehaviour:
     weight: 10
   - typeData: {fileID: 11400000, guid: 0f820a6fe33f08f43957becd1b6b398b, type: 2}
     weight: 10
+  scaleRowsByCurrentLevel: 1
+  rowsPerLevelMultiplier: 0.5
+  scaleBrickHealthByCurrentLevel: 1
+  brickHealthPerLevelMultiplier: 0.25
 --- !u!4 &2017643839
 Transform:
   m_ObjectHideFlags: 0

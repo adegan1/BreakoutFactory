@@ -10,11 +10,13 @@ public class PlayerStats : MonoBehaviour
     [Header("Starting Values")]
     [SerializeField, Min(1)] private int startingLives = 3;
     [SerializeField, Min(1)] private int startingMaxHealth = 3;
+    [SerializeField, Min(1)] private int startingLevel = 1;
 
     [Header("Runtime (Read Only)")]
     [SerializeField, Min(0)] private int lives;
     [SerializeField, Min(0)] private int health;
     [SerializeField, Min(1)] private int maxHealth;
+    [SerializeField, Min(1)] private int currentLevel = 1;
 
     [Header("Game Over")]
     [SerializeField] private bool loadSceneOnGameOver = true;
@@ -28,10 +30,12 @@ public class PlayerStats : MonoBehaviour
     public int Lives => lives;
     public int Health => health;
     public int MaxHealth => maxHealth;
+    public int CurrentLevel => currentLevel;
     public bool IsAlive => lives > 0 && health > 0;
 
     public event Action<int> LivesChanged;
     public event Action<int, int> HealthChanged;  // (current, max)
+    public event Action<int> CurrentLevelChanged;
     public event Action LifeLost;
     public event Action GameOver;
 
@@ -53,9 +57,33 @@ public class PlayerStats : MonoBehaviour
         gameOverTriggered = false;
         maxHealth = Mathf.Max(1, startingMaxHealth);
         lives = Mathf.Max(1, startingLives);
+        currentLevel = Mathf.Max(1, startingLevel);
         health = maxHealth;
         NotifyLivesChanged();
         NotifyHealthChanged();
+        NotifyCurrentLevelChanged();
+    }
+
+    public void SetCurrentLevel(int level)
+    {
+        int clampedLevel = Mathf.Max(1, level);
+        if (currentLevel == clampedLevel)
+        {
+            return;
+        }
+
+        currentLevel = clampedLevel;
+        NotifyCurrentLevelChanged();
+    }
+
+    public void IncrementLevel(int amount = 1)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        SetCurrentLevel(currentLevel + amount);
     }
 
     public void ResetHealthForNewLife()
@@ -173,6 +201,11 @@ public class PlayerStats : MonoBehaviour
     private void NotifyHealthChanged()
     {
         HealthChanged?.Invoke(health, maxHealth);
+    }
+
+    private void NotifyCurrentLevelChanged()
+    {
+        CurrentLevelChanged?.Invoke(currentLevel);
     }
 
     private static PlayerStats EnsureInstance()
