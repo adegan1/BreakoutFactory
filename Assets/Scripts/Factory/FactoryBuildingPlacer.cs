@@ -156,6 +156,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private void Update()
     {
+        EnsureInventoryManagerAssigned();
+
         Mouse mouse = Mouse.current;
         if (mouse == null)
         {
@@ -1475,8 +1477,22 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private void RefreshSelectionAvailability()
     {
-        if (!hasSelectedBuilding || inventoryManager == null)
+        if (inventoryManager == null)
         {
+            return;
+        }
+
+        int buildingCount = inventoryManager.BuildingItems.Count;
+        if (buildingCount == 0)
+        {
+            DeselectBuilding();
+            return;
+        }
+
+        if (!hasSelectedBuilding)
+        {
+            selectedBuildingIndex = Mathf.Clamp(selectedBuildingIndex, 0, buildingCount - 1);
+            hasSelectedBuilding = true;
             return;
         }
 

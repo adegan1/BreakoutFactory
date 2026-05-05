@@ -75,6 +75,7 @@ public class InventoryManager : MonoBehaviour
     private readonly Dictionary<BuildingDefinition, InventoryEntry> buildingsByDefinition = new();
     private readonly Dictionary<ItemDefinition, ItemInventoryEntry> itemsByDefinition = new();
     private bool isInitialized;
+    private bool hasImportedSceneStartingData;
 
     public static InventoryManager Instance => EnsureInstance();
     public static bool HasInstance => instance != null;
@@ -130,6 +131,7 @@ public class InventoryManager : MonoBehaviour
     {
         if (instance != null && instance != this)
         {
+            instance.ImportStartingDataFrom(this);
             Destroy(gameObject);
             return;
         }
@@ -137,6 +139,89 @@ public class InventoryManager : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
         EnsureInitialized();
+    }
+
+    private void ImportStartingDataFrom(InventoryManager source)
+    {
+        if (source == null || source == this || hasImportedSceneStartingData)
+        {
+            return;
+        }
+
+        EnsureInitialized();
+
+        // Apply scene-configured starting values one time to the persistent runtime inventory.
+        MergeStartingBuildings(source.startingBuildings);
+        MergeStartingItems(source.startingItems);
+
+        if (scrap <= 0 && source.startingScrap > 0)
+        {
+            scrap = source.startingScrap;
+        }
+
+        if (score <= 0 && source.startingScore > 0)
+        {
+            score = source.startingScore;
+        }
+
+        hasImportedSceneStartingData = true;
+        InventoryChanged?.Invoke();
+    }
+
+    private void MergeStartingBuildings(List<InventoryEntry> sourceEntries)
+    {
+        if (sourceEntries == null)
+        {
+            return;
+        }
+
+        // Insert in reverse so final runtime order matches source order at the front.
+        for (int i = sourceEntries.Count - 1; i >= 0; i--)
+        {
+            InventoryEntry entry = sourceEntries[i];
+            if (entry == null || entry.BuildingDefinition == null || entry.Quantity <= 0)
+            {
+                continue;
+            }
+
+            BuildingDefinition definition = entry.BuildingDefinition;
+            int quantityToAdd = entry.Quantity;
+
+            if (buildingsByDefinition.TryGetValue(definition, out InventoryEntry existingEntry))
+            {
+                int updatedQuantity = Mathf.Max(0, existingEntry.Quantity + quantityToAdd);
+                existingEntry.SetQuantity(updatedQuantity);
+
+                // Move existing entry to the front so starting buildings come first.
+                buildingInventory.Remove(existingEntry);
+                buildingInventory.Insert(0, existingEntry);
+                continue;
+            }
+
+            InventoryEntry newEntry = new InventoryEntry(definition, quantityToAdd);
+            buildingsByDefinition.Add(definition, newEntry);
+            buildingInventory.Insert(0, newEntry);
+        }
+    }
+
+    private void MergeStartingItems(List<ItemInventoryEntry> sourceEntries)
+    {
+        if (sourceEntries == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < sourceEntries.Count; i++)
+        {
+            ItemInventoryEntry entry = sourceEntries[i];
+            if (entry == null || entry.ItemDefinition == null || entry.Quantity <= 0)
+            {
+                continue;
+            }
+
+            TryGetItemQuantityInternal(entry.ItemDefinition, out int currentQuantity);
+            SetItemQuantityInternal(entry.ItemDefinition, currentQuantity + entry.Quantity, false);
+        }
     }
 
     public void AddScrap(int amount)

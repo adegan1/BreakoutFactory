@@ -2933,7 +2933,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ddf8f2a4ea1090468937792b28d1ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelSettings
-  nextLevelRowsToSpawn: 6
+  nextLevelRowsToSpawn: 1
   nextLevelBrickMoveSpeed: 0.075
   nextLevelBrickHealth: 2
   nextLevelBrickOdds:
