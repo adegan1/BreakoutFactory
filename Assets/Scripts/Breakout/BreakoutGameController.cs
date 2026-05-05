@@ -44,6 +44,7 @@ public class BreakoutGameController : MonoBehaviour
     private int nextBallIndex;
     private int score;
     private int dropsSpawnedThisLevel;
+    private readonly List<BuildingDefinition> collectedMachinesThisLevel = new List<BuildingDefinition>();
     private readonly HashSet<BallController> activeBalls = new HashSet<BallController>();
     private bool outOfBallsInvoked;
 
@@ -51,6 +52,7 @@ public class BreakoutGameController : MonoBehaviour
     public int Score => score;
     public event Action<int> ScoreChanged;
     public event Action BallsQueueChanged;
+    public event Action MachinesCollectedChanged;
 
     private void OnEnable()
     {
@@ -68,9 +70,11 @@ public class BreakoutGameController : MonoBehaviour
         nextBallIndex = 0;
         score = 0;
         dropsSpawnedThisLevel = 0;
+        collectedMachinesThisLevel.Clear();
         outOfBallsInvoked = false;
         NotifyScoreChanged();
         NotifyBallsQueueChanged();
+        NotifyMachinesCollectedChanged();
         TryInvokeOutOfBalls();
     }
 
@@ -181,6 +185,11 @@ public class BreakoutGameController : MonoBehaviour
         }
 
         return remainingBalls;
+    }
+
+    public List<BuildingDefinition> GetCollectedMachinesSnapshot()
+    {
+        return new List<BuildingDefinition>(collectedMachinesThisLevel);
     }
 
     private void HandleBrickDestroyed(BrickController destroyedBrick, int awardedScore)
@@ -300,6 +309,13 @@ public class BreakoutGameController : MonoBehaviour
         }
 
         InventoryManager.Instance.AddBuilding(buildingDefinition, quantity);
+
+        for (int i = 0; i < quantity; i++)
+        {
+            collectedMachinesThisLevel.Add(buildingDefinition);
+        }
+
+        NotifyMachinesCollectedChanged();
     }
 
     private void NotifyScoreChanged()
@@ -310,6 +326,11 @@ public class BreakoutGameController : MonoBehaviour
     private void NotifyBallsQueueChanged()
     {
         BallsQueueChanged?.Invoke();
+    }
+
+    private void NotifyMachinesCollectedChanged()
+    {
+        MachinesCollectedChanged?.Invoke();
     }
 
     private void HandleBallLost(BallController lostBall)
