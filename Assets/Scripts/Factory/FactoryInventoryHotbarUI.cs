@@ -99,7 +99,7 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
                 continue;
             }
 
-            if (inventoryManager != null && inventoryManager.TryGetBuildingAtHotbarSlot(i, out BuildingDefinition definition, out int quantity) && definition != null)
+            if (inventoryManager != null && inventoryManager.TryGetBuildingAtHotbarSlot(i, out BuildingDefinition definition, out int quantity) && definition != null && quantity > 0)
             {
                 ApplyPopulatedSlot(slot, definition, quantity);
             }
@@ -108,7 +108,9 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
                 ApplyEmptySlot(slot);
             }
 
-            bool isSelected = buildingPlacer != null && buildingPlacer.SelectedBuildingIndex == i;
+            bool isSelected = buildingPlacer != null
+                && buildingPlacer.HasSelectedBuilding
+                && buildingPlacer.SelectedBuildingIndex == i;
             if (slot.SelectionHighlight != null)
             {
                 slot.SelectionHighlight.enabled = isSelected;
@@ -131,7 +133,9 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
                 continue;
             }
 
-            slot.SelectionHighlight.enabled = buildingPlacer != null && buildingPlacer.SelectedBuildingIndex == i;
+            slot.SelectionHighlight.enabled = buildingPlacer != null
+                && buildingPlacer.HasSelectedBuilding
+                && buildingPlacer.SelectedBuildingIndex == i;
         }
     }
 
@@ -140,7 +144,7 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
         if (slot.IconImage != null)
         {
             slot.IconImage.sprite = definition.BuildingSprite;
-            slot.IconImage.color = quantity > 0 ? definition.BuildingColor : unavailableTint;
+            slot.IconImage.color = definition.BuildingColor;
             slot.IconImage.enabled = true;
             slot.IconImage.gameObject.SetActive(true);
         }

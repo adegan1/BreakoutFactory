@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [DisallowMultipleComponent]
 public class PlayerStats : MonoBehaviour
@@ -14,6 +15,12 @@ public class PlayerStats : MonoBehaviour
     [SerializeField, Min(0)] private int lives;
     [SerializeField, Min(0)] private int health;
     [SerializeField, Min(1)] private int maxHealth;
+
+    [Header("Game Over")]
+    [SerializeField] private bool loadSceneOnGameOver = true;
+    [SerializeField] private string gameOverSceneName = "GameoverScene";
+
+    private bool gameOverTriggered;
 
     public static PlayerStats Instance => EnsureInstance();
     public static bool HasInstance => instance != null;
@@ -43,6 +50,7 @@ public class PlayerStats : MonoBehaviour
 
     public void ResetToStartingValues()
     {
+        gameOverTriggered = false;
         maxHealth = Mathf.Max(1, startingMaxHealth);
         lives = Mathf.Max(1, startingLives);
         health = maxHealth;
@@ -117,7 +125,7 @@ public class PlayerStats : MonoBehaviour
 
         if (lives <= 0)
         {
-            GameOver?.Invoke();
+            TriggerGameOver();
         }
     }
 
@@ -129,8 +137,32 @@ public class PlayerStats : MonoBehaviour
 
         if (lives <= 0)
         {
-            GameOver?.Invoke();
+            TriggerGameOver();
         }
+    }
+
+    private void TriggerGameOver()
+    {
+        if (gameOverTriggered)
+        {
+            return;
+        }
+
+        gameOverTriggered = true;
+        GameOver?.Invoke();
+
+        if (!loadSceneOnGameOver)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(gameOverSceneName))
+        {
+            Debug.LogWarning("PlayerStats cannot load a game-over scene because the scene name is empty.", this);
+            return;
+        }
+
+        SceneManager.LoadScene(gameOverSceneName.Trim());
     }
 
     private void NotifyLivesChanged()

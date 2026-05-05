@@ -71,6 +71,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
     };
 
     public int SelectedBuildingIndex => selectedBuildingIndex;
+    public bool HasSelectedBuilding => hasSelectedBuilding;
     public BuildingDefinition SelectedBuildingDefinition => GetSelectedBuildingDefinition();
     public GameObject SelectedBuildingPrefab => GetSelectedBuildingDefinition()?.BehaviorPrefab;
     public int SelectedRotationQuarterTurns => selectedRotationQuarterTurns;
@@ -752,7 +753,6 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (inventoryManager != null && !inventoryManager.HasBuilding(selectedBuildingDefinition, 1))
         {
-            DeselectBuilding();
         }
 
         return true;
@@ -1151,7 +1151,9 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         ClampSelectedBuildingIndex();
-        if (!inventoryManager.TryGetBuildingAtHotbarSlot(selectedBuildingIndex, out BuildingDefinition selectedDefinition, out _))
+        if (!inventoryManager.TryGetBuildingAtHotbarSlot(selectedBuildingIndex, out BuildingDefinition selectedDefinition, out int selectedQuantity)
+            || selectedDefinition == null
+            || selectedQuantity <= 0)
         {
             return null;
         }
@@ -1484,10 +1486,6 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return;
         }
 
-        if (!hasSelectedBuilding)
-        {
-            hasSelectedBuilding = TrySelectFirstAvailableHotbarSlot();
-        }
     }
 
     private bool HasAnyHotbarBuildingDefinitions()
@@ -1528,5 +1526,101 @@ public class FactoryBuildingPlacer : MonoBehaviour
         suppressHoverUntilTileChange = false;
         SetHoverHighlightVisible(false);
         SetAllIndicatorsVisible(false);
+    }
+
+    // ── Persistence ──────────────────────────────────────────────────────────
+
+    [System.Serializable]
+    public struct FactoryBuildingEntry
+    {
+        public string definitionName;
+        public int topLeftX;
+        public int topLeftY;
+        public int rotationQuarterTurns;
+    }
+
+    public List<FactoryBuildingEntry> GetSaveData()
+    {
+        var entries = new List<FactoryBuildingEntry>();
+        var seen = new HashSet<PlacedBuildingRecord>();
+
+        foreach (PlacedBuildingRecord record in buildingsByInstanceId.Values)
+        {
+            if (record == null || record.Definition == null || seen.Contains(record))
+            {
+                continue;
+            }
+
+            seen.Add(record);
+            entries.Add(new FactoryBuildingEntry
+            {
+                definitionName = record.Definition.name,
+                topLeftX = record.TopLeftGridPosition.x,
+                topLeftY = record.TopLeftGridPosition.y,
+                rotationQuarterTurns = record.PlacedRotationQuarterTurns
+            });
+        }
+
+        return entries;
+    }
+
+    public bool RestoreBuilding(BuildingDefinition definition, Vector2Int topLeftGridPosition, int rotationQuarterTurns)
+    {
+        if (definition == null || definition.BehaviorPrefab == null || tileManager == null)
+        {
+            return false;
+        }
+
+        Vector2Int baseFootprint = definition.FootprintSize;
+        Vector2Int footprintSize = (rotationQuarterTurns & 1) == 0
+            ? baseFootprint
+            : new Vector2Int(baseFootprint.y, baseFootprint.x);
+
+        if (!tileManager.CanOccupyFootprint(topLeftGridPosition, footprintSize))
+        {
+            return false;
+        }
+
+        string occupantId = definition.BehaviorPrefab.GetInstanceID().ToString();
+        if (!tileManager.TryOccupyFootprint(topLeftGridPosition, footprintSize, occupantId))
+        {
+            return false;
+        }
+
+        Vector3 spawnPosition = GetFootprintWorldCenter(topLeftGridPosition, footprintSize);
+        Quaternion spawnRotation = Quaternion.Euler(0f, 0f, rotationQuarterTurns * 90f);
+        GameObject spawned = Instantiate(definition.BehaviorPrefab, spawnPosition, spawnRotation);
+
+        BuildingInstance buildingInstance = spawned.GetComponent<BuildingInstance>();
+        if (buildingInstance != null)
+        {
+            buildingInstance.SetGridPosition(topLeftGridPosition, footprintSize, rotationQuarterTurns);
+            buildingInstance.Initialize(definition);
+        }
+
+        PlacedBuildingRecord record = new PlacedBuildingRecord(spawned, definition, topLeftGridPosition, footprintSize, rotationQuarterTurns);
+        buildingsByInstanceId[spawned.GetInstanceID()] = record;
+
+        for (int x = 0; x < footprintSize.x; x++)
+        {
+            for (int y = 0; y < footprintSize.y; y++)
+            {
+                spawnedByCell[topLeftGridPosition + new Vector2Int(x, y)] = record;
+            }
+        }
+
+        return true;
+    }
+
+    public void RefreshAllConveyorVisuals()
+    {
+        var seen = new HashSet<PlacedBuildingRecord>();
+        foreach (PlacedBuildingRecord record in buildingsByInstanceId.Values)
+        {
+            if (record != null && IsConveyorDefinition(record.Definition) && seen.Add(record))
+            {
+                ApplyConveyorVisualForRecord(record);
+            }
+        }
     }
 }

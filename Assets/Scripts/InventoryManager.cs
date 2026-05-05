@@ -650,6 +650,23 @@ public class InventoryManager : MonoBehaviour
 
         int clampedQuantity = Mathf.Max(0, quantity);
 
+        if (clampedQuantity == 0)
+        {
+            if (buildingsByDefinition.TryGetValue(buildingDefinition, out InventoryEntry existingEntry))
+            {
+                buildingsByDefinition.Remove(buildingDefinition);
+                buildingInventory.Remove(existingEntry);
+                ClearBuildingFromHotbarSlots(buildingDefinition);
+
+                if (notifyListeners)
+                {
+                    InventoryChanged?.Invoke();
+                }
+            }
+
+            return;
+        }
+
         if (buildingsByDefinition.TryGetValue(buildingDefinition, out InventoryEntry entry))
         {
             if (entry.Quantity == clampedQuantity)
@@ -748,23 +765,6 @@ public class InventoryManager : MonoBehaviour
         {
             buildingHotbarSlots.Add(null);
         }
-
-        // Back-fill any null slots from the runtime inventory so hotbar is always populated.
-        RepopulateHotbarFromInventory();
-    }
-
-    private void RepopulateHotbarFromInventory()
-    {
-        for (int i = 0; i < buildingInventory.Count; i++)
-        {
-            InventoryEntry entry = buildingInventory[i];
-            if (entry == null || entry.BuildingDefinition == null)
-            {
-                continue;
-            }
-
-            AssignBuildingToFirstAvailableHotbarSlot(entry.BuildingDefinition);
-        }
     }
 
     private static bool IsValidHotbarSlotIndex(int slotIndex)
@@ -799,6 +799,22 @@ public class InventoryManager : MonoBehaviour
             {
                 buildingHotbarSlots[i] = buildingDefinition;
                 return;
+            }
+        }
+    }
+
+    private void ClearBuildingFromHotbarSlots(BuildingDefinition buildingDefinition)
+    {
+        if (buildingDefinition == null || buildingHotbarSlots == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < buildingHotbarSlots.Count; i++)
+        {
+            if (buildingHotbarSlots[i] == buildingDefinition)
+            {
+                buildingHotbarSlots[i] = null;
             }
         }
     }
