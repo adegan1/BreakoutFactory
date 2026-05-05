@@ -27,6 +27,28 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
+    [Serializable]
+    public class ItemInventoryEntry
+    {
+        [SerializeField] private ItemDefinition itemDefinition;
+        [Min(0)]
+        [SerializeField] private int quantity = 1;
+
+        public ItemInventoryEntry(ItemDefinition itemDefinition, int quantity)
+        {
+            this.itemDefinition = itemDefinition;
+            this.quantity = Mathf.Max(0, quantity);
+        }
+
+        public ItemDefinition ItemDefinition => itemDefinition;
+        public int Quantity => quantity;
+
+        public void SetQuantity(int newQuantity)
+        {
+            quantity = Mathf.Max(0, newQuantity);
+        }
+    }
+
     private static InventoryManager instance;
 
     [Header("Starting Building Inventory")]
@@ -34,6 +56,12 @@ public class InventoryManager : MonoBehaviour
 
     [Header("Runtime Building Inventory")]
     [SerializeField] private List<InventoryEntry> buildingInventory = new();
+
+    [Header("Starting Item Inventory")]
+    [SerializeField] private List<ItemInventoryEntry> startingItems = new();
+
+    [Header("Runtime Item Inventory")]
+    [SerializeField] private List<ItemInventoryEntry> itemInventory = new();
 
     [Header("Crafted Balls")]
     [SerializeField] private List<BallTypeData> craftedBalls = new();
@@ -45,6 +73,7 @@ public class InventoryManager : MonoBehaviour
     [SerializeField, Min(0)] private int score;
 
     private readonly Dictionary<BuildingDefinition, InventoryEntry> buildingsByDefinition = new();
+    private readonly Dictionary<ItemDefinition, ItemInventoryEntry> itemsByDefinition = new();
     private bool isInitialized;
 
     public static InventoryManager Instance => EnsureInstance();
@@ -58,6 +87,15 @@ public class InventoryManager : MonoBehaviour
         {
             EnsureInitialized();
             return buildingInventory;
+        }
+    }
+
+    public IReadOnlyList<ItemInventoryEntry> ItemItems
+    {
+        get
+        {
+            EnsureInitialized();
+            return itemInventory;
         }
     }
 
@@ -162,19 +200,90 @@ public class InventoryManager : MonoBehaviour
         EnsureInitialized();
 
         bool hasAnyBuildings = buildingInventory.Count > 0;
+        bool hasAnyItems = itemInventory.Count > 0;
         bool hasAnyBalls = craftedBalls.Count > 0;
         bool hasProgress = scrap > 0 || score > 0;
-        if (!hasAnyBuildings && !hasAnyBalls && !hasProgress)
+        if (!hasAnyBuildings && !hasAnyItems && !hasAnyBalls && !hasProgress)
         {
             return;
         }
 
         buildingInventory.Clear();
         buildingsByDefinition.Clear();
+        itemInventory.Clear();
+        itemsByDefinition.Clear();
         craftedBalls.Clear();
         scrap = 0;
         score = 0;
         InventoryChanged?.Invoke();
+    }
+
+    public int GetItemQuantity(ItemDefinition itemDefinition)
+    {
+        EnsureInitialized();
+        if (itemDefinition == null)
+        {
+            return 0;
+        }
+
+        return TryGetItemQuantityInternal(itemDefinition, out int quantity) ? quantity : 0;
+    }
+
+    public bool HasItem(ItemDefinition itemDefinition, int quantity = 1)
+    {
+        if (quantity <= 0)
+        {
+            return true;
+        }
+
+        return GetItemQuantity(itemDefinition) >= quantity;
+    }
+
+    public void AddItem(ItemDefinition itemDefinition, int quantity = 1)
+    {
+        if (quantity <= 0 || itemDefinition == null)
+        {
+            return;
+        }
+
+        EnsureInitialized();
+        TryGetItemQuantityInternal(itemDefinition, out int currentQuantity);
+        SetItemQuantityInternal(itemDefinition, currentQuantity + quantity, true);
+    }
+
+    public bool RemoveItem(ItemDefinition itemDefinition, int quantity = 1)
+    {
+        if (quantity <= 0)
+        {
+            return true;
+        }
+
+        EnsureInitialized();
+        if (itemDefinition == null)
+        {
+            return false;
+        }
+
+        TryGetItemQuantityInternal(itemDefinition, out int currentQuantity);
+        if (currentQuantity < quantity)
+        {
+            return false;
+        }
+
+        SetItemQuantityInternal(itemDefinition, currentQuantity - quantity, true);
+        return true;
+    }
+
+    public void SetItemQuantity(ItemDefinition itemDefinition, int quantity)
+    {
+        EnsureInitialized();
+        if (itemDefinition == null)
+        {
+            Debug.LogWarning("Cannot set item inventory with a null definition.", this);
+            return;
+        }
+
+        SetItemQuantityInternal(itemDefinition, quantity, true);
     }
 
     public void AddCraftedBall(BallTypeData ballType)
@@ -355,8 +464,14 @@ public class InventoryManager : MonoBehaviour
             ? new List<InventoryEntry>(buildingInventory)
             : new List<InventoryEntry>(startingBuildings);
 
+        List<ItemInventoryEntry> sourceItems = itemInventory.Count > 0
+            ? new List<ItemInventoryEntry>(itemInventory)
+            : new List<ItemInventoryEntry>(startingItems);
+
         buildingInventory.Clear();
         buildingsByDefinition.Clear();
+        itemInventory.Clear();
+        itemsByDefinition.Clear();
 
         foreach (InventoryEntry entry in sourceBuildings)
         {
@@ -368,6 +483,18 @@ public class InventoryManager : MonoBehaviour
             TryGetBuildingQuantityInternal(entry.BuildingDefinition, out int currentQuantity);
             int combinedQuantity = currentQuantity + entry.Quantity;
             SetBuildingQuantityInternal(entry.BuildingDefinition, combinedQuantity, false);
+        }
+
+        foreach (ItemInventoryEntry entry in sourceItems)
+        {
+            if (entry == null || entry.ItemDefinition == null || entry.Quantity <= 0)
+            {
+                continue;
+            }
+
+            TryGetItemQuantityInternal(entry.ItemDefinition, out int currentQuantity);
+            int combinedQuantity = currentQuantity + entry.Quantity;
+            SetItemQuantityInternal(entry.ItemDefinition, combinedQuantity, false);
         }
 
         scrap = Mathf.Max(0, scrap > 0 ? scrap : startingScrap);
@@ -427,6 +554,65 @@ public class InventoryManager : MonoBehaviour
             entry = new InventoryEntry(buildingDefinition, clampedQuantity);
             buildingsByDefinition.Add(buildingDefinition, entry);
             buildingInventory.Add(entry);
+        }
+
+        if (notifyListeners)
+        {
+            InventoryChanged?.Invoke();
+        }
+    }
+
+    private bool TryGetItemQuantityInternal(ItemDefinition itemDefinition, out int quantity)
+    {
+        if (itemDefinition != null && itemsByDefinition.TryGetValue(itemDefinition, out ItemInventoryEntry entry))
+        {
+            quantity = entry.Quantity;
+            return true;
+        }
+
+        quantity = 0;
+        return false;
+    }
+
+    private void SetItemQuantityInternal(ItemDefinition itemDefinition, int quantity, bool notifyListeners)
+    {
+        if (itemDefinition == null)
+        {
+            return;
+        }
+
+        int clampedQuantity = Mathf.Max(0, quantity);
+
+        if (clampedQuantity == 0)
+        {
+            if (itemsByDefinition.TryGetValue(itemDefinition, out ItemInventoryEntry existingEntry))
+            {
+                itemsByDefinition.Remove(itemDefinition);
+                itemInventory.Remove(existingEntry);
+
+                if (notifyListeners)
+                {
+                    InventoryChanged?.Invoke();
+                }
+            }
+
+            return;
+        }
+
+        if (itemsByDefinition.TryGetValue(itemDefinition, out ItemInventoryEntry entry))
+        {
+            if (entry.Quantity == clampedQuantity)
+            {
+                return;
+            }
+
+            entry.SetQuantity(clampedQuantity);
+        }
+        else
+        {
+            entry = new ItemInventoryEntry(itemDefinition, clampedQuantity);
+            itemsByDefinition.Add(itemDefinition, entry);
+            itemInventory.Add(entry);
         }
 
         if (notifyListeners)

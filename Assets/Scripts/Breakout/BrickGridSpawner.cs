@@ -42,6 +42,7 @@ public class BrickGridSpawner : MonoBehaviour
     [SerializeField] private UnityEvent onBricksReachedBottom;
 
     [SerializeField] private List<WeightedBrickEntry> weightedBrickPrefabs = new List<WeightedBrickEntry>();
+    [SerializeField, Min(1)] private int brickHealth = 1;
     private bool bottomEventFired;
     private int rowsSpawned;
     private float currentDownwardSpeed;
@@ -150,7 +151,7 @@ public class BrickGridSpawner : MonoBehaviour
             if (spawnedBrick != null)
             {
                 spawnedBrick.SetDownwardMotion(moveDownward, currentDownwardSpeed);
-                spawnedBrick.SetTypeData(chosenType);
+                spawnedBrick.SetTypeData(chosenType, brickHealth);
             }
         }
     }
@@ -244,6 +245,7 @@ public class BrickGridSpawner : MonoBehaviour
 
         totalRowsToSpawn = Mathf.Max(0, levelSettings.NextLevelRowsToSpawn);
         downwardSpeed = Mathf.Max(0f, levelSettings.NextLevelBrickMoveSpeed);
+        brickHealth = Mathf.Max(1, levelSettings.NextLevelBrickHealth);
         ApplyOddsFromSettings(levelSettings.NextLevelBrickOdds);
     }
 

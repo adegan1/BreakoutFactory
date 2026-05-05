@@ -150,6 +150,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
   startingBuildings: []
   buildingInventory: []
+  startingItems: []
+  itemInventory: []
   craftedBalls: []
   startingScrap: 0
   startingScore: 0
@@ -200,7 +202,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BrickGridSpawner
   brickPrefab: {fileID: -4888631261011733178, guid: 59cfc3f131956664e82e8dcd763a4372, type: 3}
-  columns: 11
+  columns: 6
   initialRows: 0
   spacing: {x: 1.2, y: 0.6}
   startOffset: {x: -6, y: 3}
@@ -1202,6 +1204,45 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}
+  enableBrickDrops: 1
+  brickDropChance: 0.2
+  minimumDropsPerLevel: 1
+  itemDropPrefab: {fileID: 85278584926764849, guid: f002f5ce3fbd19a4c840b0598de0764f, type: 3}
+  itemDropFallSpeed: 1.8
+  itemDropBottomKillY: -6
+  weightedBuildingDrops:
+  - buildingDefinition: {fileID: 11400000, guid: 9ee3ce427af21a547a30648e8e8e5a21, type: 2}
+    weight: 15
+    minQuantity: 3
+    maxQuantity: 12
+  - buildingDefinition: {fileID: 11400000, guid: d916ecbf3d00aa34085b40b06ea73067, type: 2}
+    weight: 3
+    minQuantity: 0
+    maxQuantity: 0
+  - buildingDefinition: {fileID: 11400000, guid: af82f016ca79a914eac8da8b08de15ab, type: 2}
+    weight: 3
+    minQuantity: 0
+    maxQuantity: 0
+  - buildingDefinition: {fileID: 11400000, guid: 6e1d22f1e9eae6e42b88d58539de63b6, type: 2}
+    weight: 3
+    minQuantity: 0
+    maxQuantity: 0
+  - buildingDefinition: {fileID: 11400000, guid: 85db426e8d942384285a483aff32176a, type: 2}
+    weight: 3
+    minQuantity: 0
+    maxQuantity: 0
+  - buildingDefinition: {fileID: 11400000, guid: fa46ecb9e6ac6c24d8d11ce263dcb1a5, type: 2}
+    weight: 3
+    minQuantity: 0
+    maxQuantity: 0
+  - buildingDefinition: {fileID: 11400000, guid: ef800fcd4d6ec5740bd5b340b8e28091, type: 2}
+    weight: 3
+    minQuantity: 0
+    maxQuantity: 0
+  - buildingDefinition: {fileID: 11400000, guid: a163862e1e67beb41880159dba5f80d9, type: 2}
+    weight: 1
+    minQuantity: 0
+    maxQuantity: 0
   onOutOfBalls:
     m_PersistentCalls:
       m_Calls: []

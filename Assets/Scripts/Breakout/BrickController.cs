@@ -23,6 +23,7 @@ public class BrickController : MonoBehaviour
 
     private int currentHitPoints;
     private int maxHitPoints;
+    private int overrideHitPoints = -1;
     private SpriteRenderer spriteRenderer;
     private Collider2D brickCollider;
     private Vector3 targetScale;
@@ -111,6 +112,14 @@ public class BrickController : MonoBehaviour
 
     public void SetTypeData(BrickTypeData newTypeData)
     {
+        overrideHitPoints = -1;
+        typeData = newTypeData;
+        ApplyTypeData();
+    }
+
+    public void SetTypeData(BrickTypeData newTypeData, int brickHealth)
+    {
+        overrideHitPoints = brickHealth > 0 ? brickHealth : -1;
         typeData = newTypeData;
         ApplyTypeData();
     }
@@ -126,7 +135,8 @@ public class BrickController : MonoBehaviour
             return;
         }
 
-        maxHitPoints = Mathf.Max(1, typeData.HitPoints);
+        int configuredHitPoints = overrideHitPoints > 0 ? overrideHitPoints : typeData.HitPoints;
+        maxHitPoints = Mathf.Max(1, configuredHitPoints);
         currentHitPoints = maxHitPoints;
         ClearBurn();
         ClearEarthCrack();
