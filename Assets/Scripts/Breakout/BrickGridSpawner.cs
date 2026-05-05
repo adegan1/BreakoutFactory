@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
+using System.Collections;
 
 public class BrickGridSpawner : MonoBehaviour
 {
@@ -22,6 +23,7 @@ public class BrickGridSpawner : MonoBehaviour
 
     [Header("Row Spawning")]
     [SerializeField] private bool spawnRowsOverTime = true;
+    [SerializeField, Min(0f)] private float initialSpawnDelaySeconds = 0.75f;
     [SerializeField] private bool autoSpawnTriggerFromSpacing = true;
     [SerializeField] private float topRowSpawnTriggerY = 2.4f;
     [SerializeField, Min(0)] private int totalRowsToSpawn = 12;
@@ -47,6 +49,7 @@ public class BrickGridSpawner : MonoBehaviour
     private int rowsSpawned;
     private float currentDownwardSpeed;
     private float lastAppliedDownwardSpeed = float.MinValue;
+    private bool hasStartedSpawning;
 
     public int RowsSpawned => rowsSpawned;
     public int TotalRowsToSpawn => totalRowsToSpawn;
@@ -54,6 +57,7 @@ public class BrickGridSpawner : MonoBehaviour
     private void Start()
     {
         rowsSpawned = 0;
+        hasStartedSpawning = false;
 
         if (brickPrefab == null)
         {
@@ -79,17 +83,34 @@ public class BrickGridSpawner : MonoBehaviour
         currentDownwardSpeed = GetCurrentDownwardSpeed();
         ApplyCurrentSpeedToExistingBricks(force: true);
 
-        SpawnInitialRows();
+        StartCoroutine(BeginSpawningAfterDelay());
     }
 
     private void Update()
     {
+        if (!hasStartedSpawning)
+        {
+            return;
+        }
+
         currentDownwardSpeed = GetCurrentDownwardSpeed();
         ApplyCurrentSpeedToExistingBricks(force: false);
 
         TrySpawnNextRowByTopPosition();
 
         CheckBottomDanger();
+    }
+
+    private IEnumerator BeginSpawningAfterDelay()
+    {
+        float delay = Mathf.Max(0f, initialSpawnDelaySeconds);
+        if (delay > 0f)
+        {
+            yield return new WaitForSeconds(delay);
+        }
+
+        SpawnInitialRows();
+        hasStartedSpawning = true;
     }
 
     private void SpawnInitialRows()

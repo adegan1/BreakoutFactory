@@ -49,6 +49,7 @@ public class BrickController : MonoBehaviour
 
     public int CurrentHitPoints => currentHitPoints;
     public BrickTypeData TypeData => typeData;
+    public float DownwardSpeed => downwardSpeed;
 
     private void Awake()
     {

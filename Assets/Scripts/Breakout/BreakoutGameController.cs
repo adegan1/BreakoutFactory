@@ -7,6 +7,13 @@ using UnityEngine.InputSystem;
 
 public class BreakoutGameController : MonoBehaviour
 {
+    public enum LevelEndReason
+    {
+        LevelComplete,
+        OutOfBalls,
+        OutOfHealth
+    }
+
     [Serializable]
     private class BuildingDropTableEntry
     {
@@ -47,6 +54,7 @@ public class BreakoutGameController : MonoBehaviour
     [Header("Level Complete Pause Visuals")]
     [SerializeField, Range(0f, 1f)] private float pauseGrayscaleBlend = 0.6f;
     [SerializeField, Range(0f, 1f)] private float pauseAlphaMultiplier = 0.7f;
+    [SerializeField, Min(0f)] private float brickSlowStopDuration = 0.4f;
 
     private int nextBallIndex;
     private int score;
@@ -57,8 +65,10 @@ public class BreakoutGameController : MonoBehaviour
     private readonly HashSet<BallController> activeBalls = new HashSet<BallController>();
     private bool outOfBallsInvoked;
     private bool allBricksClearedInvoked;
+    private bool levelEndTriggered;
     private bool isLevelCompleteLocked;
     private Coroutine allBricksClearedRoutine;
+    private Coroutine brickSlowStopRoutine;
     private PaddleController cachedPaddleController;
 
     public int BallsRemaining => Mathf.Max(0, ballsToDispense.Count - nextBallIndex);
@@ -67,15 +77,22 @@ public class BreakoutGameController : MonoBehaviour
     public event Action BallsQueueChanged;
     public event Action MachinesCollectedChanged;
     public event Action AllBricksCleared;
+    public event Action<LevelEndReason> LevelEnded;
 
     private void OnEnable()
     {
         BrickController.BrickDestroyed += HandleBrickDestroyed;
+        PlayerStats.Instance.HealthChanged += HandlePlayerHealthChanged;
     }
 
     private void OnDisable()
     {
         BrickController.BrickDestroyed -= HandleBrickDestroyed;
+
+        if (PlayerStats.HasInstance)
+        {
+            PlayerStats.Instance.HealthChanged -= HandlePlayerHealthChanged;
+        }
     }
 
     private void Start()
@@ -89,6 +106,7 @@ public class BreakoutGameController : MonoBehaviour
         collectedMachinesThisLevel.Clear();
         outOfBallsInvoked = false;
         allBricksClearedInvoked = false;
+        levelEndTriggered = false;
         isLevelCompleteLocked = false;
         CachePaddleController();
         NotifyScoreChanged();
@@ -144,6 +162,12 @@ public class BreakoutGameController : MonoBehaviour
         {
             StopCoroutine(allBricksClearedRoutine);
             allBricksClearedRoutine = null;
+        }
+
+        if (brickSlowStopRoutine != null)
+        {
+            StopCoroutine(brickSlowStopRoutine);
+            brickSlowStopRoutine = null;
         }
 
         foreach (BallController activeBall in activeBalls)
@@ -222,7 +246,7 @@ public class BreakoutGameController : MonoBehaviour
         return new List<BuildingDefinition>(collectedMachinesThisLevel);
     }
 
-    public void ClearCollectedMachinesThisLevel()
+    public void ClearCollectedMachinesThisLevel(bool notifyListeners = true)
     {
         if (collectedMachinesThisLevel.Count == 0)
         {
@@ -230,7 +254,10 @@ public class BreakoutGameController : MonoBehaviour
         }
 
         collectedMachinesThisLevel.Clear();
-        NotifyMachinesCollectedChanged();
+        if (notifyListeners)
+        {
+            NotifyMachinesCollectedChanged();
+        }
     }
 
     private void HandleBrickDestroyed(BrickController destroyedBrick, int awardedScore)
@@ -316,7 +343,7 @@ public class BreakoutGameController : MonoBehaviour
 
     private void TryInvokeAllBricksCleared()
     {
-        if (allBricksClearedInvoked)
+        if (allBricksClearedInvoked || levelEndTriggered)
         {
             return;
         }
@@ -332,27 +359,82 @@ public class BreakoutGameController : MonoBehaviour
         }
 
         allBricksClearedInvoked = true;
+        BeginLevelEnd(LevelEndReason.LevelComplete);
+    }
+
+    private void BeginLevelEnd(LevelEndReason reason)
+    {
+        if (levelEndTriggered)
+        {
+            return;
+        }
+
+        levelEndTriggered = true;
+        outOfBallsInvoked = true;
+
+        if (reason == LevelEndReason.OutOfBalls)
+        {
+            ConsumeLifeFromOutOfBalls();
+        }
+
         EnterLevelCompleteLock();
+
         if (allBricksClearedRoutine != null)
         {
             StopCoroutine(allBricksClearedRoutine);
         }
 
-        allBricksClearedRoutine = StartCoroutine(InvokeAllBricksClearedAfterDelay());
+        float delay = reason == LevelEndReason.LevelComplete ? Mathf.Max(0f, allBricksClearedDelaySeconds) : 0f;
+        allBricksClearedRoutine = StartCoroutine(InvokeLevelEnded(reason, delay));
     }
 
-    private IEnumerator InvokeAllBricksClearedAfterDelay()
+    private IEnumerator InvokeLevelEnded(LevelEndReason reason, float delaySeconds)
     {
-        float delay = Mathf.Max(0f, allBricksClearedDelaySeconds);
-        if (delay > 0f)
+        if (delaySeconds > 0f)
         {
-            yield return new WaitForSeconds(delay);
+            yield return new WaitForSeconds(delaySeconds);
         }
 
         CollectAllMachineDropsOnField();
-        onAllBricksCleared?.Invoke();
-        AllBricksCleared?.Invoke();
+
+        if (reason == LevelEndReason.OutOfBalls)
+        {
+            onOutOfBalls?.Invoke();
+        }
+
+        if (reason == LevelEndReason.LevelComplete)
+        {
+            onAllBricksCleared?.Invoke();
+            AllBricksCleared?.Invoke();
+        }
+
+        LevelEnded?.Invoke(reason);
         allBricksClearedRoutine = null;
+    }
+
+    private void ConsumeLifeFromOutOfBalls()
+    {
+        if (!PlayerStats.HasInstance)
+        {
+            return;
+        }
+
+        int remainingLives = Mathf.Max(0, PlayerStats.Instance.Lives - 1);
+        PlayerStats.Instance.SetLives(remainingLives);
+        if (remainingLives > 0)
+        {
+            PlayerStats.Instance.ResetHealthForNewLife();
+        }
+    }
+
+    private void HandlePlayerHealthChanged(int current, int max)
+    {
+        if (current > 0)
+        {
+            return;
+        }
+
+        BeginLevelEnd(LevelEndReason.OutOfHealth);
     }
 
     private void CollectAllMachineDropsOnField()
@@ -382,6 +464,8 @@ public class BreakoutGameController : MonoBehaviour
 
         ApplyPauseVisualToPaddle();
         FreezeAndDimMachineDrops();
+        DisableBrickSpawners();
+        StartBrickSlowStop();
 
         CleanupInactiveBalls();
         foreach (BallController activeBall in activeBalls)
@@ -394,6 +478,91 @@ public class BreakoutGameController : MonoBehaviour
             activeBall.StopMovement();
             activeBall.ApplyLevelCompletePauseVisual(pauseGrayscaleBlend, pauseAlphaMultiplier);
         }
+    }
+
+    private void DisableBrickSpawners()
+    {
+        BrickGridSpawner[] spawners = FindObjectsByType<BrickGridSpawner>(FindObjectsSortMode.None);
+        for (int i = 0; i < spawners.Length; i++)
+        {
+            BrickGridSpawner spawner = spawners[i];
+            if (spawner != null)
+            {
+                spawner.enabled = false;
+            }
+        }
+    }
+
+    private void StartBrickSlowStop()
+    {
+        if (brickSlowStopRoutine != null)
+        {
+            StopCoroutine(brickSlowStopRoutine);
+        }
+
+        BrickController[] bricks = FindObjectsByType<BrickController>(FindObjectsSortMode.None);
+        if (bricks.Length == 0)
+        {
+            return;
+        }
+
+        float duration = Mathf.Max(0f, brickSlowStopDuration);
+        if (duration <= 0f)
+        {
+            for (int i = 0; i < bricks.Length; i++)
+            {
+                BrickController brick = bricks[i];
+                if (brick != null)
+                {
+                    brick.SetDownwardMotion(false, 0f);
+                }
+            }
+
+            return;
+        }
+
+        float[] initialSpeeds = new float[bricks.Length];
+        for (int i = 0; i < bricks.Length; i++)
+        {
+            BrickController brick = bricks[i];
+            initialSpeeds[i] = brick != null ? Mathf.Max(0f, brick.DownwardSpeed) : 0f;
+        }
+
+        brickSlowStopRoutine = StartCoroutine(SlowStopBricks(bricks, initialSpeeds, duration));
+    }
+
+    private IEnumerator SlowStopBricks(BrickController[] bricks, float[] initialSpeeds, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+
+            for (int i = 0; i < bricks.Length; i++)
+            {
+                BrickController brick = bricks[i];
+                if (brick == null)
+                {
+                    continue;
+                }
+
+                brick.SetDownwardSpeed(Mathf.Lerp(initialSpeeds[i], 0f, t));
+            }
+
+            yield return null;
+        }
+
+        for (int i = 0; i < bricks.Length; i++)
+        {
+            BrickController brick = bricks[i];
+            if (brick != null)
+            {
+                brick.SetDownwardMotion(false, 0f);
+            }
+        }
+
+        brickSlowStopRoutine = null;
     }
 
     private void FreezeAndDimMachineDrops()
@@ -569,6 +738,11 @@ public class BreakoutGameController : MonoBehaviour
 
     private void TryInvokeOutOfBalls()
     {
+        if (levelEndTriggered)
+        {
+            return;
+        }
+
         CleanupInactiveBalls();
 
         bool isOutOfBalls = BallsRemaining <= 0 && activeBalls.Count == 0;
@@ -581,7 +755,7 @@ public class BreakoutGameController : MonoBehaviour
         if (!outOfBallsInvoked)
         {
             outOfBallsInvoked = true;
-            onOutOfBalls?.Invoke();
+            BeginLevelEnd(LevelEndReason.OutOfBalls);
         }
     }
 

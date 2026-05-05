@@ -17,6 +17,7 @@ public class BreakoutHudController : MonoBehaviour
     [SerializeField] private Image healthFillImage;
     [SerializeField] private TextMeshProUGUI livesText;
     [SerializeField] private GameObject levelCompletePopup;
+    [SerializeField] private TextMeshProUGUI levelEndTitleText;
     [SerializeField] private Transform levelCompleteMachineIconsRoot;
     [SerializeField] private Image levelCompleteMachineIconPrefab;
     [SerializeField] private Transform upcomingBallIconsRoot;
@@ -29,6 +30,9 @@ public class BreakoutHudController : MonoBehaviour
     [Header("Labels")]
     [SerializeField] private string livesLabel = "Lives";
     [SerializeField] private string scoreLabel = "Score";
+    [SerializeField] private string levelCompleteTitle = "Level Complete!";
+    [SerializeField] private string outOfBallsTitle = "Out of Balls!";
+    [SerializeField] private string outOfHealthTitle = "Out of Health!";
     [SerializeField, Min(1)] private int previewLimit = 12;
     [SerializeField, Min(1)] private int collectedMachinePreviewLimit = 24;
     [SerializeField] private bool autoConfigureCollectedMachineGrid = true;
@@ -69,6 +73,7 @@ public class BreakoutHudController : MonoBehaviour
             gameController.BallsQueueChanged += HandleQueueChanged;
             gameController.MachinesCollectedChanged += HandleMachinesCollectedChanged;
             gameController.AllBricksCleared += HandleAllBricksCleared;
+            gameController.LevelEnded += HandleLevelEnded;
         }
 
         if (PlayerStats.HasInstance)
@@ -88,6 +93,7 @@ public class BreakoutHudController : MonoBehaviour
             gameController.BallsQueueChanged -= HandleQueueChanged;
             gameController.MachinesCollectedChanged -= HandleMachinesCollectedChanged;
             gameController.AllBricksCleared -= HandleAllBricksCleared;
+            gameController.LevelEnded -= HandleLevelEnded;
         }
 
         if (PlayerStats.HasInstance)
@@ -119,11 +125,17 @@ public class BreakoutHudController : MonoBehaviour
 
     private void HandleAllBricksCleared()
     {
+        HandleLevelEnded(BreakoutGameController.LevelEndReason.LevelComplete);
+    }
+
+    private void HandleLevelEnded(BreakoutGameController.LevelEndReason reason)
+    {
         if (levelCompletePopup != null)
         {
             levelCompletePopup.SetActive(true);
         }
 
+        UpdateLevelEndTitle(reason);
         UpdateLevelCompleteMachineIcons();
     }
 
@@ -178,6 +190,26 @@ public class BreakoutHudController : MonoBehaviour
         }
 
         livesText.text = livesLabel + ": " + current;
+    }
+
+    private void UpdateLevelEndTitle(BreakoutGameController.LevelEndReason reason)
+    {
+        if (levelEndTitleText == null)
+        {
+            return;
+        }
+
+        string title = levelCompleteTitle;
+        if (reason == BreakoutGameController.LevelEndReason.OutOfBalls)
+        {
+            title = outOfBallsTitle;
+        }
+        else if (reason == BreakoutGameController.LevelEndReason.OutOfHealth)
+        {
+            title = outOfHealthTitle;
+        }
+
+        levelEndTitleText.text = title;
     }
 
     private void UpdateQueueIcons()

@@ -481,6 +481,7 @@ MonoBehaviour:
   spacing: {x: 1.2, y: 0.6}
   startOffset: {x: -6, y: 3}
   spawnRowsOverTime: 1
+  initialSpawnDelaySeconds: 1
   autoSpawnTriggerFromSpacing: 1
   topRowSpawnTriggerY: 2.4
   totalRowsToSpawn: 12
@@ -1395,7 +1396,7 @@ GameObject:
   - component: {fileID: 872361410}
   - component: {fileID: 872361409}
   m_Layer: 5
-  m_Name: Level Complete Text
+  m_Name: Level End Title
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1693,6 +1694,7 @@ MonoBehaviour:
   healthFillImage: {fileID: 653222111}
   livesText: {fileID: 1371758897}
   levelCompletePopup: {fileID: 1923540820}
+  levelEndTitleText: {fileID: 872361409}
   levelCompleteMachineIconsRoot: {fileID: 1524641060}
   levelCompleteMachineIconPrefab: {fileID: 2428960868800022688, guid: ae458d1b8c73a4c4983a4dd3c21f698d, type: 3}
   upcomingBallIconsRoot: {fileID: 1210710719}
@@ -1703,6 +1705,9 @@ MonoBehaviour:
   fallbackMachineSprite: {fileID: 7482667652216324306, guid: aaa3a88405f852449a8bf191b46d71c0, type: 3}
   livesLabel: Lives
   scoreLabel: Score
+  levelCompleteTitle: Level Complete!
+  outOfBallsTitle: Out of Balls!
+  outOfHealthTitle: Out of Health!
   previewLimit: 12
   collectedMachinePreviewLimit: 24
   autoConfigureCollectedMachineGrid: 1
@@ -2457,8 +2462,8 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 100, y: 100}
-  m_Spacing: {x: 0, y: 0}
+  m_CellSize: {x: 40, y: 40}
+  m_Spacing: {x: 5, y: 5}
   m_Constraint: 0
   m_ConstraintCount: 2
 --- !u!1 &1549141283
@@ -2740,6 +2745,10 @@ MonoBehaviour:
   onAllBricksCleared:
     m_PersistentCalls:
       m_Calls: []
+  allBricksClearedDelaySeconds: 0.75
+  pauseGrayscaleBlend: 0.387
+  pauseAlphaMultiplier: 0.613
+  brickSlowStopDuration: 0.4
 --- !u!4 &1781705086
 Transform:
   m_ObjectHideFlags: 0
@@ -2766,7 +2775,7 @@ GameObject:
   - component: {fileID: 1923540821}
   - component: {fileID: 1923540822}
   m_Layer: 5
-  m_Name: Confirmation Popup
+  m_Name: Level End Popup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

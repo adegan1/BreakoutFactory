@@ -29,7 +29,7 @@ public class BreakoutConfirmTransitionValidator : MonoBehaviour
 
         if (breakoutGameController != null)
         {
-            breakoutGameController.ClearCollectedMachinesThisLevel();
+            breakoutGameController.ClearCollectedMachinesThisLevel(notifyListeners: false);
         }
 
         if (sceneLoader == null)
