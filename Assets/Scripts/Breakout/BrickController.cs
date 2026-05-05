@@ -53,6 +53,7 @@ public class BrickController : MonoBehaviour
     public int CurrentHitPoints => currentHitPoints;
     public BrickTypeData TypeData => typeData;
     public float DownwardSpeed => downwardSpeed;
+    public bool IsEffectivelyStopped => inDangerSequence || IsBlockedBelowByStoppedBrick();
 
     private void Awake()
     {
@@ -496,7 +497,9 @@ public class BrickController : MonoBehaviour
                 continue;
             }
 
-            brick.ApplyColumnSlow(clampedDuration, clampedSpeedMultiplier);
+            float dy = child.position.y - transform.position.y;
+            if (dy > 0f && dy <= GetRowSpacingEstimate())
+                brick.ApplyColumnSlow(clampedDuration, clampedSpeedMultiplier);
         }
     }
 
@@ -558,6 +561,9 @@ public class BrickController : MonoBehaviour
 
     private float GetCurrentDownwardSpeed()
     {
+        if (IsBlockedBelowByStoppedBrick())
+            return 0f;
+
         float speedMultiplier = 1f;
         if (isRooted)
         {
@@ -580,6 +586,42 @@ public class BrickController : MonoBehaviour
         }
 
         return 0.6f;
+
+    }
+
+    private bool IsBlockedBelowByStoppedBrick()
+    {
+        if (transform.parent == null)
+            return false;
+
+        float maxGap = GetRowSpacingEstimate();
+        float xTolerance = GetColumnTolerance();
+
+        for (int i = 0; i < transform.parent.childCount; i++)
+        {
+            Transform child = transform.parent.GetChild(i);
+            if (child == null || child == transform)
+                continue;
+
+            float dy = transform.position.y - child.position.y;
+            if (dy <= 0f || dy > maxGap)
+                continue;
+
+            if (Mathf.Abs(child.position.x - transform.position.x) > xTolerance)
+                continue;
+
+            if (child.TryGetComponent<BrickController>(out BrickController brick) && brick.IsEffectivelyStopped)
+                return true;
+        }
+
+        return false;
+    }
+
+    private float GetRowSpacingEstimate()
+    {
+        if (brickCollider != null)
+            return brickCollider.bounds.size.y * 2f;
+        return 1.2f;
     }
 
     private void ApplyLightningBurst(BallTypeData ballTypeData)

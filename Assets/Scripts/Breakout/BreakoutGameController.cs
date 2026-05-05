@@ -487,6 +487,20 @@ public class BreakoutGameController : MonoBehaviour
             activeBall.StopMovement();
             activeBall.ApplyLevelCompletePauseVisual(pauseGrayscaleBlend, pauseAlphaMultiplier);
         }
+
+        // Safety net: also freeze any live balls not currently tracked in activeBalls.
+        BallController[] sceneBalls = FindObjectsByType<BallController>(FindObjectsSortMode.None);
+        for (int i = 0; i < sceneBalls.Length; i++)
+        {
+            BallController sceneBall = sceneBalls[i];
+            if (sceneBall == null)
+            {
+                continue;
+            }
+
+            sceneBall.StopMovement();
+            sceneBall.ApplyLevelCompletePauseVisual(pauseGrayscaleBlend, pauseAlphaMultiplier);
+        }
     }
 
     private void DisableBrickSpawners()

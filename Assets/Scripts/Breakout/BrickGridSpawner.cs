@@ -50,6 +50,7 @@ public class BrickGridSpawner : MonoBehaviour
     [SerializeField, Min(1)] private int brickHealth = 1;
     private bool bottomEventFired;
     private int rowsSpawned;
+    private int[] columnBricksSpawned;
     private float currentDownwardSpeed;
     private float lastAppliedDownwardSpeed = float.MinValue;
     private bool hasStartedSpawning;
@@ -61,6 +62,7 @@ public class BrickGridSpawner : MonoBehaviour
     private void Start()
     {
         rowsSpawned = 0;
+        columnBricksSpawned = new int[Mathf.Max(1, columns)];
         hasStartedSpawning = false;
 
         if (brickPrefab == null)
@@ -119,37 +121,46 @@ public class BrickGridSpawner : MonoBehaviour
 
     private void SpawnInitialRows()
     {
-        for (int row = 0; row < initialRows && CanSpawnMoreRows(); row++)
+        for (int row = 0; row < initialRows && rowsSpawned < totalRowsToSpawn; row++)
         {
             SpawnSingleRow(row);
             rowsSpawned++;
+            for (int col = 0; col < columnBricksSpawned.Length; col++)
+                columnBricksSpawned[col]++;
         }
     }
 
     private bool CanSpawnMoreRows()
     {
-        return rowsSpawned < totalRowsToSpawn;
+        if (columnBricksSpawned == null)
+            return rowsSpawned < totalRowsToSpawn;
+
+        for (int col = 0; col < columnBricksSpawned.Length; col++)
+        {
+            if (columnBricksSpawned[col] < totalRowsToSpawn)
+                return true;
+        }
+
+        return false;
     }
 
     private void TrySpawnNextRowByTopPosition()
     {
-        if (!spawnRowsOverTime || !CanSpawnMoreRows())
-        {
+        if (!spawnRowsOverTime || columnBricksSpawned == null)
             return;
-        }
 
-        if (transform.childCount == 0)
+        for (int col = 0; col < columns; col++)
         {
-            SpawnSingleRow(0);
-            rowsSpawned++;
-            return;
-        }
+            if (columnBricksSpawned[col] >= totalRowsToSpawn)
+                continue;
 
-        float topRowY = GetTopMostBrickY();
-        if (topRowY <= topRowSpawnTriggerY)
-        {
-            SpawnSingleRow(0);
-            rowsSpawned++;
+            float topY = GetTopMostBrickYInColumn(col);
+            if (topY == float.NegativeInfinity || topY <= topRowSpawnTriggerY)
+            {
+                SpawnBrickInColumn(col);
+                columnBricksSpawned[col]++;
+                rowsSpawned = ComputeMinColumnSpawned();
+            }
         }
     }
 
@@ -179,6 +190,60 @@ public class BrickGridSpawner : MonoBehaviour
                 spawnedBrick.SetTypeData(chosenType, brickHealth);
             }
         }
+    }
+
+    private void SpawnBrickInColumn(int col)
+    {
+        if (randomizeEmptySlots && Random.value < emptySlotChance)
+            return;
+
+        BrickTypeData chosenType = ChooseBrickType();
+        if (chosenType == null)
+            return;
+
+        Vector3 origin = transform.position + (Vector3)startOffset;
+        Vector3 position = new Vector3(origin.x + col * spacing.x, origin.y, origin.z);
+        BrickController spawnedBrick = Instantiate(brickPrefab, position, Quaternion.identity, transform);
+        if (spawnedBrick != null)
+        {
+            spawnedBrick.SetDownwardMotion(moveDownward, currentDownwardSpeed);
+            spawnedBrick.SetTypeData(chosenType, brickHealth);
+        }
+    }
+
+    private float GetTopMostBrickYInColumn(int col)
+    {
+        Vector3 origin = transform.position + (Vector3)startOffset;
+        float columnX = origin.x + col * spacing.x;
+        float xTolerance = spacing.x * 0.45f;
+        float highestY = float.NegativeInfinity;
+
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform child = transform.GetChild(i);
+            if (child == null)
+                continue;
+
+            if (Mathf.Abs(child.position.x - columnX) <= xTolerance && child.position.y > highestY)
+                highestY = child.position.y;
+        }
+
+        return highestY;
+    }
+
+    private int ComputeMinColumnSpawned()
+    {
+        if (columnBricksSpawned == null || columnBricksSpawned.Length == 0)
+            return rowsSpawned;
+
+        int min = columnBricksSpawned[0];
+        for (int i = 1; i < columnBricksSpawned.Length; i++)
+        {
+            if (columnBricksSpawned[i] < min)
+                min = columnBricksSpawned[i];
+        }
+
+        return min;
     }
 
     private BrickTypeData ChooseBrickType()
