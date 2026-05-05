@@ -32,8 +32,8 @@ MonoBehaviour:
   shatterDamage: 2
   shatterRadius: 1.4
   appliesRoot: 1
-  rootDuration: 3
-  rootSpeedMultiplier: 0.25
+  rootDuration: 2
+  rootSpeedMultiplier: 0.05
   createsWaterDrops: 0
   waterDropletType: {fileID: 0}
   waterDropCooldown: 0.08

@@ -58,6 +58,7 @@ public class BrickGridSpawner : MonoBehaviour
 
     public int RowsSpawned => rowsSpawned;
     public int TotalRowsToSpawn => totalRowsToSpawn;
+    public float VerticalSpacing => Mathf.Abs(spacing.y);
 
     private void Start()
     {
@@ -128,20 +129,6 @@ public class BrickGridSpawner : MonoBehaviour
             for (int col = 0; col < columnBricksSpawned.Length; col++)
                 columnBricksSpawned[col]++;
         }
-    }
-
-    private bool CanSpawnMoreRows()
-    {
-        if (columnBricksSpawned == null)
-            return rowsSpawned < totalRowsToSpawn;
-
-        for (int col = 0; col < columnBricksSpawned.Length; col++)
-        {
-            if (columnBricksSpawned[col] < totalRowsToSpawn)
-                return true;
-        }
-
-        return false;
     }
 
     private void TrySpawnNextRowByTopPosition()
@@ -364,21 +351,6 @@ public class BrickGridSpawner : MonoBehaviour
 
         float topSpawnY = transform.position.y + startOffset.y;
         topRowSpawnTriggerY = topSpawnY - Mathf.Abs(spacing.y);
-    }
-
-    private float GetTopMostBrickY()
-    {
-        float highestY = float.NegativeInfinity;
-        for (int i = 0; i < transform.childCount; i++)
-        {
-            Transform child = transform.GetChild(i);
-            if (child.position.y > highestY)
-            {
-                highestY = child.position.y;
-            }
-        }
-
-        return highestY;
     }
 
     private void ApplyOddsFromSettings(IReadOnlyList<LevelSettings.BrickSpawnOddsEntry> odds)

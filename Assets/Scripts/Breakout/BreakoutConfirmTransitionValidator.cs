@@ -42,7 +42,7 @@ public class BreakoutConfirmTransitionValidator : MonoBehaviour
             (breakoutGameController.LastLevelEndReason == BreakoutGameController.LevelEndReason.OutOfBalls ||
              breakoutGameController.LastLevelEndReason == BreakoutGameController.LevelEndReason.OutOfHealth);
 
-        if (lifeLost && PlayerStats.Instance != null)
+        if (lifeLost && PlayerStats.HasInstance)
             PlayerStats.Instance.ResetHealthForNewLife();
 
         sceneLoader.LoadTargetScene();

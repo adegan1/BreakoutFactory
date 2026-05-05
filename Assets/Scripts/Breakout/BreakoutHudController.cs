@@ -72,7 +72,6 @@ public class BreakoutHudController : MonoBehaviour
             gameController.ScoreChanged += HandleScoreChanged;
             gameController.BallsQueueChanged += HandleQueueChanged;
             gameController.MachinesCollectedChanged += HandleMachinesCollectedChanged;
-            gameController.AllBricksCleared += HandleAllBricksCleared;
             gameController.LevelEnded += HandleLevelEnded;
         }
 
@@ -92,7 +91,6 @@ public class BreakoutHudController : MonoBehaviour
             gameController.ScoreChanged -= HandleScoreChanged;
             gameController.BallsQueueChanged -= HandleQueueChanged;
             gameController.MachinesCollectedChanged -= HandleMachinesCollectedChanged;
-            gameController.AllBricksCleared -= HandleAllBricksCleared;
             gameController.LevelEnded -= HandleLevelEnded;
         }
 
@@ -121,11 +119,6 @@ public class BreakoutHudController : MonoBehaviour
         {
             UpdateLevelCompleteMachineIcons();
         }
-    }
-
-    private void HandleAllBricksCleared()
-    {
-        HandleLevelEnded(BreakoutGameController.LevelEndReason.LevelComplete);
     }
 
     private void HandleLevelEnded(BreakoutGameController.LevelEndReason reason)
@@ -283,7 +276,8 @@ public class BreakoutHudController : MonoBehaviour
         }
 
         int maxIcons = Mathf.Max(1, collectedMachinePreviewLimit);
-        EnsureCollectedMachineIconPool(maxIcons);
+        EnsureMachineIconPool(maxIcons, collectedMachineIconPrefab, collectedMachineIconsRoot,
+            collectedMachineIconPool, collectedMachineCountLabelPool, "CollectedMachineIcon_");
 
         for (int i = 0; i < collectedMachineIconPool.Count; i++)
         {
@@ -296,27 +290,7 @@ public class BreakoutHudController : MonoBehaviour
         }
 
         BuildCollectedMachineDisplayEntries(gameController.GetCollectedMachinesSnapshot());
-
-        int shown = Mathf.Min(maxIcons, collectedMachineDisplayEntries.Count);
-        for (int i = 0; i < shown; i++)
-        {
-            CollectedMachineDisplayEntry entry = collectedMachineDisplayEntries[i];
-            Image iconImage = collectedMachineIconPool[i];
-            iconImage.sprite = ResolveMachineSprite(entry.Definition);
-            iconImage.color = ResolveMachineTint(entry.Definition);
-            iconImage.gameObject.SetActive(iconImage.sprite != null);
-
-            TextMeshProUGUI countLabel = collectedMachineCountLabelPool[i];
-            if (countLabel != null)
-            {
-                bool showLabel = entry.Quantity > 1;
-                countLabel.gameObject.SetActive(showLabel);
-                if (showLabel)
-                {
-                    countLabel.text = quantityPrefix + entry.Quantity;
-                }
-            }
-        }
+        DisplayMachineIconsFromEntries(collectedMachineIconPool, collectedMachineCountLabelPool, maxIcons);
     }
 
     private void UpdateLevelCompleteMachineIcons()
@@ -327,7 +301,8 @@ public class BreakoutHudController : MonoBehaviour
         }
 
         int maxIcons = Mathf.Max(1, collectedMachinePreviewLimit);
-        EnsureLevelCompleteMachineIconPool(maxIcons);
+        EnsureMachineIconPool(maxIcons, levelCompleteMachineIconPrefab, levelCompleteMachineIconsRoot,
+            levelCompleteMachineIconPool, levelCompleteMachineCountLabelPool, "LevelCompleteMachineIcon_");
 
         for (int i = 0; i < levelCompleteMachineIconPool.Count; i++)
         {
@@ -340,17 +315,41 @@ public class BreakoutHudController : MonoBehaviour
         }
 
         BuildCollectedMachineDisplayEntries(gameController.GetCollectedMachinesSnapshot());
+        DisplayMachineIconsFromEntries(levelCompleteMachineIconPool, levelCompleteMachineCountLabelPool, maxIcons);
+    }
 
+    private void EnsureMachineIconPool(int count, Image prefab, Transform root,
+        List<Image> iconPool, List<TextMeshProUGUI> labelPool, string namePrefix)
+    {
+        for (int i = iconPool.Count; i < count; i++)
+        {
+            Image spawnedIcon = Instantiate(prefab, root);
+            spawnedIcon.gameObject.name = namePrefix + i;
+            spawnedIcon.gameObject.SetActive(false);
+            iconPool.Add(spawnedIcon);
+
+            TextMeshProUGUI countLabel = EnsureCountLabel(spawnedIcon.transform, i);
+            if (countLabel != null)
+            {
+                countLabel.gameObject.SetActive(false);
+            }
+
+            labelPool.Add(countLabel);
+        }
+    }
+
+    private void DisplayMachineIconsFromEntries(List<Image> iconPool, List<TextMeshProUGUI> labelPool, int maxIcons)
+    {
         int shown = Mathf.Min(maxIcons, collectedMachineDisplayEntries.Count);
         for (int i = 0; i < shown; i++)
         {
             CollectedMachineDisplayEntry entry = collectedMachineDisplayEntries[i];
-            Image iconImage = levelCompleteMachineIconPool[i];
+            Image iconImage = iconPool[i];
             iconImage.sprite = ResolveMachineSprite(entry.Definition);
             iconImage.color = ResolveMachineTint(entry.Definition);
             iconImage.gameObject.SetActive(iconImage.sprite != null);
 
-            TextMeshProUGUI countLabel = levelCompleteMachineCountLabelPool[i];
+            TextMeshProUGUI countLabel = labelPool[i];
             if (countLabel != null)
             {
                 bool showLabel = entry.Quantity > 1;
@@ -360,44 +359,6 @@ public class BreakoutHudController : MonoBehaviour
                     countLabel.text = quantityPrefix + entry.Quantity;
                 }
             }
-        }
-    }
-
-    private void EnsureCollectedMachineIconPool(int count)
-    {
-        for (int i = collectedMachineIconPool.Count; i < count; i++)
-        {
-            Image spawnedIcon = Instantiate(collectedMachineIconPrefab, collectedMachineIconsRoot);
-            spawnedIcon.gameObject.name = "CollectedMachineIcon_" + i;
-            spawnedIcon.gameObject.SetActive(false);
-            collectedMachineIconPool.Add(spawnedIcon);
-
-            TextMeshProUGUI countLabel = EnsureCountLabel(spawnedIcon.transform, i);
-            if (countLabel != null)
-            {
-                countLabel.gameObject.SetActive(false);
-            }
-
-            collectedMachineCountLabelPool.Add(countLabel);
-        }
-    }
-
-    private void EnsureLevelCompleteMachineIconPool(int count)
-    {
-        for (int i = levelCompleteMachineIconPool.Count; i < count; i++)
-        {
-            Image spawnedIcon = Instantiate(levelCompleteMachineIconPrefab, levelCompleteMachineIconsRoot);
-            spawnedIcon.gameObject.name = "LevelCompleteMachineIcon_" + i;
-            spawnedIcon.gameObject.SetActive(false);
-            levelCompleteMachineIconPool.Add(spawnedIcon);
-
-            TextMeshProUGUI countLabel = EnsureCountLabel(spawnedIcon.transform, i);
-            if (countLabel != null)
-            {
-                countLabel.gameObject.SetActive(false);
-            }
-
-            levelCompleteMachineCountLabelPool.Add(countLabel);
         }
     }
 
@@ -483,16 +444,7 @@ public class BreakoutHudController : MonoBehaviour
             return;
         }
 
-        GridLayoutGroup gridLayout = collectedMachineIconsRoot.GetComponent<GridLayoutGroup>();
-        if (gridLayout == null)
-        {
-            gridLayout = collectedMachineIconsRoot.gameObject.AddComponent<GridLayoutGroup>();
-        }
-
-        gridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
-        gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
-        gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        gridLayout.constraintCount = Mathf.Max(1, collectedMachineColumns);
+        ConfigureGridLayout(collectedMachineIconsRoot, collectedMachineColumns);
     }
 
     private void ConfigureLevelCompleteMachineLayout()
@@ -502,16 +454,21 @@ public class BreakoutHudController : MonoBehaviour
             return;
         }
 
-        GridLayoutGroup gridLayout = levelCompleteMachineIconsRoot.GetComponent<GridLayoutGroup>();
+        ConfigureGridLayout(levelCompleteMachineIconsRoot, levelCompleteMachineColumns);
+    }
+
+    private static void ConfigureGridLayout(Transform root, int columns)
+    {
+        GridLayoutGroup gridLayout = root.GetComponent<GridLayoutGroup>();
         if (gridLayout == null)
         {
-            gridLayout = levelCompleteMachineIconsRoot.gameObject.AddComponent<GridLayoutGroup>();
+            gridLayout = root.gameObject.AddComponent<GridLayoutGroup>();
         }
 
         gridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
         gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
         gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        gridLayout.constraintCount = Mathf.Max(1, levelCompleteMachineColumns);
+        gridLayout.constraintCount = Mathf.Max(1, columns);
     }
 
     private Sprite ResolveMachineSprite(BuildingDefinition machineDefinition)

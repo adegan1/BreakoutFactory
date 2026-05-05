@@ -5,6 +5,13 @@ using System.Collections.Generic;
 public class BrickController : MonoBehaviour
 {
     private const float MinimumRootSpeedMultiplier = 0.05f;
+    private const float MinimumDurationSeconds = 0.01f;
+    private const float MinimumEffectRadius = 0.1f;
+    private const float RootColumnYThresholdOffset = 0.01f;
+    private const float MinimumColumnTolerance = 0.05f;
+    private const float DefaultColumnTolerance = 0.6f;
+    private const float RowSpacingSafetyMultiplier = 1.1f;
+    private const float DefaultRowSpacing = 1.2f;
 
     [SerializeField] private BrickTypeData typeData;
 
@@ -53,7 +60,10 @@ public class BrickController : MonoBehaviour
     public int CurrentHitPoints => currentHitPoints;
     public BrickTypeData TypeData => typeData;
     public float DownwardSpeed => downwardSpeed;
-    public bool IsEffectivelyStopped => inDangerSequence || IsBlockedBelowByStoppedBrick();
+    public bool IsPinnedInPlace => inDangerSequence
+        || (isRooted && rootSpeedMultiplier <= MinimumRootSpeedMultiplier)
+        || (hasColumnSlow && columnSlowSpeedMultiplier <= MinimumRootSpeedMultiplier);
+    public bool IsEffectivelyStopped => IsPinnedInPlace || IsBlockedBelowByStoppedBrick();
 
     private void Awake()
     {
@@ -119,12 +129,6 @@ public class BrickController : MonoBehaviour
 
     public void SetDownwardSpeed(float speed)
     {
-        if (inDangerSequence)
-        {
-            downwardSpeed = 0f;
-            return;
-        }
-
         downwardSpeed = Mathf.Max(0f, speed);
     }
 
@@ -378,7 +382,7 @@ public class BrickController : MonoBehaviour
 
         isBurning = true;
         burnDamage = Mathf.Max(1, damagePerTick);
-        burnTickInterval = Mathf.Max(0.01f, tickInterval);
+        burnTickInterval = Mathf.Max(MinimumDurationSeconds, tickInterval);
         burnTickTimer = burnTickInterval;
         burnHitsRemaining = hitCount;
     }
@@ -433,7 +437,7 @@ public class BrickController : MonoBehaviour
     private void TriggerShatter(int damage, float radius)
     {
         int shatterDamage = Mathf.Max(1, damage);
-        float shatterRadius = Mathf.Max(0.1f, radius);
+        float shatterRadius = Mathf.Max(MinimumEffectRadius, radius);
         CollectNearbyBricks(shatterRadius, nearbyBricksBuffer);
         if (nearbyBricksBuffer.Count == 0)
         {
@@ -462,9 +466,10 @@ public class BrickController : MonoBehaviour
             return;
         }
 
-        float clampedSpeedMultiplier = Mathf.Clamp(speedMultiplier, MinimumRootSpeedMultiplier, 1f);
-        float yThreshold = transform.position.y - 0.01f;
+        float clampedSpeedMultiplier = ClampEffectSpeedMultiplier(speedMultiplier);
+        float yThreshold = transform.position.y - RootColumnYThresholdOffset;
         float xTolerance = GetColumnTolerance();
+        float rowSpacing = GetRowSpacingEstimate();
 
         Transform parentTransform = transform.parent;
         if (parentTransform == null)
@@ -498,7 +503,7 @@ public class BrickController : MonoBehaviour
             }
 
             float dy = child.position.y - transform.position.y;
-            if (dy > 0f && dy <= GetRowSpacingEstimate())
+            if (dy > 0f && dy <= rowSpacing)
                 brick.ApplyColumnSlow(clampedDuration, clampedSpeedMultiplier);
         }
     }
@@ -507,14 +512,14 @@ public class BrickController : MonoBehaviour
     {
         isRooted = true;
         rootTimeRemaining = Mathf.Max(0f, duration);
-        rootSpeedMultiplier = Mathf.Clamp(speedMultiplier, MinimumRootSpeedMultiplier, 1f);
+        rootSpeedMultiplier = ClampEffectSpeedMultiplier(speedMultiplier);
     }
 
     private void ApplyColumnSlow(float duration, float speedMultiplier)
     {
         hasColumnSlow = true;
         columnSlowTimeRemaining = Mathf.Max(0f, duration);
-        columnSlowSpeedMultiplier = Mathf.Clamp(speedMultiplier, MinimumRootSpeedMultiplier, 1f);
+        columnSlowSpeedMultiplier = ClampEffectSpeedMultiplier(speedMultiplier);
     }
 
     private void UpdateRooting()
@@ -561,31 +566,23 @@ public class BrickController : MonoBehaviour
 
     private float GetCurrentDownwardSpeed()
     {
+        if (IsPinnedInPlace)
+            return 0f;
+
         if (IsBlockedBelowByStoppedBrick())
             return 0f;
 
-        float speedMultiplier = 1f;
-        if (isRooted)
-        {
-            speedMultiplier = Mathf.Min(speedMultiplier, Mathf.Clamp(rootSpeedMultiplier, MinimumRootSpeedMultiplier, 1f));
-        }
-
-        if (hasColumnSlow)
-        {
-            speedMultiplier = Mathf.Min(speedMultiplier, Mathf.Clamp(columnSlowSpeedMultiplier, MinimumRootSpeedMultiplier, 1f));
-        }
-
-        return downwardSpeed * speedMultiplier;
+        return downwardSpeed * GetAppliedSpeedMultiplier();
     }
 
     private float GetColumnTolerance()
     {
         if (brickCollider != null)
         {
-            return Mathf.Max(0.05f, brickCollider.bounds.extents.x * 0.7f);
+            return Mathf.Max(MinimumColumnTolerance, brickCollider.bounds.extents.x * 0.7f);
         }
 
-        return 0.6f;
+        return DefaultColumnTolerance;
 
     }
 
@@ -619,9 +616,15 @@ public class BrickController : MonoBehaviour
 
     private float GetRowSpacingEstimate()
     {
+        if (transform.parent != null && transform.parent.TryGetComponent<BrickGridSpawner>(out BrickGridSpawner spawner))
+        {
+            // Use the same spacing source as spawned rows so stop propagation matches the grid.
+            return Mathf.Max(MinimumDurationSeconds, spawner.VerticalSpacing * RowSpacingSafetyMultiplier);
+        }
+
         if (brickCollider != null)
             return brickCollider.bounds.size.y * 2f;
-        return 1.2f;
+        return DefaultRowSpacing;
     }
 
     private void ApplyLightningBurst(BallTypeData ballTypeData)
@@ -682,7 +685,7 @@ public class BrickController : MonoBehaviour
             ApplyEarthCrackHit(ballTypeData);
         }
 
-        if (ballTypeData.AppliesRoot)
+        if (ballTypeData.AppliesRoot && currentHitPoints > 0)
         {
             ApplyRootToBrickAndAbove(ballTypeData.RootDuration, ballTypeData.RootSpeedMultiplier);
         }
@@ -692,7 +695,7 @@ public class BrickController : MonoBehaviour
     {
         results.Clear();
 
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, Mathf.Max(0.1f, radius));
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, Mathf.Max(MinimumEffectRadius, radius));
         if (colliders == null || colliders.Length == 0)
         {
             return;
@@ -742,7 +745,7 @@ public class BrickController : MonoBehaviour
 
     private IEnumerator LightningPulseCoroutine()
     {
-        float duration = Mathf.Max(0.01f, lightningPulseDuration);
+        float duration = Mathf.Max(MinimumDurationSeconds, lightningPulseDuration);
         float halfDuration = duration * 0.5f;
         float elapsed = 0f;
 
@@ -800,5 +803,27 @@ public class BrickController : MonoBehaviour
         float ratio = Mathf.Clamp01((float)currentHitPoints / Mathf.Max(1, maxHitPoints));
         baseColor.a = ratio;
         return baseColor;
+    }
+
+    private static float ClampEffectSpeedMultiplier(float speedMultiplier)
+    {
+        return Mathf.Clamp(speedMultiplier, MinimumRootSpeedMultiplier, 1f);
+    }
+
+    private float GetAppliedSpeedMultiplier()
+    {
+        float speedMultiplier = 1f;
+
+        if (isRooted)
+        {
+            speedMultiplier = Mathf.Min(speedMultiplier, ClampEffectSpeedMultiplier(rootSpeedMultiplier));
+        }
+
+        if (hasColumnSlow)
+        {
+            speedMultiplier = Mathf.Min(speedMultiplier, ClampEffectSpeedMultiplier(columnSlowSpeedMultiplier));
+        }
+
+        return speedMultiplier;
     }
 }

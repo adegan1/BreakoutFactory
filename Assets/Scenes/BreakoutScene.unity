@@ -492,7 +492,7 @@ MonoBehaviour:
   downwardSpeed: 0.1
   startingDownwardSpeed: 1.2
   speedRampDuration: 3
-  bottomDangerY: -3
+  bottomDangerY: -2.5
   dangerShakeStartDelay: 0.5
   dangerShakeDuration: 2.5
   dangerShakeMagnitude: 0.05
@@ -2698,9 +2698,9 @@ MonoBehaviour:
   ballPrefab: {fileID: 9021448586808601386, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   paddleTransform: {fileID: 1324807477}
   ballsToDispense:
-  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
-  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
-  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  - {fileID: 11400000, guid: 35df350068fd84740aa7d5f9b5f3729f, type: 2}
+  - {fileID: 11400000, guid: 35df350068fd84740aa7d5f9b5f3729f, type: 2}
+  - {fileID: 11400000, guid: 35df350068fd84740aa7d5f9b5f3729f, type: 2}
   initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}
   enableBrickDrops: 1
@@ -2933,9 +2933,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ddf8f2a4ea1090468937792b28d1ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelSettings
-  nextLevelRowsToSpawn: 10
-  nextLevelBrickMoveSpeed: 2
-  nextLevelBrickHealth: 1
+  nextLevelRowsToSpawn: 6
+  nextLevelBrickMoveSpeed: 0.075
+  nextLevelBrickHealth: 2
   nextLevelBrickOdds:
   - typeData: {fileID: 11400000, guid: 85e9b8c05e2b7214b819ed976f1dd770, type: 2}
     weight: 40

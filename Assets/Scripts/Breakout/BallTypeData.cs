@@ -42,7 +42,7 @@ public class BallTypeData : ScriptableObject
     [SerializeField, Min(0.1f)] private float shatterRadius = 1.4f;
     [SerializeField] private bool appliesRoot = false;
     [SerializeField, Min(0.1f)] private float rootDuration = 2f;
-    [SerializeField, Range(0.1f, 1f)] private float rootSpeedMultiplier = 0.6f;
+    [SerializeField, Range(0f, 1f)] private float rootSpeedMultiplier = 0.6f;
     [SerializeField] private bool createsWaterDrops = false;
     [SerializeField] private BallTypeData waterDropletType;
     [SerializeField, Min(0.01f)] private float waterDropCooldown = 0.08f;

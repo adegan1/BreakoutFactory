@@ -236,13 +236,7 @@ public class BreakoutGameController : MonoBehaviour
 
     public List<BallTypeData> GetUpcomingBallsSnapshot()
     {
-        List<BallTypeData> remainingBalls = new List<BallTypeData>();
-        for (int i = nextBallIndex; i < ballsToDispense.Count; i++)
-        {
-            remainingBalls.Add(ballsToDispense[i]);
-        }
-
-        return remainingBalls;
+        return ballsToDispense.GetRange(nextBallIndex, ballsToDispense.Count - nextBallIndex);
     }
 
     public List<BuildingDefinition> GetCollectedMachinesSnapshot()
@@ -352,14 +346,9 @@ public class BreakoutGameController : MonoBehaviour
             return;
         }
 
-        BrickController[] bricks = FindObjectsByType<BrickController>(FindObjectsSortMode.None);
-        for (int i = 0; i < bricks.Length; i++)
+        if (CountLivingBricks() > 0)
         {
-            BrickController brick = bricks[i];
-            if (brick != null && brick.CurrentHitPoints > 0)
-            {
-                return;
-            }
+            return;
         }
 
         allBricksClearedInvoked = true;
@@ -784,31 +773,6 @@ public class BreakoutGameController : MonoBehaviour
 
     private void CleanupInactiveBalls()
     {
-        if (activeBalls.Count == 0)
-        {
-            return;
-        }
-
-        List<BallController> staleBalls = null;
-        foreach (BallController activeBall in activeBalls)
-        {
-            if (activeBall != null)
-            {
-                continue;
-            }
-
-            staleBalls ??= new List<BallController>();
-            staleBalls.Add(activeBall);
-        }
-
-        if (staleBalls == null)
-        {
-            return;
-        }
-
-        for (int i = 0; i < staleBalls.Count; i++)
-        {
-            activeBalls.Remove(staleBalls[i]);
-        }
+        activeBalls.RemoveWhere(b => b == null);
     }
 }
