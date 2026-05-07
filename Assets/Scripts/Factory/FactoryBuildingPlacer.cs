@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 using System;
 
 public class FactoryBuildingPlacer : MonoBehaviour
@@ -50,6 +51,13 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [Header("UI Interaction")]
     [SerializeField] private LayerMask blockingUiLayers = 1 << 5;
 
+    [Header("Factory Speed")]
+    [SerializeField, Min(0.1f)] private float normalFactorySpeed = 1f;
+    [SerializeField, Min(0.1f)] private float boostedFactorySpeed = 2f;
+    [SerializeField] private bool enableShiftSpeedBoost = true;
+    [SerializeField] private Toggle normalSpeedToggle;
+    [SerializeField] private Toggle doubleSpeedToggle;
+
     private readonly Dictionary<Vector2Int, PlacedBuildingRecord> spawnedByCell = new();
     private readonly Dictionary<int, PlacedBuildingRecord> buildingsByInstanceId = new();
     private SpriteRenderer hoverHighlightRenderer;
@@ -65,6 +73,9 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private Vector2Int pointerGridPosition;
     private Vector3 pointerWorldPoint;
     private int selectedRotationQuarterTurns;
+    private float selectedFactorySpeed = 1f;
+    private float defaultFixedDeltaTime = 0.02f;
+    private bool isShiftSpeedOverrideActive;
     private readonly List<Vector2Int> reusableInputTiles = new();
     private readonly List<ItemEntity> reusableItemsOnInput = new();
     private static readonly List<RaycastResult> reusableUiRaycastResults = new();
@@ -157,6 +168,10 @@ public class FactoryBuildingPlacer : MonoBehaviour
             outputIndicatorRenderer = outputIndicator.GetComponent<SpriteRenderer>();
         }
 
+        defaultFixedDeltaTime = Time.fixedDeltaTime;
+        selectedFactorySpeed = Mathf.Max(0.1f, normalFactorySpeed);
+        ApplyFactorySpeed(selectedFactorySpeed);
+
         HoveredMachineInstanceId = -1;
         SelectedMachineInstanceId = -1;
     }
@@ -164,6 +179,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private void Update()
     {
         EnsureInventoryManagerAssigned();
+        HandleFactorySpeedInput();
+        MaintainSpeedToggleSelectionVisual();
 
         Mouse mouse = Mouse.current;
         if (mouse == null)
@@ -1310,6 +1327,156 @@ public class FactoryBuildingPlacer : MonoBehaviour
                 : (selectedRotationQuarterTurns + 3) % 4;
             suppressHoverUntilTileChange = false;
         }
+    }
+
+    private void HandleFactorySpeedInput()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (!enableShiftSpeedBoost || keyboard == null)
+        {
+            if (isShiftSpeedOverrideActive)
+            {
+                isShiftSpeedOverrideActive = false;
+                SyncSpeedToggleVisualWithSelectedSpeed();
+            }
+
+            ApplyFactorySpeed(selectedFactorySpeed);
+            return;
+        }
+
+        bool shiftHeld = keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed;
+        float boostedSpeed = Mathf.Max(0.1f, boostedFactorySpeed);
+        bool isAlreadyOnBoostedSpeed = Mathf.Approximately(selectedFactorySpeed, boostedSpeed);
+
+        // If base speed is already 2x, Shift should not change state or toggles.
+        if (isAlreadyOnBoostedSpeed)
+        {
+            if (isShiftSpeedOverrideActive)
+            {
+                isShiftSpeedOverrideActive = false;
+                SyncSpeedToggleVisualWithSelectedSpeed();
+            }
+
+            ApplyFactorySpeed(selectedFactorySpeed);
+            return;
+        }
+
+        if (shiftHeld)
+        {
+            if (!isShiftSpeedOverrideActive)
+            {
+                isShiftSpeedOverrideActive = true;
+                SetSpeedToggleVisual(isDoubleSelected: true);
+            }
+
+            ApplyFactorySpeed(boostedSpeed);
+            return;
+        }
+
+        if (isShiftSpeedOverrideActive)
+        {
+            isShiftSpeedOverrideActive = false;
+            SyncSpeedToggleVisualWithSelectedSpeed();
+        }
+
+        ApplyFactorySpeed(selectedFactorySpeed);
+    }
+
+    public void SetFactorySpeedTo1x()
+    {
+        selectedFactorySpeed = Mathf.Max(0.1f, normalFactorySpeed);
+        isShiftSpeedOverrideActive = false;
+        SetSpeedToggleVisual(isDoubleSelected: false);
+        ApplyFactorySpeed(selectedFactorySpeed);
+    }
+
+    public void SetFactorySpeedTo1x(bool isOn)
+    {
+        if (isOn)
+        {
+            SetFactorySpeedTo1x();
+        }
+    }
+
+    public void SetFactorySpeedTo2x()
+    {
+        selectedFactorySpeed = Mathf.Max(0.1f, boostedFactorySpeed);
+        isShiftSpeedOverrideActive = false;
+        SetSpeedToggleVisual(isDoubleSelected: true);
+        ApplyFactorySpeed(selectedFactorySpeed);
+    }
+
+    public void SetFactorySpeedTo2x(bool isOn)
+    {
+        if (isOn)
+        {
+            SetFactorySpeedTo2x();
+        }
+    }
+
+    private void ApplyFactorySpeed(float speed)
+    {
+        float clampedSpeed = Mathf.Max(0.1f, speed);
+
+        if (Mathf.Approximately(Time.timeScale, clampedSpeed))
+        {
+            return;
+        }
+
+        Time.timeScale = clampedSpeed;
+        Time.fixedDeltaTime = defaultFixedDeltaTime * clampedSpeed;
+    }
+
+    private void SyncSpeedToggleVisualWithSelectedSpeed()
+    {
+        bool isDoubleSelected = Mathf.Approximately(selectedFactorySpeed, Mathf.Max(0.1f, boostedFactorySpeed));
+        SetSpeedToggleVisual(isDoubleSelected);
+    }
+
+    private void SetSpeedToggleVisual(bool isDoubleSelected)
+    {
+        if (normalSpeedToggle != null)
+        {
+            normalSpeedToggle.SetIsOnWithoutNotify(!isDoubleSelected);
+        }
+
+        if (doubleSpeedToggle != null)
+        {
+            doubleSpeedToggle.SetIsOnWithoutNotify(isDoubleSelected);
+        }
+    }
+
+    private void MaintainSpeedToggleSelectionVisual()
+    {
+        Toggle activeToggle = GetActiveSpeedToggleForVisual();
+        if (activeToggle == null)
+        {
+            return;
+        }
+
+        EventSystem eventSystem = EventSystem.current;
+        if (eventSystem == null)
+        {
+            return;
+        }
+
+        if (eventSystem.currentSelectedGameObject != activeToggle.gameObject)
+        {
+            eventSystem.SetSelectedGameObject(activeToggle.gameObject);
+        }
+    }
+
+    private Toggle GetActiveSpeedToggleForVisual()
+    {
+        bool isDoubleSelected = isShiftSpeedOverrideActive
+            || Mathf.Approximately(selectedFactorySpeed, Mathf.Max(0.1f, boostedFactorySpeed));
+
+        if (isDoubleSelected)
+        {
+            return doubleSpeedToggle != null ? doubleSpeedToggle : normalSpeedToggle;
+        }
+
+        return normalSpeedToggle != null ? normalSpeedToggle : doubleSpeedToggle;
     }
 
     public bool TrySelectBuildingByIndex(int index)
