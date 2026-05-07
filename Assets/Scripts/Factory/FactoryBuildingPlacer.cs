@@ -1715,27 +1715,40 @@ public class FactoryBuildingPlacer : MonoBehaviour
         SetAllIndicatorsVisible(false);
     }
 
-    public void ClearAllPlacedBuildings(bool refundToInventory = false, bool clearLooseItems = true)
+    public void ClearFactoryAndRefundAll()
+    {
+        EnsureInventoryManagerAssigned();
+        if (inventoryManager != null)
+        {
+            // Factory reset should remove crafted balls because no molds remain on the field.
+            inventoryManager.SetCraftedBalls(null);
+        }
+
+        ClearAllPlacedBuildings(refundToInventory: true, clearLooseItems: true, resetMachineResourcesToFull: true);
+    }
+
+    public void ClearAllPlacedBuildings(
+        bool refundToInventory = false,
+        bool clearLooseItems = true,
+        bool resetMachineResourcesToFull = false)
     {
         EnsureInventoryManagerAssigned();
 
         var uniqueRecords = new HashSet<PlacedBuildingRecord>(buildingsByInstanceId.Values);
         foreach (PlacedBuildingRecord record in uniqueRecords)
         {
-            if (record == null)
+            if (record == null || record.SpawnedObject == null)
             {
                 continue;
             }
 
-            if (refundToInventory && inventoryManager != null && record.Definition != null)
+            // Store machine resource state BEFORE destroying so components are accessible
+            if (!resetMachineResourcesToFull && refundToInventory && inventoryManager != null && record.Definition != null)
             {
-                inventoryManager.AddBuilding(record.Definition, 1);
+                StoreMachineResourceForInventory(record.SpawnedObject, record.Definition);
             }
 
-            if (record.SpawnedObject != null)
-            {
-                Destroy(record.SpawnedObject);
-            }
+            Destroy(record.SpawnedObject);
         }
 
         if (clearLooseItems)
@@ -1745,7 +1758,24 @@ public class FactoryBuildingPlacer : MonoBehaviour
             {
                 if (looseItems[i] != null)
                 {
+                    if (!resetMachineResourcesToFull)
+                    {
+                        looseItems[i].TryRefundToSourceGenerator(looseItems[i].Quantity);
+                    }
+
                     Destroy(looseItems[i].gameObject);
+                }
+            }
+        }
+
+        // Refund all buildings to inventory
+        if (refundToInventory && inventoryManager != null)
+        {
+            foreach (PlacedBuildingRecord record in uniqueRecords)
+            {
+                if (record != null && record.Definition != null)
+                {
+                    inventoryManager.AddBuilding(record.Definition, 1);
                 }
             }
         }
