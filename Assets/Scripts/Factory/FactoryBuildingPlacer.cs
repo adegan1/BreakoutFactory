@@ -791,6 +791,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
         Vector2Int gridPosition = pointerGridPosition;
         if (!spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord record) || record?.SpawnedObject == null)
         {
+            if (TryRemoveLooseItemUnderPointer())
+            {
+                return;
+            }
+
             DeselectBuilding();
             return;
         }
@@ -805,6 +810,47 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         RefreshConveyorVisualsAround(topLeft, footprintSize);
         suppressHoverUntilTileChange = false;
+    }
+
+    private bool TryRemoveLooseItemUnderPointer()
+    {
+        if (tileManager == null || !hasPointerTile)
+        {
+            return false;
+        }
+
+        Vector2Int tile = pointerGridPosition;
+        if (spawnedByCell.ContainsKey(tile))
+        {
+            // Items on machine tiles should not be deleted by ground cleanup.
+            return false;
+        }
+
+        ItemEntity[] items = ItemEntitySceneQuery.GetItems();
+        for (int i = 0; i < items.Length; i++)
+        {
+            ItemEntity item = items[i];
+            if (item == null)
+            {
+                continue;
+            }
+
+            if (tileManager.WorldToGrid(item.transform.position) != tile)
+            {
+                continue;
+            }
+
+            if (!item.ContainsWorldPoint(pointerWorldPoint))
+            {
+                continue;
+            }
+
+            item.TryRefundToSourceGenerator(1);
+            Destroy(item.gameObject);
+            return true;
+        }
+
+        return false;
     }
 
     private bool RemovePlacedBuilding(PlacedBuildingRecord record, bool refundToInventory)

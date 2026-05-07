@@ -161,6 +161,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
 
         ItemEntity spawnedItem = Instantiate(itemEntityPrefab, spawnPosition, Quaternion.identity, spawnedItemParent);
         spawnedItem.Initialize(settings.ItemDefinition, settings.QuantityPerSpawn);
+        spawnedItem.SetSourceGenerator(this);
         if (!spawnedItem.TryClaim(this))
         {
             Destroy(spawnedItem.gameObject);
@@ -304,6 +305,23 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
     private bool HasItemOnTile(Vector2Int gridPosition)
     {
         return ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, gridPosition);
+    }
+
+    public bool TryRefundGeneratedItem(ItemEntity item, int amount = 1)
+    {
+        if (item == null || item.SourceGenerator != this)
+        {
+            return false;
+        }
+
+        int refundAmount = Mathf.Max(0, amount);
+        if (refundAmount <= 0)
+        {
+            return false;
+        }
+
+        spawnedItemCount = Mathf.Max(0, spawnedItemCount - refundAmount);
+        return true;
     }
 
     private void OnDrawGizmosSelected()

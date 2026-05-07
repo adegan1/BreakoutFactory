@@ -14,10 +14,12 @@ public class ItemEntity : MonoBehaviour
     private Object reservedDestinationOwner;
     private bool hasReservedDestination;
     private Vector2Int reservedDestinationTile;
+    private GeneratorBuilding sourceGenerator;
 
     public ItemDefinition ItemDefinition => itemDefinition;
     public int Quantity => quantity;
     public bool IsClaimed => movementOwner != null;
+    public GeneratorBuilding SourceGenerator => sourceGenerator;
 
     private void Reset()
     {
@@ -52,6 +54,35 @@ public class ItemEntity : MonoBehaviour
         itemDefinition = definition;
         quantity = Mathf.Max(0, startingQuantity);
         ApplyDefinitionVisuals();
+    }
+
+    public void SetSourceGenerator(GeneratorBuilding generator)
+    {
+        sourceGenerator = generator;
+    }
+
+    public bool TryRefundToSourceGenerator(int amount = 1)
+    {
+        return sourceGenerator != null && sourceGenerator.TryRefundGeneratedItem(this, amount);
+    }
+
+    public bool ContainsWorldPoint(Vector3 worldPoint)
+    {
+        Collider2D collider = GetComponent<Collider2D>();
+        if (collider != null)
+        {
+            return collider.OverlapPoint(worldPoint);
+        }
+
+        ResolveSpriteRendererIfNeeded();
+        if (targetSpriteRenderer == null)
+        {
+            return false;
+        }
+
+        Bounds bounds = targetSpriteRenderer.bounds;
+        Vector3 testPoint = new Vector3(worldPoint.x, worldPoint.y, bounds.center.z);
+        return bounds.Contains(testPoint);
     }
 
     public void SetQuantity(int newQuantity)
