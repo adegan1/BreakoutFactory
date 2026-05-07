@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
   displayName: Tesla Coil
   description: Generates the lightning element
-  buildingSprite: {fileID: 7482667652216324306, guid: aaa3a88405f852449a8bf191b46d71c0, type: 3}
+  buildingSprite: {fileID: -5028776882928821352, guid: 411922ac544f66d488a570f437721d82, type: 3}
   buildingColor: {r: 0.9528302, g: 0.90778685, b: 0.31910825, a: 1}
   footprintWidth: 2
   footprintHeight: 2

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [DisallowMultipleComponent]
@@ -16,12 +17,96 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
         [SerializeField] private TextMeshProUGUI keybindText;
         [SerializeField] private Graphic selectionHighlight;
         [SerializeField] private TooltipTrigger tooltipTrigger;
+        [SerializeField] private Button selectionButton;
+        [SerializeField] private RectTransform clickTarget;
 
         public Image IconImage => iconImage;
         public TextMeshProUGUI QuantityText => quantityText;
         public TextMeshProUGUI KeybindText => keybindText;
         public Graphic SelectionHighlight => selectionHighlight;
         public TooltipTrigger TooltipTrigger => tooltipTrigger;
+        public Button SelectionButton => selectionButton;
+        public RectTransform ClickTarget => clickTarget;
+
+        public GameObject ResolveClickTarget()
+        {
+            if (selectionButton != null)
+            {
+                return selectionButton.gameObject;
+            }
+
+            if (clickTarget != null && clickTarget.gameObject.activeInHierarchy)
+            {
+                return clickTarget.gameObject;
+            }
+
+            if (iconImage != null && iconImage.gameObject.activeInHierarchy)
+            {
+                return iconImage.gameObject;
+            }
+
+            if (quantityText != null && quantityText.gameObject.activeInHierarchy)
+            {
+                return quantityText.gameObject;
+            }
+
+            if (keybindText != null && keybindText.gameObject.activeInHierarchy)
+            {
+                return keybindText.gameObject;
+            }
+
+            if (selectionHighlight != null && selectionHighlight.gameObject.activeInHierarchy)
+            {
+                return selectionHighlight.gameObject;
+            }
+
+            if (clickTarget != null)
+            {
+                return clickTarget.gameObject;
+            }
+
+            if (iconImage != null)
+            {
+                return iconImage.gameObject;
+            }
+
+            if (quantityText != null)
+            {
+                return quantityText.gameObject;
+            }
+
+            if (keybindText != null)
+            {
+                return keybindText.gameObject;
+            }
+
+            if (selectionHighlight != null)
+            {
+                return selectionHighlight.gameObject;
+            }
+
+            return null;
+        }
+    }
+
+    private class HotbarSlotPointerClickForwarder : MonoBehaviour, IPointerClickHandler
+    {
+        private Action onLeftClick;
+
+        public void SetOnLeftClick(Action callback)
+        {
+            onLeftClick = callback;
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData != null && eventData.button != PointerEventData.InputButton.Left)
+            {
+                return;
+            }
+
+            onLeftClick?.Invoke();
+        }
     }
 
     [Header("References")]
@@ -34,10 +119,13 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
     [Header("Visuals")]
     [SerializeField] private Color unavailableTint = new Color(1f, 1f, 1f, 0.35f);
 
+    private bool hasBoundSlotClickHandlers;
+
     private void Awake()
     {
         EnsureReferences();
         InitializeKeybindLabels();
+        BindSlotClickHandlersIfNeeded();
     }
 
     private void OnEnable()
@@ -80,6 +168,92 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
     private void LateUpdate()
     {
         RefreshSelectionHighlightOnly();
+    }
+
+    private void BindSlotClickHandlersIfNeeded()
+    {
+        if (hasBoundSlotClickHandlers)
+        {
+            return;
+        }
+
+        hasBoundSlotClickHandlers = true;
+
+        for (int i = 0; i < InventoryManager.BuildingHotbarSlotCount; i++)
+        {
+            HotbarSlotView slot = GetSlotView(i);
+            if (slot == null)
+            {
+                continue;
+            }
+
+            int slotIndex = i;
+            if (slot.SelectionButton != null)
+            {
+                slot.SelectionButton.onClick.AddListener(() => TrySelectSlot(slotIndex));
+                continue;
+            }
+
+            GameObject clickTarget = slot.ResolveClickTarget();
+            if (clickTarget == null)
+            {
+                continue;
+            }
+
+            EnsureRaycastableClickTarget(clickTarget);
+
+            HotbarSlotPointerClickForwarder forwarder = clickTarget.GetComponent<HotbarSlotPointerClickForwarder>();
+            if (forwarder == null)
+            {
+                forwarder = clickTarget.AddComponent<HotbarSlotPointerClickForwarder>();
+            }
+
+            forwarder.SetOnLeftClick(() => TrySelectSlot(slotIndex));
+        }
+    }
+
+    private static void EnsureRaycastableClickTarget(GameObject clickTarget)
+    {
+        if (clickTarget == null)
+        {
+            return;
+        }
+
+        Graphic graphic = clickTarget.GetComponent<Graphic>();
+        if (graphic != null)
+        {
+            graphic.raycastTarget = true;
+            return;
+        }
+
+        RectTransform rectTransform = clickTarget.GetComponent<RectTransform>();
+        if (rectTransform == null)
+        {
+            return;
+        }
+
+        Image image = clickTarget.GetComponent<Image>();
+        if (image == null)
+        {
+            image = clickTarget.AddComponent<Image>();
+            image.color = new Color(1f, 1f, 1f, 0f);
+        }
+
+        image.raycastTarget = true;
+    }
+
+    private void TrySelectSlot(int slotIndex)
+    {
+        EnsureReferences();
+        if (buildingPlacer == null)
+        {
+            return;
+        }
+
+        if (buildingPlacer.TrySelectBuildingByIndex(slotIndex))
+        {
+            RefreshSelectionHighlightOnly();
+        }
     }
 
     private void HandleInventoryChanged()

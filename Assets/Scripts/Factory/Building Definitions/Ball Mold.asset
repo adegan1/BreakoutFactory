@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
   displayName: Ball Mold
   description: 'A mold for turning resources into balls. Default: Basic Ball'
-  buildingSprite: {fileID: 7482667652216324306, guid: aaa3a88405f852449a8bf191b46d71c0, type: 3}
+  buildingSprite: {fileID: 5155672322358715378, guid: 8ea17fb2e2c9ba945853fc936d948745, type: 3}
   buildingColor: {r: 0.7169812, g: 0.7169812, b: 0.7169812, a: 1}
   footprintWidth: 2
   footprintHeight: 2

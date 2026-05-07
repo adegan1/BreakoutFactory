@@ -1241,8 +1241,8 @@ GameObject:
   m_Component:
   - component: {fileID: 274698123}
   - component: {fileID: 274698122}
-  m_Layer: 0
-  m_Name: Hover Highlight
+  m_Layer: 7
+  m_Name: Hover Preview
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1582,7 +1582,7 @@ GameObject:
   m_Component:
   - component: {fileID: 387747834}
   - component: {fileID: 387747835}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Machine Input Indicator 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4453,6 +4453,10 @@ MonoBehaviour:
   nextLevelBrickOdds:
   - typeData: {fileID: 0}
     weight: 100
+  scaleRowsByCurrentLevel: 1
+  rowsPerLevelMultiplier: 0.5
+  scaleBrickHealthByCurrentLevel: 1
+  brickHealthPerLevelMultiplier: 0.25
 --- !u!4 &941752517
 Transform:
   m_ObjectHideFlags: 0
@@ -5001,6 +5005,9 @@ MonoBehaviour:
   drawSelectedInputTileGizmo: 1
   inputTileGizmoColor: {r: 1, g: 0.85, b: 0.15, a: 0.9}
   inputTileGizmoRadius: 0.12
+  clickThroughUiLayers:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!4 &1025983502
 Transform:
   m_ObjectHideFlags: 0
@@ -7159,9 +7166,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   startingLives: 3
   startingMaxHealth: 100
+  startingLevel: 1
   lives: 0
   health: 0
   maxHealth: 0
+  currentLevel: 1
   loadSceneOnGameOver: 1
   gameOverSceneName: GameoverScene
 --- !u!4 &1467489173
@@ -7614,7 +7623,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1493723448}
   - component: {fileID: 1493723447}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Belt Direction Indicator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7971,7 +7980,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1530720853}
   - component: {fileID: 1530720854}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Machine Output Indicator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8744,51 +8753,71 @@ MonoBehaviour:
     keybindText: {fileID: 653805850}
     selectionHighlight: {fileID: 224917536}
     tooltipTrigger: {fileID: 261160993}
+    selectionButton: {fileID: 0}
+    clickTarget: {fileID: 0}
   - iconImage: {fileID: 419259070}
     quantityText: {fileID: 1216038132}
     keybindText: {fileID: 1460487084}
     selectionHighlight: {fileID: 1194178907}
     tooltipTrigger: {fileID: 419259072}
+    selectionButton: {fileID: 0}
+    clickTarget: {fileID: 0}
   - iconImage: {fileID: 2136224660}
     quantityText: {fileID: 1951880887}
     keybindText: {fileID: 134083054}
     selectionHighlight: {fileID: 1194798359}
     tooltipTrigger: {fileID: 2136224662}
+    selectionButton: {fileID: 0}
+    clickTarget: {fileID: 0}
   - iconImage: {fileID: 423932532}
     quantityText: {fileID: 469177001}
     keybindText: {fileID: 1472052642}
     selectionHighlight: {fileID: 408377419}
     tooltipTrigger: {fileID: 423932534}
+    selectionButton: {fileID: 0}
+    clickTarget: {fileID: 0}
   - iconImage: {fileID: 1591819642}
     quantityText: {fileID: 2051076140}
     keybindText: {fileID: 1102739798}
     selectionHighlight: {fileID: 2103190554}
     tooltipTrigger: {fileID: 1591819644}
+    selectionButton: {fileID: 0}
+    clickTarget: {fileID: 0}
   - iconImage: {fileID: 2044469288}
     quantityText: {fileID: 652292975}
     keybindText: {fileID: 921261913}
     selectionHighlight: {fileID: 1982496944}
     tooltipTrigger: {fileID: 2044469290}
+    selectionButton: {fileID: 0}
+    clickTarget: {fileID: 0}
   - iconImage: {fileID: 814891552}
     quantityText: {fileID: 1472425659}
     keybindText: {fileID: 1394375832}
     selectionHighlight: {fileID: 1488158333}
     tooltipTrigger: {fileID: 814891554}
+    selectionButton: {fileID: 0}
+    clickTarget: {fileID: 0}
   - iconImage: {fileID: 761513858}
     quantityText: {fileID: 3513752}
     keybindText: {fileID: 958074247}
     selectionHighlight: {fileID: 1275401718}
     tooltipTrigger: {fileID: 761513860}
+    selectionButton: {fileID: 0}
+    clickTarget: {fileID: 0}
   - iconImage: {fileID: 706078527}
     quantityText: {fileID: 2048917665}
     keybindText: {fileID: 640242045}
     selectionHighlight: {fileID: 1181543821}
     tooltipTrigger: {fileID: 706078529}
+    selectionButton: {fileID: 0}
+    clickTarget: {fileID: 0}
   - iconImage: {fileID: 1509898144}
     quantityText: {fileID: 920308183}
     keybindText: {fileID: 279143068}
     selectionHighlight: {fileID: 1723743386}
     tooltipTrigger: {fileID: 1509898146}
+    selectionButton: {fileID: 0}
+    clickTarget: {fileID: 0}
   unavailableTint: {r: 1, g: 0.4764151, b: 0.4764151, a: 0.35}
 --- !u!1 &1822554078
 GameObject:
@@ -8802,7 +8831,7 @@ GameObject:
   - component: {fileID: 1822554081}
   - component: {fileID: 1822554080}
   - component: {fileID: 1822554079}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Grid Visualizer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9122,7 +9151,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1942682777}
   - component: {fileID: 1942682778}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Machine Input Indicator 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9463,6 +9492,10 @@ MonoBehaviour:
   - buildingDefinition: {fileID: 11400000, guid: 9ee3ce427af21a547a30648e8e8e5a21, type: 2}
     quantity: 10
   - buildingDefinition: {fileID: 11400000, guid: a163862e1e67beb41880159dba5f80d9, type: 2}
+    quantity: 3
+  - buildingDefinition: {fileID: 11400000, guid: d916ecbf3d00aa34085b40b06ea73067, type: 2}
+    quantity: 3
+  - buildingDefinition: {fileID: 11400000, guid: af82f016ca79a914eac8da8b08de15ab, type: 2}
     quantity: 3
   buildingInventory: []
   buildingHotbarSlots: []

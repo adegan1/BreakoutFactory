@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 
@@ -45,6 +46,9 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [SerializeField] private Color inputTileGizmoColor = new Color(1f, 0.85f, 0.15f, 0.9f);
     [SerializeField, Min(0.01f)] private float inputTileGizmoRadius = 0.12f;
 
+    [Header("UI Interaction")]
+    [SerializeField] private LayerMask clickThroughUiLayers;
+
     private readonly Dictionary<Vector2Int, PlacedBuildingRecord> spawnedByCell = new();
     private readonly Dictionary<int, PlacedBuildingRecord> buildingsByInstanceId = new();
     private SpriteRenderer hoverHighlightRenderer;
@@ -62,6 +66,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private int selectedRotationQuarterTurns;
     private readonly List<Vector2Int> reusableInputTiles = new();
     private readonly List<ItemEntity> reusableItemsOnInput = new();
+    private static readonly List<RaycastResult> reusableUiRaycastResults = new();
     private static readonly Vector2Int[] CardinalDirections =
     {
         Vector2Int.up,
@@ -178,7 +183,9 @@ public class FactoryBuildingPlacer : MonoBehaviour
         UpdateHoverHighlight();
         UpdateBuildingIndicators();
 
-        if (mouse.leftButton.wasPressedThisFrame)
+        bool pointerOverUi = IsPointerOverBlockingUi();
+
+        if (mouse.leftButton.wasPressedThisFrame && !pointerOverUi)
         {
             bool didPlace = TryPlaceAtPointer();
             if (didPlace)
@@ -193,7 +200,14 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (mouse.rightButton.wasPressedThisFrame)
         {
-            TryRemoveAtPointer();
+            if (pointerOverUi)
+            {
+                DeselectBuilding();
+            }
+            else
+            {
+                TryRemoveAtPointer();
+            }
         }
     }
 
@@ -1070,6 +1084,47 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         hitPoint = mouseWorldPoint;
         return true;
+    }
+
+    private bool IsPointerOverBlockingUi()
+    {
+        EventSystem eventSystem = EventSystem.current;
+        if (eventSystem == null)
+        {
+            return false;
+        }
+
+        Mouse mouse = Mouse.current;
+        if (mouse == null)
+        {
+            return eventSystem.IsPointerOverGameObject();
+        }
+
+        PointerEventData pointerEventData = new PointerEventData(eventSystem)
+        {
+            position = mouse.position.ReadValue()
+        };
+
+        reusableUiRaycastResults.Clear();
+        eventSystem.RaycastAll(pointerEventData, reusableUiRaycastResults);
+
+        for (int i = 0; i < reusableUiRaycastResults.Count; i++)
+        {
+            GameObject hitObject = reusableUiRaycastResults[i].gameObject;
+            if (hitObject == null)
+            {
+                continue;
+            }
+
+            return !IsLayerInMask(hitObject.layer, clickThroughUiLayers);
+        }
+
+        return false;
+    }
+
+    private static bool IsLayerInMask(int layer, LayerMask mask)
+    {
+        return (mask.value & (1 << layer)) != 0;
     }
 
     private void HandleBuildingSelectionInput()

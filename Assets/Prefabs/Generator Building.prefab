@@ -141,7 +141,7 @@ GameObject:
   - component: {fileID: 8273491662238176500}
   - component: {fileID: 6715973741324709327}
   - component: {fileID: 895473550193545854}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: ProgressBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -219,11 +219,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MachineRadialProgressView
   radialFillImage: {fileID: 6715973741324709327}
   resolveProviderFromParents: 1
+  tileManager: {fileID: 0}
   smoothFill: 1
   fillLerpSpeed: 10
+  smoothVisibility: 1
+  visibilityLerpSpeed: 10
   hideWhenNoProvider: 1
   hideWhenZero: 1
   onlyShowWhenHoveredOrSelected: 1
+  keepDefaultRotation: 1
   faceWorldCamera: 1
   worldCamera: {fileID: 0}
 --- !u!1 &9147091569400197178

@@ -56,6 +56,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     private readonly Dictionary<ItemDefinition, int> inventoryByItem = new();
     private ItemDefinition acceptedResourceDefinition;
     private BallTypeData lastCreatedBallType;
+    private bool isMoldCompleted;
     private float previewFillVisual;
     private Vector3 previewBaseLocalPosition;
     private Vector3 previewBaseScale = Vector3.one;
@@ -95,6 +96,11 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
     public bool CanAcceptItemAtTile(Vector2Int tile, ItemEntity item)
     {
+        if (isMoldCompleted)
+        {
+            return false;
+        }
+
         if (item == null || item.ItemDefinition == null)
         {
             return false;
@@ -231,6 +237,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         if (createdCount > 0)
         {
             lastCreatedBallType = createdBallType;
+            isMoldCompleted = true;
         }
 
         int remainingAmount = storedAmount - createdCount * maxResources;
@@ -247,6 +254,11 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
     private bool IsResourceTypeAccepted(ItemDefinition incomingItemDefinition)
     {
+        if (isMoldCompleted)
+        {
+            return false;
+        }
+
         if (incomingItemDefinition == null)
         {
             return false;
