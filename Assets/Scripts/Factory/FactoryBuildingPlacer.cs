@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
+using System;
 
 public class FactoryBuildingPlacer : MonoBehaviour
 {
@@ -758,6 +759,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
             buildingInstance.Initialize(selectedBuildingDefinition);
         }
 
+        ApplyStoredMachineResourceIfAvailable(spawned, selectedBuildingDefinition);
+
         TryFeedItemsIntoPlacedInputBuilding(spawned, selectedBuildingDefinition, optimalTopLeft, footprintSize, selectedRotationQuarterTurns);
 
         PlacedBuildingRecord record = new PlacedBuildingRecord(spawned, selectedBuildingDefinition, optimalTopLeft, footprintSize, selectedRotationQuarterTurns);
@@ -873,6 +876,12 @@ public class FactoryBuildingPlacer : MonoBehaviour
             HoveredMachineInstanceId = -1;
         }
 
+        // Store machine state BEFORE destroying so components are still accessible
+        if (refundToInventory && inventoryManager != null && record.Definition != null)
+        {
+            StoreMachineResourceForInventory(record.SpawnedObject, record.Definition);
+        }
+
         Destroy(record.SpawnedObject);
         buildingsByInstanceId.Remove(instanceId);
 
@@ -916,6 +925,57 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
     }
 
+    private void StoreMachineResourceForInventory(GameObject spawnedObject, BuildingDefinition definition)
+    {
+        if (inventoryManager == null || spawnedObject == null || definition == null)
+        {
+            return;
+        }
+
+        IMachineResourceProgressProvider provider = spawnedObject.GetComponentInChildren<IMachineResourceProgressProvider>();
+        IMachineStoredResourceReceiver receiver = spawnedObject.GetComponentInChildren<IMachineStoredResourceReceiver>();
+        if (provider == null || receiver == null)
+        {
+            return;
+        }
+
+        EnsureMachineHasStateId(receiver);
+        inventoryManager.PushStoredMachineResource(definition, receiver.MachineStateId, provider.CurrentResourceAmount);
+    }
+
+    private void ApplyStoredMachineResourceIfAvailable(GameObject spawnedObject, BuildingDefinition definition)
+    {
+        if (inventoryManager == null || spawnedObject == null || definition == null)
+        {
+            return;
+        }
+
+        IMachineStoredResourceReceiver receiver = spawnedObject.GetComponentInChildren<IMachineStoredResourceReceiver>();
+        if (receiver == null)
+        {
+            return;
+        }
+
+        if (!inventoryManager.TryPopStoredMachineResource(definition, out string storedMachineStateId, out int storedAmount))
+        {
+            EnsureMachineHasStateId(receiver);
+            return;
+        }
+
+        receiver.SetMachineStateId(storedMachineStateId);
+        receiver.SetStoredResourceAmount(storedAmount);
+    }
+
+    private static void EnsureMachineHasStateId(IMachineStoredResourceReceiver receiver)
+    {
+        if (receiver == null || !string.IsNullOrEmpty(receiver.MachineStateId))
+        {
+            return;
+        }
+
+        receiver.SetMachineStateId(Guid.NewGuid().ToString("N"));
+    }
+
     private void TryCollectConveyorRecordAt(Vector2Int gridPosition, HashSet<PlacedBuildingRecord> records)
     {
         if (!spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord record) || record == null)
@@ -939,6 +999,20 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private bool IsConveyorDefinition(BuildingDefinition definition)
     {
         return definition != null && definition.IsConveyor;
+    }
+
+    /// <summary>
+    /// Checks if a tile position is occupied by a non-conveyor building.
+    /// Used by generators to determine if they can output to this position.
+    /// </summary>
+    public bool IsPositionBlockedByNonConveyorBuilding(Vector2Int gridPosition)
+    {
+        if (!spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord record) || record == null)
+        {
+            return false;
+        }
+
+        return !IsConveyorDefinition(record.Definition);
     }
 
     private bool CanReplaceConveyorAt(Vector2Int optimalTopLeft, Vector2Int footprintSize, BuildingDefinition incomingDefinition)

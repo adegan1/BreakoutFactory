@@ -1,8 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [DisallowMultipleComponent]
-public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
+public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider, IMachineStoredResourceReceiver
 {
+    private static readonly Dictionary<string, GeneratorBuilding> activeByMachineStateId = new();
+
     public enum OutputSide
     {
         Right,
@@ -14,6 +17,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
     [Header("References")]
     [SerializeField] private BuildingInstance buildingInstance;
     [SerializeField] private TileManager tileManager;
+    [SerializeField] private FactoryBuildingPlacer factoryBuildingPlacer;
     [SerializeField] private ItemEntity itemEntityPrefab;
     [SerializeField] private Transform spawnedItemParent;
 
@@ -24,6 +28,9 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
     [Header("Output")]
     [SerializeField] private Vector3 itemSpawnOffset = Vector3.zero;
     [SerializeField, Min(0.01f)] private float outputTravelDurationSeconds = 0.5f;
+
+    [Header("State")]
+    [SerializeField] private string machineStateId;
 
     private float spawnTimer;
     private int spawnedItemCount;
@@ -43,6 +50,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
         ? Mathf.Clamp01((float)RemainingItemCount / MaxItemsToSpawn)
         : 0f;
     public Color ResourceTint => ItemDefinition != null ? ItemDefinition.Tint : Color.white;
+    public string MachineStateId => machineStateId;
 
     private void Reset()
     {
@@ -57,6 +65,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
     private void Awake()
     {
         ResolveDependenciesIfNeeded();
+        RegisterMachineStateIdIfValid();
     }
 
     private void Update()
@@ -156,11 +165,18 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
             return false;
         }
 
+        // Don't output if a non-conveyor building occupies the output space
+        if (IsOutputBlockedByNonConveyorBuilding(outputGridPosition))
+        {
+            return false;
+        }
+
         Vector3 spawnPosition = tileManager.GridToWorld(launchStartTile) + itemSpawnOffset;
         Vector3 targetPosition = tileManager.GridToWorld(outputGridPosition) + itemSpawnOffset;
 
         ItemEntity spawnedItem = Instantiate(itemEntityPrefab, spawnPosition, Quaternion.identity, spawnedItemParent);
         spawnedItem.Initialize(settings.ItemDefinition, settings.QuantityPerSpawn);
+        spawnedItem.SetSourceContext(this, buildingInstance != null ? buildingInstance.BuildingDefinition : null, MaxResourceAmount, machineStateId);
         spawnedItem.SetSourceGenerator(this);
         if (!spawnedItem.TryClaim(this))
         {
@@ -307,6 +323,21 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
         return ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, gridPosition);
     }
 
+    private bool IsOutputBlockedByNonConveyorBuilding(Vector2Int outputGridPosition)
+    {
+        if (factoryBuildingPlacer == null)
+        {
+            factoryBuildingPlacer = FindFirstObjectByType<FactoryBuildingPlacer>();
+        }
+
+        if (factoryBuildingPlacer == null)
+        {
+            return false;
+        }
+
+        return factoryBuildingPlacer.IsPositionBlockedByNonConveyorBuilding(outputGridPosition);
+    }
+
     public bool TryRefundGeneratedItem(ItemEntity item, int amount = 1)
     {
         if (item == null || item.SourceGenerator != this)
@@ -322,6 +353,67 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
 
         spawnedItemCount = Mathf.Max(0, spawnedItemCount - refundAmount);
         return true;
+    }
+
+    public static bool TryRefundByMachineStateId(string sourceMachineStateId, int amount)
+    {
+        if (string.IsNullOrEmpty(sourceMachineStateId)
+            || amount <= 0
+            || !activeByMachineStateId.TryGetValue(sourceMachineStateId, out GeneratorBuilding generator)
+            || generator == null)
+        {
+            return false;
+        }
+
+        generator.spawnedItemCount = Mathf.Max(0, generator.spawnedItemCount - amount);
+        return true;
+    }
+
+    public void SetMachineStateId(string newMachineStateId)
+    {
+        if (machineStateId == newMachineStateId)
+        {
+            return;
+        }
+
+        UnregisterMachineStateIdIfValid();
+        machineStateId = newMachineStateId;
+        RegisterMachineStateIdIfValid();
+    }
+
+    public void SetStoredResourceAmount(int resourceAmount)
+    {
+        GeneratorBuildingSettings settings = GetGeneratorSettings();
+        if (settings == null)
+        {
+            return;
+        }
+
+        int clampedRemaining = Mathf.Clamp(resourceAmount, 0, settings.MaxItemsToSpawn);
+        spawnedItemCount = Mathf.Clamp(settings.MaxItemsToSpawn - clampedRemaining, 0, settings.MaxItemsToSpawn);
+    }
+
+    private void RegisterMachineStateIdIfValid()
+    {
+        if (string.IsNullOrEmpty(machineStateId))
+        {
+            return;
+        }
+
+        activeByMachineStateId[machineStateId] = this;
+    }
+
+    private void UnregisterMachineStateIdIfValid()
+    {
+        if (string.IsNullOrEmpty(machineStateId))
+        {
+            return;
+        }
+
+        if (activeByMachineStateId.TryGetValue(machineStateId, out GeneratorBuilding existing) && existing == this)
+        {
+            activeByMachineStateId.Remove(machineStateId);
+        }
     }
 
     private void OnDrawGizmosSelected()
@@ -341,6 +433,8 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
 
     private void OnDisable()
     {
+        UnregisterMachineStateIdIfValid();
+
         if (launchingItem != null)
         {
             launchingItem.ClearReservedDestination(this);

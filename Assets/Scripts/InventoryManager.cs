@@ -51,6 +51,42 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
+    [Serializable]
+    private class StoredMachineResourceState
+    {
+        [SerializeField] private string machineStateId;
+        [SerializeField] private int storedAmount;
+
+        public string MachineStateId => machineStateId;
+        public int StoredAmount => storedAmount;
+
+        public StoredMachineResourceState(string machineStateId, int storedAmount)
+        {
+            this.machineStateId = machineStateId;
+            this.storedAmount = Mathf.Max(0, storedAmount);
+        }
+
+        public void SetStoredAmount(int amount)
+        {
+            storedAmount = Mathf.Max(0, amount);
+        }
+    }
+
+    [Serializable]
+    private class BuildingStoredResourceStackEntry
+    {
+        [SerializeField] private BuildingDefinition buildingDefinition;
+        [SerializeField] private List<StoredMachineResourceState> storedStates = new();
+
+        public BuildingDefinition BuildingDefinition => buildingDefinition;
+        public List<StoredMachineResourceState> StoredStates => storedStates;
+
+        public BuildingStoredResourceStackEntry(BuildingDefinition buildingDefinition)
+        {
+            this.buildingDefinition = buildingDefinition;
+        }
+    }
+
     private static InventoryManager instance;
 
     [Header("Starting Building Inventory")]
@@ -59,6 +95,7 @@ public class InventoryManager : MonoBehaviour
     [Header("Runtime Building Inventory")]
     [SerializeField] private List<InventoryEntry> buildingInventory = new();
     [SerializeField] private List<BuildingDefinition> buildingHotbarSlots = new();
+    [SerializeField] private List<BuildingStoredResourceStackEntry> buildingStoredResourceStacks = new();
 
     [Header("Starting Item Inventory")]
     [SerializeField] private List<ItemInventoryEntry> startingItems = new();
@@ -77,6 +114,7 @@ public class InventoryManager : MonoBehaviour
 
     private readonly Dictionary<BuildingDefinition, InventoryEntry> buildingsByDefinition = new();
     private readonly Dictionary<ItemDefinition, ItemInventoryEntry> itemsByDefinition = new();
+    private readonly Dictionary<BuildingDefinition, BuildingStoredResourceStackEntry> storedResourceStacksByDefinition = new();
     private bool isInitialized;
     private bool hasImportedSceneStartingData;
 
@@ -396,6 +434,8 @@ public class InventoryManager : MonoBehaviour
         buildingInventory.Clear();
         buildingsByDefinition.Clear();
         buildingHotbarSlots.Clear();
+        buildingStoredResourceStacks.Clear();
+        storedResourceStacksByDefinition.Clear();
         EnsureHotbarSlotList();
         itemInventory.Clear();
         itemsByDefinition.Clear();
@@ -579,6 +619,92 @@ public class InventoryManager : MonoBehaviour
         SetBuildingQuantityInternal(buildingDefinition, currentQuantity + quantity, true);
     }
 
+    public void PushStoredMachineResource(BuildingDefinition buildingDefinition, string machineStateId, int resourceAmount)
+    {
+        EnsureInitialized();
+        if (buildingDefinition == null || string.IsNullOrEmpty(machineStateId))
+        {
+            return;
+        }
+
+        BuildingStoredResourceStackEntry entry = GetOrCreateStoredResourceStackEntry(buildingDefinition);
+        entry.StoredStates.Add(new StoredMachineResourceState(machineStateId, resourceAmount));
+    }
+
+    public bool TryPopStoredMachineResource(BuildingDefinition buildingDefinition, out string machineStateId, out int resourceAmount)
+    {
+        machineStateId = null;
+        resourceAmount = 0;
+
+        EnsureInitialized();
+        if (buildingDefinition == null
+            || !storedResourceStacksByDefinition.TryGetValue(buildingDefinition, out BuildingStoredResourceStackEntry entry)
+            || entry == null
+            || entry.StoredStates == null
+            || entry.StoredStates.Count == 0)
+        {
+            return false;
+        }
+
+        int lastIndex = entry.StoredStates.Count - 1;
+        StoredMachineResourceState state = entry.StoredStates[lastIndex];
+        if (state == null || string.IsNullOrEmpty(state.MachineStateId))
+        {
+            entry.StoredStates.RemoveAt(lastIndex);
+            return false;
+        }
+
+        machineStateId = state.MachineStateId;
+        resourceAmount = Mathf.Max(0, state.StoredAmount);
+        entry.StoredStates.RemoveAt(lastIndex);
+
+        if (entry.StoredStates.Count == 0)
+        {
+            storedResourceStacksByDefinition.Remove(buildingDefinition);
+            buildingStoredResourceStacks.Remove(entry);
+        }
+
+        return true;
+    }
+
+    public bool TryRefundStoredMachineResource(BuildingDefinition buildingDefinition, string machineStateId, int amount, int maxResourceAmount)
+    {
+        EnsureInitialized();
+        if (buildingDefinition == null || string.IsNullOrEmpty(machineStateId) || amount <= 0)
+        {
+            return false;
+        }
+
+        if (!storedResourceStacksByDefinition.TryGetValue(buildingDefinition, out BuildingStoredResourceStackEntry entry)
+            || entry == null
+            || entry.StoredStates == null
+            || entry.StoredStates.Count == 0)
+        {
+            return false;
+        }
+
+        StoredMachineResourceState targetState = null;
+        for (int i = entry.StoredStates.Count - 1; i >= 0; i--)
+        {
+            StoredMachineResourceState state = entry.StoredStates[i];
+            if (state != null && state.MachineStateId == machineStateId)
+            {
+                targetState = state;
+                break;
+            }
+        }
+
+        if (targetState == null)
+        {
+            return false;
+        }
+
+        int current = Mathf.Max(0, targetState.StoredAmount);
+        int maxAllowed = maxResourceAmount > 0 ? maxResourceAmount : int.MaxValue;
+        targetState.SetStoredAmount(Mathf.Clamp(current + amount, 0, maxAllowed));
+        return true;
+    }
+
     public bool RemoveBuilding(BuildingDefinition buildingDefinition, int quantity = 1)
     {
         if (quantity <= 0)
@@ -620,6 +746,8 @@ public class InventoryManager : MonoBehaviour
 
         buildingInventory.Clear();
         buildingsByDefinition.Clear();
+        buildingStoredResourceStacks.Clear();
+        storedResourceStacksByDefinition.Clear();
         buildingHotbarSlots.Clear();
         EnsureHotbarSlotList();
 
@@ -695,6 +823,8 @@ public class InventoryManager : MonoBehaviour
             SetBuildingQuantityInternal(entry.BuildingDefinition, combinedQuantity, false);
         }
 
+        RebuildStoredResourceStackLookup();
+
         foreach (ItemInventoryEntry entry in sourceItems)
         {
             if (entry == null || entry.ItemDefinition == null || entry.Quantity <= 0)
@@ -741,6 +871,7 @@ public class InventoryManager : MonoBehaviour
                 buildingsByDefinition.Remove(buildingDefinition);
                 buildingInventory.Remove(existingEntry);
                 ClearBuildingFromHotbarSlots(buildingDefinition);
+                RemoveStoredResourceStack(buildingDefinition);
 
                 if (notifyListeners)
                 {
@@ -959,6 +1090,84 @@ public class InventoryManager : MonoBehaviour
         {
             buildingHotbarSlots[i] = reordered[i];
         }
+    }
+
+    private void RebuildStoredResourceStackLookup()
+    {
+        storedResourceStacksByDefinition.Clear();
+        if (buildingStoredResourceStacks == null)
+        {
+            buildingStoredResourceStacks = new List<BuildingStoredResourceStackEntry>();
+            return;
+        }
+
+        for (int i = buildingStoredResourceStacks.Count - 1; i >= 0; i--)
+        {
+            BuildingStoredResourceStackEntry entry = buildingStoredResourceStacks[i];
+            if (entry == null || entry.BuildingDefinition == null)
+            {
+                buildingStoredResourceStacks.RemoveAt(i);
+                continue;
+            }
+
+            List<StoredMachineResourceState> states = entry.StoredStates;
+            if (states == null)
+            {
+                buildingStoredResourceStacks.RemoveAt(i);
+                continue;
+            }
+
+            for (int stateIndex = states.Count - 1; stateIndex >= 0; stateIndex--)
+            {
+                StoredMachineResourceState state = states[stateIndex];
+                if (state == null || string.IsNullOrEmpty(state.MachineStateId))
+                {
+                    states.RemoveAt(stateIndex);
+                    continue;
+                }
+
+                state.SetStoredAmount(state.StoredAmount);
+            }
+
+            if (states.Count == 0)
+            {
+                buildingStoredResourceStacks.RemoveAt(i);
+                continue;
+            }
+
+            storedResourceStacksByDefinition[entry.BuildingDefinition] = entry;
+        }
+    }
+
+    private BuildingStoredResourceStackEntry GetOrCreateStoredResourceStackEntry(BuildingDefinition buildingDefinition)
+    {
+        if (storedResourceStacksByDefinition.TryGetValue(buildingDefinition, out BuildingStoredResourceStackEntry existing)
+            && existing != null)
+        {
+            return existing;
+        }
+
+        BuildingStoredResourceStackEntry created = new BuildingStoredResourceStackEntry(buildingDefinition);
+        buildingStoredResourceStacks.Add(created);
+        storedResourceStacksByDefinition[buildingDefinition] = created;
+        return created;
+    }
+
+    private void RemoveStoredResourceStack(BuildingDefinition buildingDefinition)
+    {
+        if (buildingDefinition == null)
+        {
+            return;
+        }
+
+        if (!storedResourceStacksByDefinition.TryGetValue(buildingDefinition, out BuildingStoredResourceStackEntry entry)
+            || entry == null)
+        {
+            return;
+        }
+
+        storedResourceStacksByDefinition.Remove(buildingDefinition);
+        buildingStoredResourceStacks.Remove(entry);
     }
 
 }

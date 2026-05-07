@@ -15,6 +15,9 @@ public class ItemEntity : MonoBehaviour
     private bool hasReservedDestination;
     private Vector2Int reservedDestinationTile;
     private GeneratorBuilding sourceGenerator;
+    private BuildingDefinition sourceBuildingDefinition;
+    private int sourceMaxResourceAmount;
+    private string sourceMachineStateId;
 
     public ItemDefinition ItemDefinition => itemDefinition;
     public int Quantity => quantity;
@@ -61,9 +64,42 @@ public class ItemEntity : MonoBehaviour
         sourceGenerator = generator;
     }
 
+    public void SetSourceContext(GeneratorBuilding generator, BuildingDefinition sourceBuilding, int maxResourceAmount, string machineStateId)
+    {
+        sourceGenerator = generator;
+        sourceBuildingDefinition = sourceBuilding;
+        sourceMaxResourceAmount = Mathf.Max(0, maxResourceAmount);
+        sourceMachineStateId = machineStateId;
+    }
+
     public bool TryRefundToSourceGenerator(int amount = 1)
     {
-        return sourceGenerator != null && sourceGenerator.TryRefundGeneratedItem(this, amount);
+        int refundAmount = Mathf.Max(0, amount);
+        if (refundAmount <= 0)
+        {
+            return false;
+        }
+
+        if (sourceGenerator != null && sourceGenerator.TryRefundGeneratedItem(this, refundAmount))
+        {
+            return true;
+        }
+
+        if (GeneratorBuilding.TryRefundByMachineStateId(sourceMachineStateId, refundAmount))
+        {
+            return true;
+        }
+
+        if (!InventoryManager.HasInstance || sourceBuildingDefinition == null)
+        {
+            return false;
+        }
+
+        return InventoryManager.Instance.TryRefundStoredMachineResource(
+            sourceBuildingDefinition,
+            sourceMachineStateId,
+            refundAmount,
+            sourceMaxResourceAmount);
     }
 
     public bool ContainsWorldPoint(Vector3 worldPoint)
