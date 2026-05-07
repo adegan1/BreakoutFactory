@@ -37,6 +37,9 @@ public class BallController : MonoBehaviour
 
     [Header("Paddle Bounce")]
     [SerializeField] private float paddleHorizontalInfluence = 0.7f;
+    [SerializeField, Range(0f, 0.95f)] private float maxPaddleHorizontalDirection = 0.6f;
+    [SerializeField, Range(0f, 1f)] private float paddleTopContactNormalMinY = 0.35f;
+    [SerializeField, Min(0f)] private float paddleTopSurfacePadding = 0.02f;
 
     [Header("Loss Rules")]
     [SerializeField] private float bottomKillY = -6f;
@@ -178,7 +181,7 @@ public class BallController : MonoBehaviour
         if (collision.gameObject.CompareTag("Paddle"))
         {
             ContactPoint2D paddleContact = collision.GetContact(0);
-            ApplyPaddleBounce(paddleContact.collider.bounds);
+            ApplyPaddleBounce(paddleContact.collider.bounds, paddleContact.normal);
             return;
         }
 
@@ -444,7 +447,8 @@ public class BallController : MonoBehaviour
 
         if (other.CompareTag("Paddle"))
         {
-            ApplyPaddleBounce(other.bounds);
+            Vector2 approximateNormal = ((Vector2)transform.position - (Vector2)other.bounds.center).normalized;
+            ApplyPaddleBounce(other.bounds, approximateNormal);
             return;
         }
 
@@ -467,12 +471,28 @@ public class BallController : MonoBehaviour
         ReflectAndSetDirection(normal);
     }
 
-    private void ApplyPaddleBounce(Bounds paddleBounds)
+    private void ApplyPaddleBounce(Bounds paddleBounds, Vector2 contactNormal)
     {
+        if (!IsTopPaddleContact(paddleBounds, contactNormal))
+        {
+            // Side/bottom paddle contacts should not redirect ball sideways.
+            // Push ball above paddle and send it upward.
+            float yAbovePaddle = paddleBounds.max.y + 0.01f;
+            if (ballCollider != null)
+            {
+                yAbovePaddle += ballCollider.bounds.extents.y;
+            }
+
+            rb.position = new Vector2(rb.position.x, yAbovePaddle);
+            SetTravelDirection(Vector2.up, defaultYSign: 1f);
+            return;
+        }
+
         float halfWidth = Mathf.Max(paddleBounds.extents.x, 0.01f);
         float offset = transform.position.x - paddleBounds.center.x;
         float normalizedOffset = Mathf.Clamp(offset / halfWidth, -1f, 1f);
         float horizontal = normalizedOffset * paddleHorizontalInfluence;
+        horizontal = Mathf.Clamp(horizontal, -maxPaddleHorizontalDirection, maxPaddleHorizontalDirection);
         Vector2 bounceDirection = new Vector2(horizontal, 1f);
 
         if (Mathf.Abs(bounceDirection.y) < minimumVerticalDirection)
@@ -481,6 +501,13 @@ public class BallController : MonoBehaviour
         }
 
         SetTravelDirection(bounceDirection, defaultYSign: 1f);
+    }
+
+    private bool IsTopPaddleContact(Bounds paddleBounds, Vector2 contactNormal)
+    {
+        bool normalIndicatesTopHit = contactNormal.y >= paddleTopContactNormalMinY;
+        bool ballIsAtOrAboveTopSurface = transform.position.y >= paddleBounds.max.y - paddleTopSurfacePadding;
+        return normalIndicatesTopHit || ballIsAtOrAboveTopSurface;
     }
 
     private void ApplyWallEscapeBias(ref Vector2 reflectedDirection, Vector2 surfaceNormal)

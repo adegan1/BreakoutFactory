@@ -5953,9 +5953,14 @@ MonoBehaviour:
   - typeData: {fileID: 0}
     weight: 100
   scaleRowsByCurrentLevel: 1
-  rowsPerLevelMultiplier: 0.5
+  rowsMaxBonusMultiplier: 1.5
+  rowsGrowthRate: 0.14
   scaleBrickHealthByCurrentLevel: 1
-  brickHealthPerLevelMultiplier: 0.25
+  brickHealthMaxBonusMultiplier: 2
+  brickHealthGrowthRate: 0.1
+  scaleBrickSpeedByCurrentLevel: 1
+  brickSpeedMaxBonusMultiplier: 1
+  brickSpeedGrowthRate: 0.12
 --- !u!4 &941752517
 Transform:
   m_ObjectHideFlags: 0
@@ -13645,8 +13650,6 @@ MonoBehaviour:
     quantity: 10
   - buildingDefinition: {fileID: 11400000, guid: a163862e1e67beb41880159dba5f80d9, type: 2}
     quantity: 3
-  - buildingDefinition: {fileID: 11400000, guid: d916ecbf3d00aa34085b40b06ea73067, type: 2}
-    quantity: 6
   buildingInventory: []
   buildingHotbarSlots: []
   buildingStoredResourceStacks: []

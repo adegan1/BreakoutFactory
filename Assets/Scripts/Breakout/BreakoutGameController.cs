@@ -51,10 +51,14 @@ public class BreakoutGameController : MonoBehaviour
     [SerializeField] private UnityEvent onAllBricksCleared;
     [SerializeField, Min(0f)] private float allBricksClearedDelaySeconds = 0.75f;
 
+    [Header("Life Lost UI")]
+    [SerializeField] private GameObject lifeLostTextObject;
+
     [Header("Level Complete Pause Visuals")]
     [SerializeField, Range(0f, 1f)] private float pauseGrayscaleBlend = 0.6f;
     [SerializeField, Range(0f, 1f)] private float pauseAlphaMultiplier = 0.7f;
     [SerializeField, Min(0f)] private float brickSlowStopDuration = 0.4f;
+    [SerializeField, Min(1)] private int forcedBallStopFrames = 12;
 
     private int nextBallIndex;
     private int score;
@@ -70,6 +74,7 @@ public class BreakoutGameController : MonoBehaviour
     private bool isLevelCompleteLocked;
     private Coroutine allBricksClearedRoutine;
     private Coroutine brickSlowStopRoutine;
+    private Coroutine forceStopBallsRoutine;
     private PaddleController cachedPaddleController;
 
     public int BallsRemaining => Mathf.Max(0, ballsToDispense.Count - nextBallIndex);
@@ -103,6 +108,7 @@ public class BreakoutGameController : MonoBehaviour
     private void Start()
     {
         LoadBallQueueFromInventory();
+        SetLifeLostTextActive(false);
         nextBallIndex = 0;
         score = 0;
         dropsSpawnedThisLevel = 0;
@@ -174,6 +180,12 @@ public class BreakoutGameController : MonoBehaviour
         {
             StopCoroutine(brickSlowStopRoutine);
             brickSlowStopRoutine = null;
+        }
+
+        if (forceStopBallsRoutine != null)
+        {
+            StopCoroutine(forceStopBallsRoutine);
+            forceStopBallsRoutine = null;
         }
 
         foreach (BallController activeBall in activeBalls)
@@ -384,6 +396,7 @@ public class BreakoutGameController : MonoBehaviour
         levelEndTriggered = true;
         outOfBallsInvoked = true;
         LastLevelEndReason = reason;
+        SetLifeLostTextActive(reason == LevelEndReason.OutOfBalls || reason == LevelEndReason.OutOfHealth);
 
         if (reason == LevelEndReason.OutOfBalls)
         {
@@ -399,6 +412,19 @@ public class BreakoutGameController : MonoBehaviour
 
         float delay = reason == LevelEndReason.LevelComplete ? Mathf.Max(0f, allBricksClearedDelaySeconds) : 0f;
         allBricksClearedRoutine = StartCoroutine(InvokeLevelEnded(reason, delay));
+    }
+
+    private void SetLifeLostTextActive(bool isActive)
+    {
+        if (lifeLostTextObject == null)
+        {
+            return;
+        }
+
+        if (lifeLostTextObject.activeSelf != isActive)
+        {
+            lifeLostTextObject.SetActive(isActive);
+        }
     }
 
     private IEnumerator InvokeLevelEnded(LevelEndReason reason, float delaySeconds)
@@ -489,6 +515,17 @@ public class BreakoutGameController : MonoBehaviour
         DisableBrickSpawners();
         StartBrickSlowStop();
 
+        ForceStopAllBallsOnScreen();
+        if (forceStopBallsRoutine != null)
+        {
+            StopCoroutine(forceStopBallsRoutine);
+        }
+
+        forceStopBallsRoutine = StartCoroutine(ForceStopBallsForFrames(Mathf.Max(1, forcedBallStopFrames)));
+    }
+
+    private void ForceStopAllBallsOnScreen()
+    {
         CleanupInactiveBalls();
         foreach (BallController activeBall in activeBalls)
         {
@@ -501,7 +538,6 @@ public class BreakoutGameController : MonoBehaviour
             activeBall.ApplyLevelCompletePauseVisual(pauseGrayscaleBlend, pauseAlphaMultiplier);
         }
 
-        // Safety net: also freeze any live balls not currently tracked in activeBalls.
         BallController[] sceneBalls = FindObjectsByType<BallController>(FindObjectsSortMode.None);
         for (int i = 0; i < sceneBalls.Length; i++)
         {
@@ -514,6 +550,17 @@ public class BreakoutGameController : MonoBehaviour
             sceneBall.StopMovement();
             sceneBall.ApplyLevelCompletePauseVisual(pauseGrayscaleBlend, pauseAlphaMultiplier);
         }
+    }
+
+    private IEnumerator ForceStopBallsForFrames(int frameCount)
+    {
+        for (int i = 0; i < frameCount; i++)
+        {
+            ForceStopAllBallsOnScreen();
+            yield return null;
+        }
+
+        forceStopBallsRoutine = null;
     }
 
     private void DisableBrickSpawners()

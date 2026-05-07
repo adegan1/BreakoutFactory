@@ -805,6 +805,13 @@ public class InventoryManager : MonoBehaviour
             ? new List<ItemInventoryEntry>(itemInventory)
             : new List<ItemInventoryEntry>(startingItems);
 
+        bool hasInitialRuntimeOrStartingData = sourceBuildings.Count > 0
+            || sourceItems.Count > 0
+            || scrap > 0
+            || score > 0
+            || startingScrap > 0
+            || startingScore > 0;
+
         buildingInventory.Clear();
         buildingsByDefinition.Clear();
         EnsureHotbarSlotList();
@@ -839,6 +846,13 @@ public class InventoryManager : MonoBehaviour
 
         scrap = Mathf.Max(0, scrap > 0 ? scrap : startingScrap);
         score = Mathf.Max(0, score > 0 ? score : startingScore);
+
+        // If this persistent instance already initialized from runtime or scene-configured
+        // starting data, later scene InventoryManager copies should not merge a second set.
+        if (hasInitialRuntimeOrStartingData)
+        {
+            hasImportedSceneStartingData = true;
+        }
 
         isInitialized = true;
     }

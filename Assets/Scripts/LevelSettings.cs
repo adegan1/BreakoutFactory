@@ -20,9 +20,14 @@ public class LevelSettings : MonoBehaviour
 
     [Header("Level Scaling")]
     [SerializeField] private bool scaleRowsByCurrentLevel = true;
-    [SerializeField, Min(0f)] private float rowsPerLevelMultiplier = 0.5f;
+    [SerializeField, Min(0f)] private float rowsMaxBonusMultiplier = 1.5f;
+    [SerializeField, Min(0f)] private float rowsGrowthRate = 0.14f;
     [SerializeField] private bool scaleBrickHealthByCurrentLevel = true;
-    [SerializeField, Min(0f)] private float brickHealthPerLevelMultiplier = 0.25f;
+    [SerializeField, Min(0f)] private float brickHealthMaxBonusMultiplier = 2f;
+    [SerializeField, Min(0f)] private float brickHealthGrowthRate = 0.1f;
+    [SerializeField] private bool scaleBrickSpeedByCurrentLevel = true;
+    [SerializeField, Min(0f)] private float brickSpeedMaxBonusMultiplier = 1f;
+    [SerializeField, Min(0f)] private float brickSpeedGrowthRate = 0.12f;
 
     private int defaultNextLevelRowsToSpawn;
     private float defaultNextLevelBrickMoveSpeed;
@@ -37,7 +42,7 @@ public class LevelSettings : MonoBehaviour
 
     public float NextLevelBrickMoveSpeed
     {
-        get => nextLevelBrickMoveSpeed;
+        get => ResolveBrickMoveSpeed();
         set => nextLevelBrickMoveSpeed = Mathf.Max(0f, value);
     }
 
@@ -157,7 +162,10 @@ public class LevelSettings : MonoBehaviour
         }
 
         int level = GetCurrentPlayerLevel();
-        float scaledRows = baseRows * level * Mathf.Max(0f, rowsPerLevelMultiplier);
+        float scaledRows = baseRows * EvaluateExponentialAssociationMultiplier(
+            level,
+            rowsMaxBonusMultiplier,
+            rowsGrowthRate);
         return Mathf.Max(0, Mathf.FloorToInt(scaledRows));
     }
 
@@ -170,8 +178,39 @@ public class LevelSettings : MonoBehaviour
         }
 
         int level = GetCurrentPlayerLevel();
-        float scaledHealth = baseHealth * level * Mathf.Max(0f, brickHealthPerLevelMultiplier);
-        return Mathf.Max(1, Mathf.CeilToInt(scaledHealth));
+        float scaledHealth = baseHealth * EvaluateExponentialAssociationMultiplier(
+            level,
+            brickHealthMaxBonusMultiplier,
+            brickHealthGrowthRate);
+        return Mathf.Max(1, Mathf.FloorToInt(scaledHealth));
+    }
+
+    private float ResolveBrickMoveSpeed()
+    {
+        float baseSpeed = Mathf.Max(0f, nextLevelBrickMoveSpeed);
+        if (!scaleBrickSpeedByCurrentLevel)
+        {
+            return baseSpeed;
+        }
+
+        int level = GetCurrentPlayerLevel();
+        float scaledSpeed = baseSpeed * EvaluateExponentialAssociationMultiplier(
+            level,
+            brickSpeedMaxBonusMultiplier,
+            brickSpeedGrowthRate);
+        return Mathf.Max(0f, scaledSpeed);
+    }
+
+    private static float EvaluateExponentialAssociationMultiplier(int level, float maxBonusMultiplier, float growthRate)
+    {
+        int clampedLevel = Mathf.Max(1, level);
+        float clampedBonus = Mathf.Max(0f, maxBonusMultiplier);
+        float clampedGrowth = Mathf.Max(0f, growthRate);
+
+        // Exponential association curve: starts at 1x and asymptotically approaches (1 + maxBonus).
+        // multiplier = 1 + maxBonus * (1 - e^(-growth * (level - 1)))
+        float association = 1f - Mathf.Exp(-clampedGrowth * (clampedLevel - 1));
+        return 1f + clampedBonus * association;
     }
 
     private static int GetCurrentPlayerLevel()
