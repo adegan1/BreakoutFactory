@@ -5,6 +5,7 @@ public class ItemEntity : MonoBehaviour
 {
     [SerializeField] private ItemDefinition itemDefinition;
     [SerializeField] private SpriteRenderer targetSpriteRenderer;
+    [SerializeField] private Collider2D targetCollider;
     [SerializeField] private bool applyDefinitionOnAwake = true;
     [SerializeField] private bool renameGameObjectToItemName = true;
 
@@ -26,15 +27,12 @@ public class ItemEntity : MonoBehaviour
 
     private void Reset()
     {
-        if (targetSpriteRenderer == null)
-        {
-            targetSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
-        }
+        ResolveReferencesIfNeeded();
     }
 
     private void Awake()
     {
-        ResolveSpriteRendererIfNeeded();
+        ResolveReferencesIfNeeded();
 
         if (applyDefinitionOnAwake)
         {
@@ -52,7 +50,7 @@ public class ItemEntity : MonoBehaviour
 
     public void Initialize(ItemDefinition definition, int startingQuantity = 1)
     {
-        ResolveSpriteRendererIfNeeded();
+        ResolveReferencesIfNeeded();
 
         itemDefinition = definition;
         quantity = Mathf.Max(0, startingQuantity);
@@ -104,13 +102,12 @@ public class ItemEntity : MonoBehaviour
 
     public bool ContainsWorldPoint(Vector3 worldPoint)
     {
-        Collider2D collider = GetComponent<Collider2D>();
-        if (collider != null)
+        ResolveReferencesIfNeeded();
+        if (targetCollider != null)
         {
-            return collider.OverlapPoint(worldPoint);
+            return targetCollider.OverlapPoint(worldPoint);
         }
 
-        ResolveSpriteRendererIfNeeded();
         if (targetSpriteRenderer == null)
         {
             return false;
@@ -201,7 +198,7 @@ public class ItemEntity : MonoBehaviour
 
     public void ApplyDefinitionVisuals()
     {
-        ResolveSpriteRendererIfNeeded();
+        ResolveReferencesIfNeeded();
 
         if (itemDefinition == null)
         {
@@ -234,13 +231,23 @@ public class ItemEntity : MonoBehaviour
         }
     }
 
-    private void ResolveSpriteRendererIfNeeded()
+    private void ResolveReferencesIfNeeded()
     {
         if (targetSpriteRenderer != null)
         {
+            if (targetCollider == null)
+            {
+                targetCollider = GetComponent<Collider2D>();
+            }
+
             return;
         }
 
         targetSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
+        if (targetCollider == null)
+        {
+            targetCollider = GetComponent<Collider2D>();
+        }
     }
 }

@@ -1901,6 +1901,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
     {
         EnsureInventoryManagerAssigned();
 
+        if (resetMachineResourcesToFull && inventoryManager != null)
+        {
+            inventoryManager.ClearStoredMachineResources();
+        }
+
         var uniqueRecords = new HashSet<PlacedBuildingRecord>(buildingsByInstanceId.Values);
         foreach (PlacedBuildingRecord record in uniqueRecords)
         {
