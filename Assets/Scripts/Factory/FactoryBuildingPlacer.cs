@@ -47,7 +47,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [SerializeField, Min(0.01f)] private float inputTileGizmoRadius = 0.12f;
 
     [Header("UI Interaction")]
-    [SerializeField] private LayerMask clickThroughUiLayers;
+    [SerializeField] private LayerMask blockingUiLayers = 1 << 5;
 
     private readonly Dictionary<Vector2Int, PlacedBuildingRecord> spawnedByCell = new();
     private readonly Dictionary<int, PlacedBuildingRecord> buildingsByInstanceId = new();
@@ -180,10 +180,19 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         RefreshPointerState(mouse);
         UpdateMachineProgressVisibilityContext();
-        UpdateHoverHighlight();
-        UpdateBuildingIndicators();
 
         bool pointerOverUi = IsPointerOverBlockingUi();
+
+        if (pointerOverUi)
+        {
+            SetHoverHighlightVisible(false);
+            SetAllIndicatorsVisible(false);
+        }
+        else
+        {
+            UpdateHoverHighlight();
+            UpdateBuildingIndicators();
+        }
 
         if (mouse.leftButton.wasPressedThisFrame && !pointerOverUi)
         {
@@ -1116,7 +1125,10 @@ public class FactoryBuildingPlacer : MonoBehaviour
                 continue;
             }
 
-            return !IsLayerInMask(hitObject.layer, clickThroughUiLayers);
+            if (IsLayerInMask(hitObject.layer, blockingUiLayers))
+            {
+                return true;
+            }
         }
 
         return false;
