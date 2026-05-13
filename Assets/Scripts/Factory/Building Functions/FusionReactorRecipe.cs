@@ -1,9 +1,7 @@
 using UnityEngine;
 
-/// <summary>
-/// A single recipe for the Fusion Reactor machine.
-/// Define two input items (order does not matter) and the resulting output item.
-/// </summary>
+// A single recipe for the Fusion Reactor machine.
+// Define two input items (order does not matter) and the resulting output item.
 [CreateAssetMenu(fileName = "New Fusion Recipe", menuName = "Factory/Fusion Reactor/Recipe")]
 public class FusionReactorRecipe : ScriptableObject
 {
@@ -28,9 +26,7 @@ public class FusionReactorRecipe : ScriptableObject
     public int CostA => costA;
     public int CostB => costB;
 
-    /// <summary>
-    /// Returns true if this recipe can process the given pair of items (in any order).
-    /// </summary>
+    // Returns true if this recipe can process the given pair of items (in any order).
     public bool Matches(ItemDefinition a, ItemDefinition b)
     {
         if (a == null || b == null || inputA == null || inputB == null)

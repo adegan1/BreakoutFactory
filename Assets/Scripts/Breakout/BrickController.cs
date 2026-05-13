@@ -665,6 +665,27 @@ public class BrickController : MonoBehaviour
         }
     }
 
+    private void ApplyImpactBurst(BallTypeData ballTypeData)
+    {
+        if (ballTypeData == null)
+        {
+            return;
+        }
+
+        int burstDamage = Mathf.Max(1, ballTypeData.ImpactBurstDamage);
+        float burstRadius = Mathf.Max(MinimumEffectRadius, ballTypeData.ImpactBurstRadius);
+        CollectNearbyBricks(burstRadius, nearbyBricksBuffer);
+        if (nearbyBricksBuffer.Count == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < nearbyBricksBuffer.Count; i++)
+        {
+            nearbyBricksBuffer[i].ApplyDamage(burstDamage);
+        }
+    }
+
     private void ApplyBallTypeEffects(BallTypeData ballTypeData)
     {
         if (ballTypeData == null)
@@ -690,6 +711,11 @@ public class BrickController : MonoBehaviour
         if (ballTypeData.AppliesRoot && currentHitPoints > 0)
         {
             ApplyRootToBrickAndAbove(ballTypeData.RootDuration, ballTypeData.RootSpeedMultiplier);
+        }
+
+        if (ballTypeData.ImpactBurst)
+        {
+            ApplyImpactBurst(ballTypeData);
         }
     }
 

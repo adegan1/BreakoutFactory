@@ -3,6 +3,10 @@ using UnityEditor;
 [CustomEditor(typeof(BallTypeData))]
 public class BallTypeDataEditor : BreakoutDataEditorBase
 {
+    private SerializedProperty primarySourceElementProperty;
+    private SerializedProperty secondarySourceElementProperty;
+    private SerializedProperty primaryEffectProfileProperty;
+    private SerializedProperty secondaryEffectProfileProperty;
     private SerializedProperty displayNameProperty;
     private SerializedProperty descriptionProperty;
     private SerializedProperty displayColorProperty;
@@ -30,11 +34,18 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty createsWaterDropsProperty;
     private SerializedProperty waterDropletTypeProperty;
     private SerializedProperty waterDropCooldownProperty;
+    private SerializedProperty impactBurstProperty;
+    private SerializedProperty impactBurstDamageProperty;
+    private SerializedProperty impactBurstRadiusProperty;
     private SerializedProperty elementsProperty;
     private SerializedProperty strongAgainstProperty;
 
     private void OnEnable()
     {
+        primarySourceElementProperty = FindProperty("primarySourceElement");
+        secondarySourceElementProperty = FindProperty("secondarySourceElement");
+        primaryEffectProfileProperty = FindProperty("primaryEffectProfile");
+        secondaryEffectProfileProperty = FindProperty("secondaryEffectProfile");
         displayNameProperty = FindProperty("displayName");
         descriptionProperty = FindProperty("description");
         displayColorProperty = FindProperty("displayColor");
@@ -62,6 +73,9 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         createsWaterDropsProperty = FindProperty("createsWaterDrops");
         waterDropletTypeProperty = FindProperty("waterDropletType");
         waterDropCooldownProperty = FindProperty("waterDropCooldown");
+        impactBurstProperty = FindProperty("impactBurst");
+        impactBurstDamageProperty = FindProperty("impactBurstDamage");
+        impactBurstRadiusProperty = FindProperty("impactBurstRadius");
         elementsProperty = FindProperty("elements");
         strongAgainstProperty = FindProperty("strongAgainst");
     }
@@ -70,6 +84,7 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     {
         serializedObject.Update();
 
+        DrawSection("Recipe", primarySourceElementProperty, secondarySourceElementProperty, primaryEffectProfileProperty, secondaryEffectProfileProperty);
         DrawSection("Display", displayNameProperty, descriptionProperty, displayColorProperty, ballSpriteProperty, sizeProperty);
         DrawSection("Movement", movementSpeedProperty);
         DrawSection("Core Combat", damageProperty, bouncesProperty);
@@ -83,6 +98,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         DrawConditionalGroup(appliesRootProperty, rootDurationProperty, rootSpeedMultiplierProperty);
         EditorGUILayout.PropertyField(createsWaterDropsProperty);
         DrawConditionalGroup(createsWaterDropsProperty, waterDropletTypeProperty, waterDropCooldownProperty);
+        EditorGUILayout.PropertyField(impactBurstProperty);
+        DrawConditionalGroup(impactBurstProperty, impactBurstDamageProperty, impactBurstRadiusProperty);
 
         DrawSection("Elements");
         EditorGUILayout.PropertyField(elementsProperty, includeChildren: true);

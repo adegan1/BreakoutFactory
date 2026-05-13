@@ -1,16 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Fusion Reactor machine.
-///
-/// Layout (at 0 rotation):
-///   - Two input slots on the LEFT side  (top-left and bottom-left tiles of the footprint)
-///   - One output slot on the RIGHT side (centre of the right edge)
-///
-/// When both inputs have received sufficient items matching a recipe in the database the
-/// machine produces the output item and ejects it from the output side.
-/// </summary>
+// Fusion Reactor machine.
+//
+// Layout (at 0 (default) rotation):
+//   - Two input slots on the LEFT side  (top-left and bottom-left tiles of the footprint)
+//   - One output slot on the RIGHT side (centre of the right edge)
+//
+// When both inputs have received sufficient items matching a recipe in the database the
+// machine produces the output item and ejects it from the output side.
 [DisallowMultipleComponent]
 public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInputPreview, IBuildingOutputPreview, IMachineResourceProgressProvider, IMachineProgressDisplayInfo, IMachinePendingItemDropper
 {
@@ -326,7 +324,7 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
 
     // ── Input tile helpers ────────────────────────────────────────────────────
 
-    /// <summary>Returns the two input grid positions using the building's live state.</summary>
+    // Returns the two input grid positions using the building's live state.
     private void GetInputTilesWorld(out Vector2Int tileA, out Vector2Int tileB)
     {
         ResolveDependenciesIfNeeded();
@@ -336,10 +334,8 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         BuildBothInputTiles(topLeft, footprintSize, rotation, out tileA, out tileB);
     }
 
-    /// <summary>
-    /// Calculates both input tile positions given a top-left, footprint size, and rotation.
-    /// Slot A = "top" position on the input side; Slot B = "bottom" position.
-    /// </summary>
+    // Calculates both input tile positions given a top-left, footprint size, and rotation.
+    // Slot A = "top" position on the input side; Slot B = "bottom" position.
     private void BuildBothInputTiles(
         Vector2Int topLeftGridPosition,
         Vector2Int footprintSize,
@@ -358,11 +354,9 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         tileB = topLeftGridPosition + offsetB;
     }
 
-    /// <summary>
-    /// Returns an offset (relative to top-left) pointing to either the "top" or "bottom" tile
-    /// on the input edge of the building's footprint.
-    /// For a left-side input on a 2×3 footprint, top slot = (0,2) and bottom slot = (0,0).
-    /// </summary>
+    // Returns an offset (relative to top-left) pointing to either the "top" or "bottom" tile
+    // on the input edge of the building's footprint.
+    // For a left-side input on a 2×3 footprint, top slot = (0,2) and bottom slot = (0,0).
     private static Vector2Int GetInputEdgeTileOffset(Vector2Int direction, Vector2Int footprintSize, bool topSlot)
     {
         // The input edge interior tiles lie at x=0 (left) or x=w-1 (right) or y=0 (down) or y=h-1 (up).
