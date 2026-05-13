@@ -246,8 +246,35 @@ public class InventoryManager : MonoBehaviour
 
     private void CaptureStartingDataFromSource(InventoryManager source)
     {
-        CopyBuildingEntries(source.startingBuildings, startingBuildings);
-        CopyItemEntries(source.startingItems, startingItems);
+        startingBuildings.Clear();
+        if (source.startingBuildings != null)
+        {
+            for (int i = 0; i < source.startingBuildings.Count; i++)
+            {
+                InventoryEntry entry = source.startingBuildings[i];
+                if (entry == null || entry.BuildingDefinition == null || entry.Quantity <= 0)
+                {
+                    continue;
+                }
+
+                startingBuildings.Add(new InventoryEntry(entry.BuildingDefinition, entry.Quantity));
+            }
+        }
+
+        startingItems.Clear();
+        if (source.startingItems != null)
+        {
+            for (int i = 0; i < source.startingItems.Count; i++)
+            {
+                ItemInventoryEntry entry = source.startingItems[i];
+                if (entry == null || entry.ItemDefinition == null || entry.Quantity <= 0)
+                {
+                    continue;
+                }
+
+                startingItems.Add(new ItemInventoryEntry(entry.ItemDefinition, entry.Quantity));
+            }
+        }
 
         startingScrap = Mathf.Max(0, source.startingScrap);
         startingScore = Mathf.Max(0, source.startingScore);
@@ -255,7 +282,41 @@ public class InventoryManager : MonoBehaviour
 
     private void MergeStartingBuildings(List<InventoryEntry> sourceEntries)
     {
-        MergeBuildingEntries(sourceEntries, true);
+        if (sourceEntries == null)
+        {
+            return;
+        }
+
+        // Insert in reverse so final runtime order matches source order at the front.
+        for (int i = sourceEntries.Count - 1; i >= 0; i--)
+        {
+            InventoryEntry entry = sourceEntries[i];
+            if (entry == null || entry.BuildingDefinition == null || entry.Quantity <= 0)
+            {
+                continue;
+            }
+
+            BuildingDefinition definition = entry.BuildingDefinition;
+            int quantityToAdd = entry.Quantity;
+
+            if (buildingsByDefinition.TryGetValue(definition, out InventoryEntry existingEntry))
+            {
+                int updatedQuantity = Mathf.Max(0, existingEntry.Quantity + quantityToAdd);
+                existingEntry.SetQuantity(updatedQuantity);
+
+                // Move existing entry to the front so starting buildings come first.
+                buildingInventory.Remove(existingEntry);
+                buildingInventory.Insert(0, existingEntry);
+                continue;
+            }
+
+            InventoryEntry newEntry = new InventoryEntry(definition, quantityToAdd);
+            buildingsByDefinition.Add(definition, newEntry);
+            buildingInventory.Insert(0, newEntry);
+            AssignBuildingToFirstAvailableHotbarSlot(definition);
+        }
+
+        PrioritizeHotbarDefinitionsAtFront(sourceEntries);
     }
 
     public bool TryGetBuildingAtHotbarSlot(int slotIndex, out BuildingDefinition buildingDefinition, out int quantity)
@@ -283,7 +344,22 @@ public class InventoryManager : MonoBehaviour
 
     private void MergeStartingItems(List<ItemInventoryEntry> sourceEntries)
     {
-        MergeItemEntries(sourceEntries);
+        if (sourceEntries == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < sourceEntries.Count; i++)
+        {
+            ItemInventoryEntry entry = sourceEntries[i];
+            if (entry == null || entry.ItemDefinition == null || entry.Quantity <= 0)
+            {
+                continue;
+            }
+
+            TryGetItemQuantityInternal(entry.ItemDefinition, out int currentQuantity);
+            SetItemQuantityInternal(entry.ItemDefinition, currentQuantity + entry.Quantity, false);
+        }
     }
 
     public void AddScrap(int amount)
@@ -755,11 +831,31 @@ public class InventoryManager : MonoBehaviour
         itemInventory.Clear();
         itemsByDefinition.Clear();
 
-        MergeBuildingEntries(sourceBuildings, false);
+        foreach (InventoryEntry entry in sourceBuildings)
+        {
+            if (entry == null || entry.BuildingDefinition == null || entry.Quantity <= 0)
+            {
+                continue;
+            }
+
+            TryGetBuildingQuantityInternal(entry.BuildingDefinition, out int currentQuantity);
+            int combinedQuantity = currentQuantity + entry.Quantity;
+            SetBuildingQuantityInternal(entry.BuildingDefinition, combinedQuantity, false);
+        }
 
         RebuildStoredResourceStackLookup();
 
-        MergeItemEntries(sourceItems);
+        foreach (ItemInventoryEntry entry in sourceItems)
+        {
+            if (entry == null || entry.ItemDefinition == null || entry.Quantity <= 0)
+            {
+                continue;
+            }
+
+            TryGetItemQuantityInternal(entry.ItemDefinition, out int currentQuantity);
+            int combinedQuantity = currentQuantity + entry.Quantity;
+            SetItemQuantityInternal(entry.ItemDefinition, combinedQuantity, false);
+        }
 
         scrap = Mathf.Max(0, scrap > 0 ? scrap : startingScrap);
         score = Mathf.Max(0, score > 0 ? score : startingScore);
@@ -772,134 +868,6 @@ public class InventoryManager : MonoBehaviour
         }
 
         isInitialized = true;
-    }
-
-    private static void CopyBuildingEntries(List<InventoryEntry> sourceEntries, List<InventoryEntry> destination)
-    {
-        destination.Clear();
-        if (sourceEntries == null)
-        {
-            return;
-        }
-
-        for (int i = 0; i < sourceEntries.Count; i++)
-        {
-            InventoryEntry entry = sourceEntries[i];
-            if (!IsValidBuildingEntry(entry))
-            {
-                continue;
-            }
-
-            destination.Add(new InventoryEntry(entry.BuildingDefinition, entry.Quantity));
-        }
-    }
-
-    private static void CopyItemEntries(List<ItemInventoryEntry> sourceEntries, List<ItemInventoryEntry> destination)
-    {
-        destination.Clear();
-        if (sourceEntries == null)
-        {
-            return;
-        }
-
-        for (int i = 0; i < sourceEntries.Count; i++)
-        {
-            ItemInventoryEntry entry = sourceEntries[i];
-            if (!IsValidItemEntry(entry))
-            {
-                continue;
-            }
-
-            destination.Add(new ItemInventoryEntry(entry.ItemDefinition, entry.Quantity));
-        }
-    }
-
-    private void MergeBuildingEntries(List<InventoryEntry> sourceEntries, bool insertAtFront)
-    {
-        if (sourceEntries == null)
-        {
-            return;
-        }
-
-        int startIndex = insertAtFront ? sourceEntries.Count - 1 : 0;
-        int endIndex = insertAtFront ? -1 : sourceEntries.Count;
-        int step = insertAtFront ? -1 : 1;
-        for (int i = startIndex; i != endIndex; i += step)
-        {
-            InventoryEntry entry = sourceEntries[i];
-            if (!IsValidBuildingEntry(entry))
-            {
-                continue;
-            }
-
-            MergeBuildingEntry(entry, insertAtFront);
-        }
-
-        if (insertAtFront)
-        {
-            PrioritizeHotbarDefinitionsAtFront(sourceEntries);
-        }
-    }
-
-    private void MergeBuildingEntry(InventoryEntry entry, bool insertAtFront)
-    {
-        BuildingDefinition definition = entry.BuildingDefinition;
-        int quantityToAdd = entry.Quantity;
-        if (buildingsByDefinition.TryGetValue(definition, out InventoryEntry existingEntry))
-        {
-            existingEntry.SetQuantity(existingEntry.Quantity + quantityToAdd);
-            if (insertAtFront)
-            {
-                buildingInventory.Remove(existingEntry);
-                buildingInventory.Insert(0, existingEntry);
-            }
-
-            return;
-        }
-
-        InventoryEntry newEntry = new InventoryEntry(definition, quantityToAdd);
-        buildingsByDefinition.Add(definition, newEntry);
-
-        if (insertAtFront)
-        {
-            buildingInventory.Insert(0, newEntry);
-        }
-        else
-        {
-            buildingInventory.Add(newEntry);
-        }
-
-        AssignBuildingToFirstAvailableHotbarSlot(definition);
-    }
-
-    private void MergeItemEntries(List<ItemInventoryEntry> sourceEntries)
-    {
-        if (sourceEntries == null)
-        {
-            return;
-        }
-
-        for (int i = 0; i < sourceEntries.Count; i++)
-        {
-            ItemInventoryEntry entry = sourceEntries[i];
-            if (!IsValidItemEntry(entry))
-            {
-                continue;
-            }
-
-            TryGetItemQuantityInternal(entry.ItemDefinition, out int currentQuantity);
-            SetItemQuantityInternal(entry.ItemDefinition, currentQuantity + entry.Quantity, false);
-        }
-    }
-
-    private static bool IsValidBuildingEntry(InventoryEntry entry)
-    {
-        return entry != null && entry.BuildingDefinition != null && entry.Quantity > 0;
-    }
-
-    private static bool IsValidItemEntry(ItemInventoryEntry entry)
-    {
-        return entry != null && entry.ItemDefinition != null && entry.Quantity > 0;
     }
 
     private bool TryGetBuildingQuantityInternal(BuildingDefinition buildingDefinition, out int quantity)

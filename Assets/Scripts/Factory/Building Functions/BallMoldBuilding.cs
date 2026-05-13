@@ -182,13 +182,11 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         Vector2Int footprintSize,
         int rotationQuarterTurns)
     {
-        Vector2Int baseInputOffset = GetInputTileOffset(GetBaseDirection(inputSide), footprintSize);
-        Vector2Int rotatedInputOffset = FactoryGridDirectionUtility.RotateOffsetAroundFootprintCenter(
-            baseInputOffset,
-            footprintSize,
-            rotationQuarterTurns);
+        Vector2Int baseInputDirection = GetBaseDirection(inputSide);
+        Vector2Int worldInputDirection = FactoryGridDirectionUtility.RotateDirection(baseInputDirection, rotationQuarterTurns);
+        Vector2Int inputOffset = GetInputTileOffset(worldInputDirection, footprintSize);
 
-        return topLeftGridPosition + rotatedInputOffset;
+        return topLeftGridPosition + inputOffset;
     }
 
     private void AddToInventory(ItemDefinition itemDefinition, int amount)

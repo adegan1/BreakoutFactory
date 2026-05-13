@@ -233,12 +233,28 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             return;
         }
 
+        Vector2Int outputDirection = FactoryGridDirectionUtility.RotateDirection(
+            -GetBaseDirection(inputSide),
+            buildingInstance.RotationQuarterTurns);
+        Vector2Int launchStartTile = outputTile - outputDirection;
+
+        if (!tileManager.IsInBounds(launchStartTile))
+        {
+            return;
+        }
+
+        if (ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, launchStartTile))
+        {
+            return;
+        }
+
         if (ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, outputTile))
         {
             return;
         }
 
-        Vector3 spawnWorldPos = tileManager.GridToWorld(outputTile) + itemSpawnOffset;
+        Vector3 spawnWorldPos = tileManager.GridToWorld(launchStartTile) + itemSpawnOffset;
+        Vector3 targetWorldPos = tileManager.GridToWorld(outputTile) + itemSpawnOffset;
 
         ItemEntity spawnedItem = Instantiate(itemEntityPrefab, spawnWorldPos, Quaternion.identity, spawnedItemParent);
         spawnedItem.Initialize(recipe.Output, recipe.OutputQuantity);
@@ -249,7 +265,7 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             return;
         }
 
-        BeginLaunch(spawnedItem, spawnWorldPos, spawnWorldPos);
+        BeginLaunch(spawnedItem, spawnWorldPos, targetWorldPos);
     }
 
     // ── Output position ───────────────────────────────────────────────────────
@@ -282,13 +298,10 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         // The output is on the opposite side from the inputs.
         Vector2Int baseInputDirection = GetBaseDirection(inputSide);
         Vector2Int baseOutputDirection = -baseInputDirection;
-        Vector2Int baseOutputOffset = FactoryGridDirectionUtility.GetSideOffset(baseOutputDirection, footprintSize);
-        Vector2Int rotatedOutputOffset = FactoryGridDirectionUtility.RotateOffsetAroundFootprintCenter(
-            baseOutputOffset,
-            footprintSize,
-            rotationQuarterTurns);
+        Vector2Int worldOutputDirection = FactoryGridDirectionUtility.RotateDirection(baseOutputDirection, rotationQuarterTurns);
+        Vector2Int outputOffset = FactoryGridDirectionUtility.GetSideOffset(worldOutputDirection, footprintSize);
 
-        return topLeft + rotatedOutputOffset;
+        return topLeft + outputOffset;
     }
 
     // ── Input tile helpers ────────────────────────────────────────────────────
@@ -315,18 +328,14 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         out Vector2Int tileB)
     {
         Vector2Int baseInputDirection = GetBaseDirection(inputSide);
+        Vector2Int worldInputDirection = FactoryGridDirectionUtility.RotateDirection(baseInputDirection, rotationQuarterTurns);
 
         // "Top" and "bottom" offsets along the input edge (both on the inner edge of the footprint)
-        Vector2Int offsetA = GetInputEdgeTileOffset(baseInputDirection, footprintSize, topSlot: true);
-        Vector2Int offsetB = GetInputEdgeTileOffset(baseInputDirection, footprintSize, topSlot: false);
+        Vector2Int offsetA = GetInputEdgeTileOffset(worldInputDirection, footprintSize, topSlot: true);
+        Vector2Int offsetB = GetInputEdgeTileOffset(worldInputDirection, footprintSize, topSlot: false);
 
-        Vector2Int rotatedOffsetA = FactoryGridDirectionUtility.RotateOffsetAroundFootprintCenter(
-            offsetA, footprintSize, rotationQuarterTurns);
-        Vector2Int rotatedOffsetB = FactoryGridDirectionUtility.RotateOffsetAroundFootprintCenter(
-            offsetB, footprintSize, rotationQuarterTurns);
-
-        tileA = topLeftGridPosition + rotatedOffsetA;
-        tileB = topLeftGridPosition + rotatedOffsetB;
+        tileA = topLeftGridPosition + offsetA;
+        tileB = topLeftGridPosition + offsetB;
     }
 
     /// <summary>

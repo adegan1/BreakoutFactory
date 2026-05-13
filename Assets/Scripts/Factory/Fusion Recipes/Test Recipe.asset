@@ -15,6 +15,6 @@ MonoBehaviour:
   inputA: {fileID: 11400000, guid: a32a82f89e2ecff4d9022211fa49279c, type: 2}
   inputB: {fileID: 11400000, guid: 3da5f18210643054894ce65d33a5cc19, type: 2}
   output: {fileID: 11400000, guid: 0ded17caa9d82e0418abe6ad8ea51e73, type: 2}
-  outputQuantity: 10
-  costA: 10
-  costB: 10
+  outputQuantity: 1
+  costA: 1
+  costB: 1

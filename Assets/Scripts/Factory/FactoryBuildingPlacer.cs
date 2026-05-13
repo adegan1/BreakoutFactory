@@ -460,12 +460,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         Vector2Int baseDirection = FactoryGridDirectionUtility.GetBaseDirection(generatorSettings.OutputSide);
         Vector2Int worldDirection = FactoryGridDirectionUtility.RotateDirection(baseDirection, rotationQuarterTurns);
-        Vector2Int baseOutputOffset = FactoryGridDirectionUtility.GetSideOffset(baseDirection, footprintSize);
-        Vector2Int rotatedOutputOffset = FactoryGridDirectionUtility.RotateOffsetAroundFootprintCenter(
-            baseOutputOffset,
-            footprintSize,
-            rotationQuarterTurns);
-        Vector2Int generatorOutputTile = topLeftGridPosition + rotatedOutputOffset;
+        Vector2Int outputOffset = FactoryGridDirectionUtility.GetSideOffset(worldDirection, footprintSize);
+        Vector2Int generatorOutputTile = topLeftGridPosition + outputOffset;
 
         if (tileManager.IsInBounds(generatorOutputTile))
         {
@@ -735,6 +731,20 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         hoverHighlightRenderer.sprite = selectedSprite != null ? selectedSprite : defaultHoverSprite;
         hoverHighlightRenderer.color = BuildPreviewTint(definition.BuildingColor, canPlace);
+
+        if (tileManager != null)
+        {
+            Vector2Int occupiedFootprint = GetRotatedFootprintSize(definition.FootprintSize);
+            Vector2Int previewScaleFootprint = (quarterTurns & 1) == 0
+                ? occupiedFootprint
+                : new Vector2Int(occupiedFootprint.y, occupiedFootprint.x);
+
+            hoverHighlight.localScale = new Vector3(
+                previewScaleFootprint.x * tileManager.TileSize,
+                previewScaleFootprint.y * tileManager.TileSize,
+                1f);
+        }
+
         hoverHighlight.rotation = Quaternion.Euler(0f, 0f, quarterTurns * 90f);
     }
 

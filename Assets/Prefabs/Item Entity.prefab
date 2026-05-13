@@ -106,6 +106,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemEntity
   itemDefinition: {fileID: 0}
   targetSpriteRenderer: {fileID: 174537137167182847}
-  targetCollider: {fileID: 0}
   applyDefinitionOnAwake: 1
   renameGameObjectToItemName: 1

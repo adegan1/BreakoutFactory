@@ -72,7 +72,22 @@ public class LevelSettings : MonoBehaviour
         nextLevelRowsToSpawn = Mathf.Max(0, defaultNextLevelRowsToSpawn);
         nextLevelBrickMoveSpeed = Mathf.Max(0f, defaultNextLevelBrickMoveSpeed);
         nextLevelBrickHealth = Mathf.Max(1, defaultNextLevelBrickHealth);
-        CopyBrickOdds(defaultNextLevelBrickOdds, nextLevelBrickOdds);
+        nextLevelBrickOdds.Clear();
+
+        for (int i = 0; i < defaultNextLevelBrickOdds.Count; i++)
+        {
+            BrickSpawnOddsEntry source = defaultNextLevelBrickOdds[i];
+            if (source == null || source.typeData == null || source.weight <= 0f)
+            {
+                continue;
+            }
+
+            nextLevelBrickOdds.Add(new BrickSpawnOddsEntry
+            {
+                typeData = source.typeData,
+                weight = source.weight
+            });
+        }
     }
 
     public void SetNextLevelRowsToSpawn(int rows)
@@ -92,7 +107,27 @@ public class LevelSettings : MonoBehaviour
 
     public void SetBrickOdds(List<BrickSpawnOddsEntry> brickOdds)
     {
-        CopyBrickOdds(brickOdds, nextLevelBrickOdds);
+        nextLevelBrickOdds.Clear();
+
+        if (brickOdds == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < brickOdds.Count; i++)
+        {
+            BrickSpawnOddsEntry source = brickOdds[i];
+            if (source == null || source.typeData == null || source.weight <= 0f)
+            {
+                continue;
+            }
+
+            nextLevelBrickOdds.Add(new BrickSpawnOddsEntry
+            {
+                typeData = source.typeData,
+                weight = source.weight
+            });
+        }
     }
 
     private void CaptureDefaults()
@@ -100,36 +135,22 @@ public class LevelSettings : MonoBehaviour
         defaultNextLevelRowsToSpawn = nextLevelRowsToSpawn;
         defaultNextLevelBrickMoveSpeed = nextLevelBrickMoveSpeed;
         defaultNextLevelBrickHealth = nextLevelBrickHealth;
-        CopyBrickOdds(nextLevelBrickOdds, defaultNextLevelBrickOdds);
-    }
+        defaultNextLevelBrickOdds.Clear();
 
-    private static void CopyBrickOdds(List<BrickSpawnOddsEntry> source, List<BrickSpawnOddsEntry> destination)
-    {
-        destination.Clear();
-        if (source == null)
+        for (int i = 0; i < nextLevelBrickOdds.Count; i++)
         {
-            return;
-        }
-
-        for (int i = 0; i < source.Count; i++)
-        {
-            BrickSpawnOddsEntry entry = source[i];
-            if (!IsValidBrickOddsEntry(entry))
+            BrickSpawnOddsEntry source = nextLevelBrickOdds[i];
+            if (source == null || source.typeData == null || source.weight <= 0f)
             {
                 continue;
             }
 
-            destination.Add(new BrickSpawnOddsEntry
+            defaultNextLevelBrickOdds.Add(new BrickSpawnOddsEntry
             {
-                typeData = entry.typeData,
-                weight = entry.weight
+                typeData = source.typeData,
+                weight = source.weight
             });
         }
-    }
-
-    private static bool IsValidBrickOddsEntry(BrickSpawnOddsEntry entry)
-    {
-        return entry != null && entry.typeData != null && entry.weight > 0f;
     }
 
     private int ResolveRowsToSpawn()

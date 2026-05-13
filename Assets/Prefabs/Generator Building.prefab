@@ -121,7 +121,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7539e9784658b14082f4ef249f838fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GeneratorBuilding
-  buildingInstance: {fileID: 7797548973511550544, guid: a6fc1b56d619dee4cb67941612852517, type: 3}
+  buildingInstance: {fileID: 7797548973511550544}
   tileManager: {fileID: 0}
   factoryBuildingPlacer: {fileID: 0}
   itemEntityPrefab: {fileID: 2516040793068894578, guid: 0a56ed66f26a64e40bd0711497550c30, type: 3}

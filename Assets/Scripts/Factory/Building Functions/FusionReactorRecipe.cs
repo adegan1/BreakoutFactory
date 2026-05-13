@@ -13,13 +13,13 @@ public class FusionReactorRecipe : ScriptableObject
 
     [Header("Output")]
     [SerializeField] private ItemDefinition output;
-    [SerializeField, Min(1)] private int outputQuantity = 10;
+    [SerializeField, Min(1)] private int outputQuantity = 1;
 
     [Header("Cost Per Craft")]
     [Tooltip("How many of Input A are consumed per output.")]
-    [SerializeField, Min(1)] private int costA = 10;
+    [SerializeField, Min(1)] private int costA = 1;
     [Tooltip("How many of Input B are consumed per output.")]
-    [SerializeField, Min(1)] private int costB = 10;
+    [SerializeField, Min(1)] private int costB = 1;
 
     public ItemDefinition InputA => inputA;
     public ItemDefinition InputB => inputB;

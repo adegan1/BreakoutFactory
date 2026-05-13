@@ -77,6 +77,11 @@ public class FactoryStatePersistence : MonoBehaviour
             return;
         }
 
+        if (InventoryManager.HasInstance)
+        {
+            InventoryManager.Instance.ClearStoredMachineResources();
+        }
+
         string json = PlayerPrefs.GetString(SaveKey, null);
         if (string.IsNullOrEmpty(json))
         {

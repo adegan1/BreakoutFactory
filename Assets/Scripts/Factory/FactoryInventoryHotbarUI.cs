@@ -116,11 +116,10 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
     [Header("Slot Views (1..9,0)")]
     [SerializeField] private List<HotbarSlotView> slotViews = new List<HotbarSlotView>(InventoryManager.BuildingHotbarSlotCount);
 
+    [Header("Visuals")]
+    [SerializeField] private Color unavailableTint = new Color(1f, 1f, 1f, 0.35f);
+
     private bool hasBoundSlotClickHandlers;
-    private bool isSubscribedToInventoryEvents;
-    private bool hasCachedSelectionState;
-    private bool cachedHasSelectedBuilding;
-    private int cachedSelectedBuildingIndex = -1;
 
     private void Awake()
     {
@@ -132,7 +131,12 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
     private void OnEnable()
     {
         EnsureReferences();
-        SubscribeToInventoryEvents();
+
+        if (InventoryManager.HasInstance)
+        {
+            InventoryManager.Instance.InventoryChanged += HandleInventoryChanged;
+        }
+
         Refresh();
     }
 
@@ -143,18 +147,27 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
         yield return null;
 
         EnsureReferences();
-        SubscribeToInventoryEvents();
+
+        if (InventoryManager.HasInstance)
+        {
+            InventoryManager.Instance.InventoryChanged -= HandleInventoryChanged;
+            InventoryManager.Instance.InventoryChanged += HandleInventoryChanged;
+        }
+
         Refresh();
     }
 
     private void OnDisable()
     {
-        UnsubscribeFromInventoryEvents();
+        if (InventoryManager.HasInstance)
+        {
+            InventoryManager.Instance.InventoryChanged -= HandleInventoryChanged;
+        }
     }
 
     private void LateUpdate()
     {
-        RefreshSelectionHighlightIfChanged();
+        RefreshSelectionHighlightOnly();
     }
 
     private void BindSlotClickHandlersIfNeeded()
@@ -239,38 +252,13 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
 
         if (buildingPlacer.TrySelectBuildingByIndex(slotIndex))
         {
-            ApplySelectionHighlightState();
+            RefreshSelectionHighlightOnly();
         }
     }
 
     private void HandleInventoryChanged()
     {
         Refresh();
-    }
-
-    private void SubscribeToInventoryEvents()
-    {
-        UnsubscribeFromInventoryEvents();
-
-        if (!InventoryManager.HasInstance)
-        {
-            return;
-        }
-
-        InventoryManager.Instance.InventoryChanged += HandleInventoryChanged;
-        isSubscribedToInventoryEvents = true;
-    }
-
-    private void UnsubscribeFromInventoryEvents()
-    {
-        if (!isSubscribedToInventoryEvents || !InventoryManager.HasInstance)
-        {
-            isSubscribedToInventoryEvents = false;
-            return;
-        }
-
-        InventoryManager.Instance.InventoryChanged -= HandleInventoryChanged;
-        isSubscribedToInventoryEvents = false;
     }
 
     public void Refresh()
@@ -293,34 +281,23 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
             {
                 ApplyEmptySlot(slot);
             }
-        }
 
-        ApplySelectionHighlightState();
+            bool isSelected = buildingPlacer != null
+                && buildingPlacer.HasSelectedBuilding
+                && buildingPlacer.SelectedBuildingIndex == i;
+            if (slot.SelectionHighlight != null)
+            {
+                slot.SelectionHighlight.enabled = isSelected;
+            }
+        }
     }
 
-    private void RefreshSelectionHighlightIfChanged()
+    private void RefreshSelectionHighlightOnly()
     {
         if (buildingPlacer == null)
         {
             EnsureReferences();
         }
-
-        bool hasSelectedBuilding = buildingPlacer != null && buildingPlacer.HasSelectedBuilding;
-        int selectedBuildingIndex = hasSelectedBuilding ? buildingPlacer.SelectedBuildingIndex : -1;
-        if (hasCachedSelectionState
-            && cachedHasSelectedBuilding == hasSelectedBuilding
-            && cachedSelectedBuildingIndex == selectedBuildingIndex)
-        {
-            return;
-        }
-
-        ApplySelectionHighlightState();
-    }
-
-    private void ApplySelectionHighlightState()
-    {
-        bool hasSelectedBuilding = buildingPlacer != null && buildingPlacer.HasSelectedBuilding;
-        int selectedBuildingIndex = hasSelectedBuilding ? buildingPlacer.SelectedBuildingIndex : -1;
 
         for (int i = 0; i < InventoryManager.BuildingHotbarSlotCount; i++)
         {
@@ -330,12 +307,10 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
                 continue;
             }
 
-            slot.SelectionHighlight.enabled = hasSelectedBuilding && selectedBuildingIndex == i;
+            slot.SelectionHighlight.enabled = buildingPlacer != null
+                && buildingPlacer.HasSelectedBuilding
+                && buildingPlacer.SelectedBuildingIndex == i;
         }
-
-        cachedHasSelectedBuilding = hasSelectedBuilding;
-        cachedSelectedBuildingIndex = selectedBuildingIndex;
-        hasCachedSelectionState = true;
     }
 
     private void ApplyPopulatedSlot(HotbarSlotView slot, BuildingDefinition definition, int quantity)
