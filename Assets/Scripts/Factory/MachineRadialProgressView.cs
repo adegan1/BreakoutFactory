@@ -9,6 +9,8 @@ public class MachineRadialProgressView : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private Image radialFillImage;
+    [SerializeField] private Image statusIconImage;
+    [SerializeField] private Sprite questionMarkSprite;
     [SerializeField] private bool resolveProviderFromParents = true;
     [SerializeField] private TileManager tileManager;
 
@@ -23,14 +25,21 @@ public class MachineRadialProgressView : MonoBehaviour
 
     [Header("Billboard")]
     [SerializeField] private bool keepDefaultRotation = true;
+    [SerializeField] private bool keepDefaultWorldScale = true;
     [SerializeField] private bool faceWorldCamera = true;
     [SerializeField] private Camera worldCamera;
 
     private IMachineResourceProgressProvider provider;
+    private IMachineProgressDisplayInfo progressDisplayInfo;
     private BuildingInstance machineInstance;
     private int machineInstanceId = -1;
     private float visibilityAlpha;
+    private Vector3 defaultLocalScale = Vector3.one;
+    private Vector3 baselineParentLossyScale = Vector3.one;
+    private bool hasScaleBaseline;
+    private Quaternion defaultLocalRotation = Quaternion.identity;
     private Quaternion defaultWorldRotation = Quaternion.identity;
+    private RectTransform statusIconRectTransform;
 
     private struct DisplayState
     {
@@ -38,18 +47,26 @@ public class MachineRadialProgressView : MonoBehaviour
         public float TargetFill;
         public Color TargetColor;
         public float TargetAlpha;
+        public bool HasStatusIcon;
+        public Sprite TargetStatusSprite;
+        public Color TargetStatusColor;
+        public float StatusTargetAlpha;
     }
 
     private void Reset()
     {
         radialFillImage = GetComponentInChildren<Image>();
+        ResolveStatusIconIfNeeded();
     }
 
     private void Awake()
     {
+        defaultLocalRotation = transform.localRotation;
+        defaultLocalScale = transform.localScale;
         defaultWorldRotation = FactoryGridDirectionUtility.CalculateUnrotatedWorldRotation(transform);
         ResolveReferencesIfNeeded();
         ResolveProviderIfNeeded();
+        ResolveProgressDisplayInfoIfNeeded();
         ResolveMachineInstanceIfNeeded();
         ApplyImmediateState();
     }
@@ -58,6 +75,7 @@ public class MachineRadialProgressView : MonoBehaviour
     {
         ResolveReferencesIfNeeded();
         ResolveProviderIfNeeded();
+        ResolveProgressDisplayInfoIfNeeded();
         ResolveMachineInstanceIfNeeded();
         UpdateFill();
         UpdateBillboard();
@@ -70,6 +88,8 @@ public class MachineRadialProgressView : MonoBehaviour
             radialFillImage = GetComponentInChildren<Image>();
         }
 
+        ResolveStatusIconIfNeeded();
+
         if (tileManager == null)
         {
             tileManager = FindFirstObjectByType<TileManager>();
@@ -78,6 +98,59 @@ public class MachineRadialProgressView : MonoBehaviour
         if (worldCamera == null)
         {
             worldCamera = Camera.main;
+        }
+    }
+
+    private void ResolveStatusIconIfNeeded()
+    {
+        if (statusIconImage != null)
+        {
+            statusIconRectTransform = statusIconImage.rectTransform;
+            return;
+        }
+
+        if (radialFillImage == null)
+        {
+            return;
+        }
+
+        Image[] images = GetComponentsInChildren<Image>(true);
+        for (int i = 0; i < images.Length; i++)
+        {
+            if (images[i] != null && images[i] != radialFillImage)
+            {
+                statusIconImage = images[i];
+                statusIconRectTransform = statusIconImage.rectTransform;
+                return;
+            }
+        }
+    }
+
+    private void ResolveProgressDisplayInfoIfNeeded()
+    {
+        if (progressDisplayInfo != null)
+        {
+            MonoBehaviour displayBehaviour = progressDisplayInfo as MonoBehaviour;
+            if (displayBehaviour != null)
+            {
+                return;
+            }
+
+            progressDisplayInfo = null;
+        }
+
+        if (resolveProviderFromParents)
+        {
+            progressDisplayInfo = GetComponentInParent<IMachineProgressDisplayInfo>();
+        }
+        else
+        {
+            progressDisplayInfo = GetComponent<IMachineProgressDisplayInfo>();
+        }
+
+        if (progressDisplayInfo == null)
+        {
+            progressDisplayInfo = provider as IMachineProgressDisplayInfo;
         }
     }
 
@@ -128,6 +201,7 @@ public class MachineRadialProgressView : MonoBehaviour
         visibilityAlpha = state.TargetAlpha;
         ApplyTintWithVisibility(state.TargetColor, visibilityAlpha);
         SetFillVisible(visibilityAlpha > VisibleAlphaThreshold);
+        ApplyStatusIcon(state);
     }
 
     private void UpdateFill()
@@ -174,6 +248,7 @@ public class MachineRadialProgressView : MonoBehaviour
 
         ApplyTintWithVisibility(state.TargetColor, visibilityAlpha);
         SetFillVisible(visibilityAlpha > VisibleAlphaThreshold);
+        ApplyStatusIcon(state);
     }
 
     private DisplayState BuildDisplayState()
@@ -181,8 +256,9 @@ public class MachineRadialProgressView : MonoBehaviour
         bool hasProvider = provider != null;
         float targetFill = hasProvider ? provider.NormalizedResourceAmount : 0f;
         Color targetColor = hasProvider ? provider.ResourceTint : Color.white;
+        bool hasStatusIconState = progressDisplayInfo != null && progressDisplayInfo.HasProgressDisplay;
         bool shouldBeVisible = hasProvider
-            ? IsVisibleByInteractionContext() && !(hideWhenZero && targetFill <= 0f)
+            ? IsVisibleByInteractionContext() && (!(hideWhenZero && targetFill <= 0f) || hasStatusIconState)
             : !hideWhenNoProvider;
 
         DisplayState state = new DisplayState
@@ -193,7 +269,66 @@ public class MachineRadialProgressView : MonoBehaviour
             TargetAlpha = shouldBeVisible ? 1f : 0f
         };
 
+        bool hasStatusIcon = hasStatusIconState;
+        Sprite targetStatusSprite = null;
+        Color targetStatusColor = Color.white;
+        if (hasStatusIcon)
+        {
+            targetStatusSprite = progressDisplayInfo.UseQuestionMarkSprite
+                ? questionMarkSprite
+                : progressDisplayInfo.ProgressDisplaySprite;
+
+            if (targetStatusSprite == null)
+            {
+                targetStatusSprite = questionMarkSprite;
+            }
+
+            targetStatusColor = progressDisplayInfo.ProgressDisplayTint;
+        }
+
+        state.HasStatusIcon = hasStatusIcon && targetStatusSprite != null;
+        state.TargetStatusSprite = targetStatusSprite;
+        state.TargetStatusColor = targetStatusColor;
+        state.StatusTargetAlpha = state.TargetAlpha;
+
         return state;
+    }
+
+    private void ApplyStatusIcon(DisplayState state)
+    {
+        if (statusIconImage == null)
+        {
+            return;
+        }
+
+        if (!state.HasStatusIcon)
+        {
+            if (statusIconImage.enabled)
+            {
+                statusIconImage.enabled = false;
+            }
+
+            return;
+        }
+
+        if (!statusIconImage.gameObject.activeSelf)
+        {
+            statusIconImage.gameObject.SetActive(true);
+        }
+
+        if (statusIconImage.sprite != state.TargetStatusSprite)
+        {
+            statusIconImage.sprite = state.TargetStatusSprite;
+        }
+
+        Color output = state.TargetStatusColor;
+        output.a *= Mathf.Clamp01(state.StatusTargetAlpha);
+        statusIconImage.color = output;
+
+        if (statusIconImage.enabled != state.StatusTargetAlpha > VisibleAlphaThreshold)
+        {
+            statusIconImage.enabled = state.StatusTargetAlpha > VisibleAlphaThreshold;
+        }
     }
 
     private void ApplyTintWithVisibility(Color tint, float alpha)
@@ -266,7 +401,17 @@ public class MachineRadialProgressView : MonoBehaviour
 
     private void SetFillVisible(bool isVisible)
     {
-        if (radialFillImage != null && radialFillImage.enabled != isVisible)
+        if (radialFillImage == null)
+        {
+            return;
+        }
+
+        if (isVisible && !radialFillImage.gameObject.activeSelf)
+        {
+            radialFillImage.gameObject.SetActive(true);
+        }
+
+        if (radialFillImage.enabled != isVisible)
         {
             radialFillImage.enabled = isVisible;
         }
@@ -277,16 +422,65 @@ public class MachineRadialProgressView : MonoBehaviour
         if (keepDefaultRotation)
         {
             transform.rotation = defaultWorldRotation;
+            ApplyScaleCompensationIfNeeded();
+            ApplyStatusIconDefaultRotationIfNeeded();
             return;
         }
 
         if (!faceWorldCamera || worldCamera == null)
         {
+            ApplyScaleCompensationIfNeeded();
+            ApplyStatusIconDefaultRotationIfNeeded();
             return;
         }
 
         Vector3 cameraForward = worldCamera.transform.forward;
         transform.rotation = Quaternion.LookRotation(cameraForward, Vector3.up);
+        ApplyScaleCompensationIfNeeded();
+        ApplyStatusIconDefaultRotationIfNeeded();
+    }
+
+
+    private void ApplyStatusIconDefaultRotationIfNeeded()
+    {
+        if (statusIconImage == null || statusIconRectTransform == null)
+        {
+            return;
+        }
+
+        statusIconRectTransform.rotation = transform.rotation;
+    }
+
+    private void ApplyScaleCompensationIfNeeded()
+    {
+        if (!keepDefaultWorldScale)
+        {
+            return;
+        }
+
+        Transform parent = transform.parent;
+        if (parent == null)
+        {
+            transform.localScale = defaultLocalScale;
+            return;
+        }
+
+        Vector3 parentLossyScale = parent.lossyScale;
+        if (!hasScaleBaseline)
+        {
+            baselineParentLossyScale = parentLossyScale;
+            hasScaleBaseline = true;
+        }
+
+        transform.localScale = new Vector3(
+            defaultLocalScale.x * SafeDivide(baselineParentLossyScale.x, parentLossyScale.x),
+            defaultLocalScale.y * SafeDivide(baselineParentLossyScale.y, parentLossyScale.y),
+            defaultLocalScale.z * SafeDivide(baselineParentLossyScale.z, parentLossyScale.z));
+    }
+
+    private static float SafeDivide(float value, float divisor)
+    {
+        return Mathf.Abs(divisor) > 0.0001f ? value / divisor : value;
     }
 
 }

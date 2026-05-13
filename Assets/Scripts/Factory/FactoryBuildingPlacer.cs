@@ -423,21 +423,29 @@ public class FactoryBuildingPlacer : MonoBehaviour
             && reusableInputTiles.Count > 0)
         {
             indicatorState.HasInput = true;
-            
+
             // Position indicator outside the building, one tile away from the input
             Vector2Int primaryInputTile = reusableInputTiles[0];
-            indicatorState.InputTile = GetIndicatorTileOutsideBuilding(primaryInputTile, topLeftGridPosition, footprintSize, rotationQuarterTurns);
-            
+            if (TryGetBallMoldPrimaryInputTile(definition, topLeftGridPosition, footprintSize, rotationQuarterTurns, out Vector2Int ballMoldPrimaryInputTile, out Vector2Int ballMoldInputOutwardDirection))
+            {
+                primaryInputTile = ballMoldPrimaryInputTile;
+                indicatorState.InputTile = primaryInputTile + ballMoldInputOutwardDirection;
+            }
+            else
+            {
+                indicatorState.InputTile = GetIndicatorTileOutsideBuilding(primaryInputTile, topLeftGridPosition, footprintSize, rotationQuarterTurns);
+            }
+
             Vector2Int inputDirection = primaryInputTile - indicatorState.InputTile;
             indicatorState.InputQuarterTurns = FactoryGridDirectionUtility.DirectionToQuarterTurns(NormalizeCardinal(inputDirection));
 
             if (reusableInputTiles.Count > 1)
             {
                 indicatorState.HasSecondaryInput = true;
-                
+
                 Vector2Int secondaryInputTile = reusableInputTiles[1];
                 indicatorState.SecondaryInputTile = GetIndicatorTileOutsideBuilding(secondaryInputTile, topLeftGridPosition, footprintSize, rotationQuarterTurns);
-                
+
                 Vector2Int secondaryInputDirection = secondaryInputTile - indicatorState.SecondaryInputTile;
                 indicatorState.SecondaryInputQuarterTurns = FactoryGridDirectionUtility.DirectionToQuarterTurns(NormalizeCardinal(secondaryInputDirection));
             }
@@ -460,8 +468,12 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         Vector2Int baseDirection = FactoryGridDirectionUtility.GetBaseDirection(generatorSettings.OutputSide);
         Vector2Int worldDirection = FactoryGridDirectionUtility.RotateDirection(baseDirection, rotationQuarterTurns);
-        Vector2Int outputOffset = FactoryGridDirectionUtility.GetSideOffset(worldDirection, footprintSize);
-        Vector2Int generatorOutputTile = topLeftGridPosition + outputOffset;
+        Vector2Int baseOutputOffset = FactoryGridDirectionUtility.GetSideOffset(baseDirection, footprintSize);
+        Vector2Int rotatedOutputOffset = FactoryGridDirectionUtility.RotateOffsetAroundFootprintCenter(
+            baseOutputOffset,
+            footprintSize,
+            rotationQuarterTurns);
+        Vector2Int generatorOutputTile = topLeftGridPosition + rotatedOutputOffset;
 
         if (tileManager.IsInBounds(generatorOutputTile))
         {
@@ -509,6 +521,54 @@ public class FactoryBuildingPlacer : MonoBehaviour
         indicatorState.HasOutput = true;
         indicatorState.OutputTile = outputTile;
         indicatorState.OutputQuarterTurns = FactoryGridDirectionUtility.DirectionToQuarterTurns(NormalizeCardinal(outputDirection));
+    }
+
+    private static bool TryGetBallMoldPrimaryInputTile(
+        BuildingDefinition definition,
+        Vector2Int topLeftGridPosition,
+        Vector2Int footprintSize,
+        int rotationQuarterTurns,
+        out Vector2Int inputTile,
+        out Vector2Int outwardDirection)
+    {
+        inputTile = default;
+        outwardDirection = default;
+
+        if (definition == null || definition.BehaviorPrefab == null)
+        {
+            return false;
+        }
+
+        BallMoldBuilding ballMold = definition.BehaviorPrefab.GetComponent<BallMoldBuilding>();
+        if (ballMold == null)
+        {
+            return false;
+        }
+
+        Vector2Int baseInputDirection = FactoryGridDirectionUtility.DirectionFromQuarterTurns((int)ballMold.ConfiguredInputSide);
+        outwardDirection = FactoryGridDirectionUtility.RotateDirection(baseInputDirection, rotationQuarterTurns);
+
+        if (outwardDirection == Vector2Int.left)
+        {
+            inputTile = topLeftGridPosition + new Vector2Int(0, 0);
+            return true;
+        }
+
+        if (outwardDirection == Vector2Int.up)
+        {
+            inputTile = topLeftGridPosition + new Vector2Int(0, footprintSize.y - 1);
+            return true;
+        }
+
+        if (outwardDirection == Vector2Int.right)
+        {
+            inputTile = topLeftGridPosition + new Vector2Int(footprintSize.x - 1, footprintSize.y - 1);
+            return true;
+        }
+
+        // Down
+        inputTile = topLeftGridPosition + new Vector2Int(footprintSize.x - 1, 0);
+        return true;
     }
 
     private bool TryGetInputTilesForDefinition(
@@ -968,6 +1028,9 @@ public class FactoryBuildingPlacer : MonoBehaviour
         {
             StoreMachineResourceForInventory(record.SpawnedObject, record.Definition);
         }
+
+        IMachinePendingItemDropper pendingItemDropper = record.SpawnedObject.GetComponentInChildren<IMachinePendingItemDropper>();
+        pendingItemDropper?.TryDropPendingItemToGround();
 
         Destroy(record.SpawnedObject);
         buildingsByInstanceId.Remove(instanceId);

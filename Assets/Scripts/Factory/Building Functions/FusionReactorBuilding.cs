@@ -12,7 +12,7 @@ using UnityEngine;
 /// machine produces the output item and ejects it from the output side.
 /// </summary>
 [DisallowMultipleComponent]
-public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInputPreview, IBuildingOutputPreview
+public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInputPreview, IBuildingOutputPreview, IMachineResourceProgressProvider, IMachineProgressDisplayInfo, IMachinePendingItemDropper
 {
     public enum InputSide
     {
@@ -52,6 +52,11 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
     private ItemDefinition slotBDefinition;
     private int slotAAmount;
     private int slotBAmount;
+    private bool hasItem;
+    private ItemDefinition pendingOutputDefinition;
+    private int pendingOutputQuantity;
+    private Color firstInputTint = Color.white;
+    private bool hasFirstInputTint;
 
     private ItemEntity launchingItem;
     private float launchMoveTimer;
@@ -84,6 +89,12 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             return;
         }
 
+        if (hasItem)
+        {
+            TryReleasePendingOutput();
+            return;
+        }
+
         TryFuse();
     }
 
@@ -91,7 +102,7 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
 
     public bool CanAcceptItemAtTile(Vector2Int tile, ItemEntity item)
     {
-        if (item == null || item.ItemDefinition == null)
+        if (hasItem || item == null || item.ItemDefinition == null)
         {
             return false;
         }
@@ -135,6 +146,8 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             return false;
         }
 
+        RegisterFirstInputTint(item.ItemDefinition);
+
         Destroy(item.gameObject);
         return true;
     }
@@ -176,13 +189,19 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
 
     private void TryFuse()
     {
+        if (hasItem)
+        {
+            TryReleasePendingOutput();
+            return;
+        }
+
         if (recipeDatabase == null || slotADefinition == null || slotBDefinition == null)
         {
             return;
         }
 
         FusionReactorRecipe recipe = recipeDatabase.FindRecipe(slotADefinition, slotBDefinition);
-        if (recipe == null)
+        if (recipe == null || recipe.Output == null || recipe.OutputQuantity <= 0)
         {
             return;
         }
@@ -212,60 +231,67 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             slotBAmount = 0;
         }
 
-        TryEjectOutput(recipe);
+        pendingOutputDefinition = recipe.Output;
+        pendingOutputQuantity = recipe.OutputQuantity;
+        hasItem = true;
+        TryReleasePendingOutput();
     }
 
-    private void TryEjectOutput(FusionReactorRecipe recipe)
+    private bool TryReleasePendingOutput()
     {
-        if (recipe == null || recipe.Output == null || itemEntityPrefab == null)
+        if (!hasItem || pendingOutputDefinition == null || pendingOutputQuantity <= 0 || itemEntityPrefab == null)
         {
-            return;
+            return false;
         }
 
         ResolveDependenciesIfNeeded();
         if (buildingInstance == null || tileManager == null)
         {
-            return;
+            return false;
         }
 
         if (!TryGetOutputGridPosition(out Vector2Int outputTile))
         {
-            return;
+            return false;
         }
 
-        Vector2Int outputDirection = FactoryGridDirectionUtility.RotateDirection(
-            -GetBaseDirection(inputSide),
-            buildingInstance.RotationQuarterTurns);
-        Vector2Int launchStartTile = outputTile - outputDirection;
-
-        if (!tileManager.IsInBounds(launchStartTile))
+        if (!TryGetLaunchStartTile(outputTile, out Vector2Int launchStartTile))
         {
-            return;
+            return false;
         }
 
         if (ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, launchStartTile))
         {
-            return;
+            return false;
         }
 
         if (ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, outputTile))
         {
-            return;
+            return false;
         }
 
         Vector3 spawnWorldPos = tileManager.GridToWorld(launchStartTile) + itemSpawnOffset;
         Vector3 targetWorldPos = tileManager.GridToWorld(outputTile) + itemSpawnOffset;
 
         ItemEntity spawnedItem = Instantiate(itemEntityPrefab, spawnWorldPos, Quaternion.identity, spawnedItemParent);
-        spawnedItem.Initialize(recipe.Output, recipe.OutputQuantity);
+        spawnedItem.Initialize(pendingOutputDefinition, pendingOutputQuantity);
 
         if (!spawnedItem.TryClaim(this))
         {
             Destroy(spawnedItem.gameObject);
-            return;
+            return false;
         }
 
-        BeginLaunch(spawnedItem, spawnWorldPos, targetWorldPos);
+        if (!BeginLaunch(spawnedItem, spawnWorldPos, targetWorldPos))
+        {
+            return false;
+        }
+
+        hasItem = false;
+        pendingOutputDefinition = null;
+        pendingOutputQuantity = 0;
+        ResetInputTintState();
+        return true;
     }
 
     // ── Output position ───────────────────────────────────────────────────────
@@ -406,12 +432,12 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
 
     // ── Launch helpers ────────────────────────────────────────────────────────
 
-    private void BeginLaunch(ItemEntity item, Vector3 startWorldPosition, Vector3 targetWorldPosition)
+    private bool BeginLaunch(ItemEntity item, Vector3 startWorldPosition, Vector3 targetWorldPosition)
     {
         if (!TryGetOutputGridPosition(out Vector2Int outputTile))
         {
             Destroy(item.gameObject);
-            return;
+            return false;
         }
 
         Vector3 outputWorldPos = tileManager.GridToWorld(outputTile) + itemSpawnOffset;
@@ -421,13 +447,14 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             Destroy(item.gameObject);
             launchingItem = null;
             launchMoveTimer = 0f;
-            return;
+            return false;
         }
 
         launchingItem = item;
         launchStartWorldPosition = startWorldPosition;
         launchTargetWorldPosition = outputWorldPos;
         launchMoveTimer = 0f;
+        return true;
     }
 
     private void TickLaunchMovement()
@@ -492,10 +519,88 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         spawnedItemParent = newParent.transform;
     }
 
+    public bool TryDropPendingItemToGround()
+    {
+        if (!hasItem || pendingOutputDefinition == null || pendingOutputQuantity <= 0 || itemEntityPrefab == null)
+        {
+            return false;
+        }
+
+        ResolveDependenciesIfNeeded();
+        if (buildingInstance == null || tileManager == null)
+        {
+            return false;
+        }
+
+        if (!TryGetOutputGridPosition(out Vector2Int outputTile)
+            || !TryGetLaunchStartTile(outputTile, out Vector2Int launchStartTile))
+        {
+            return false;
+        }
+
+        Vector3 dropWorldPosition = tileManager.GridToWorld(launchStartTile) + itemSpawnOffset;
+        ItemEntity droppedItem = Instantiate(itemEntityPrefab, dropWorldPosition, Quaternion.identity, spawnedItemParent);
+        droppedItem.Initialize(pendingOutputDefinition, pendingOutputQuantity);
+
+        hasItem = false;
+        pendingOutputDefinition = null;
+        pendingOutputQuantity = 0;
+        ResetInputTintState();
+        return true;
+    }
+
+    private bool TryGetLaunchStartTile(Vector2Int outputTile, out Vector2Int launchStartTile)
+    {
+        Vector2Int outputDirection = FactoryGridDirectionUtility.RotateDirection(
+            -GetBaseDirection(inputSide),
+            buildingInstance != null ? buildingInstance.RotationQuarterTurns : 0);
+        launchStartTile = outputTile - outputDirection;
+        return tileManager != null && tileManager.IsInBounds(launchStartTile);
+    }
+
+    private void RegisterFirstInputTint(ItemDefinition inputDefinition)
+    {
+        if (hasFirstInputTint || inputDefinition == null)
+        {
+            return;
+        }
+
+        firstInputTint = inputDefinition.Tint;
+        hasFirstInputTint = true;
+    }
+
+    private void ResetInputTintState()
+    {
+        firstInputTint = Color.white;
+        hasFirstInputTint = false;
+    }
+
     // ── Direction helpers ─────────────────────────────────────────────────────
 
     private static Vector2Int GetBaseDirection(InputSide side)
     {
         return FactoryGridDirectionUtility.DirectionFromQuarterTurns((int)side);
     }
+
+    public int CurrentResourceAmount => slotAAmount + slotBAmount;
+    public int MaxResourceAmount => maxPerSlot * 2;
+    public float NormalizedResourceAmount => MaxResourceAmount > 0
+        ? Mathf.Clamp01((float)CurrentResourceAmount / MaxResourceAmount)
+        : 0f;
+    public Color ResourceTint => hasFirstInputTint ? firstInputTint : Color.white;
+
+    private bool HasPendingOrLaunchingOutput => hasItem || launchingItem != null;
+
+    public bool HasProgressDisplay => HasPendingOrLaunchingOutput || slotAAmount > 0 || slotBAmount > 0;
+    public bool UseQuestionMarkSprite => !HasPendingOrLaunchingOutput;
+    public Sprite ProgressDisplaySprite => HasPendingOrLaunchingOutput
+        ? (pendingOutputDefinition != null ? pendingOutputDefinition.Icon : launchingItem != null ? launchingItem.ItemDefinition?.Icon : null)
+        : null;
+    public Color ProgressDisplayTint => HasPendingOrLaunchingOutput
+        ? (pendingOutputDefinition != null
+            ? pendingOutputDefinition.Tint
+            : launchingItem != null && launchingItem.ItemDefinition != null
+                ? launchingItem.ItemDefinition.Tint
+                : ResourceTint)
+        : ResourceTint;
 }

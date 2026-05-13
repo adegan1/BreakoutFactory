@@ -307,24 +307,24 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
     private static Vector2Int GetInputTileOffset(Vector2Int direction, Vector2Int footprintSize)
     {
-        // Returns offset to a tile on the INSIDE edge of the building, not outside
-        if (direction == Vector2Int.right)
-        {
-            return new Vector2Int(footprintSize.x - 1, (footprintSize.y - 1) / 2);
-        }
-
+        // Use a single corner input tile that rotates consistently across 0/90/180/270.
         if (direction == Vector2Int.left)
         {
-            return new Vector2Int(0, (footprintSize.y - 1) / 2);
+            return new Vector2Int(0, 0);
         }
 
         if (direction == Vector2Int.up)
         {
-            return new Vector2Int((footprintSize.x - 1) / 2, footprintSize.y - 1);
+            return new Vector2Int(0, footprintSize.y - 1);
+        }
+
+        if (direction == Vector2Int.right)
+        {
+            return new Vector2Int(footprintSize.x - 1, footprintSize.y - 1);
         }
 
         // Down
-        return new Vector2Int((footprintSize.x - 1) / 2, 0);
+        return new Vector2Int(footprintSize.x - 1, 0);
     }
 
     private static Vector2Int GetBaseDirection(InputSide side)
