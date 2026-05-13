@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4eecbd1de77a444489306836b92cb7c3, type: 3}
+  m_Name: Fusion Recipe Database
+  m_EditorClassIdentifier: Assembly-CSharp::FusionReactorRecipeDatabase
+  recipes:
+  - {fileID: 11400000, guid: 5f5d7e111eee304478986e5fc2e1a347, type: 2}

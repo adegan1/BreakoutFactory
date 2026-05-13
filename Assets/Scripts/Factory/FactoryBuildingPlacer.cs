@@ -442,6 +442,13 @@ public class FactoryBuildingPlacer : MonoBehaviour
                 indicatorState.SecondaryInputQuarterTurns = FactoryGridDirectionUtility.DirectionToQuarterTurns(NormalizeCardinal(secondaryInputDirection));
             }
 
+            TryApplyOutputIndicatorForDefinition(
+                definition,
+                topLeftGridPosition,
+                footprintSize,
+                rotationQuarterTurns,
+                ref indicatorState);
+
             return true;
         }
 
@@ -468,6 +475,44 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         return indicatorState.HasOutput;
+    }
+
+    private void TryApplyOutputIndicatorForDefinition(
+        BuildingDefinition definition,
+        Vector2Int topLeftGridPosition,
+        Vector2Int footprintSize,
+        int rotationQuarterTurns,
+        ref IndicatorState indicatorState)
+    {
+        if (definition == null || definition.BehaviorPrefab == null || tileManager == null)
+        {
+            return;
+        }
+
+        IBuildingOutputPreview outputPreviewProvider = definition.BehaviorPrefab.GetComponent<IBuildingOutputPreview>();
+        if (outputPreviewProvider == null)
+        {
+            return;
+        }
+
+        if (!outputPreviewProvider.TryGetOutputTile(
+                topLeftGridPosition,
+                footprintSize,
+                rotationQuarterTurns,
+                out Vector2Int outputTile,
+                out Vector2Int outputDirection))
+        {
+            return;
+        }
+
+        if (!tileManager.IsInBounds(outputTile))
+        {
+            return;
+        }
+
+        indicatorState.HasOutput = true;
+        indicatorState.OutputTile = outputTile;
+        indicatorState.OutputQuarterTurns = FactoryGridDirectionUtility.DirectionToQuarterTurns(NormalizeCardinal(outputDirection));
     }
 
     private bool TryGetInputTilesForDefinition(
