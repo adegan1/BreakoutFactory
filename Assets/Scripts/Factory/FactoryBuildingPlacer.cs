@@ -58,6 +58,10 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [SerializeField] private Toggle normalSpeedToggle;
     [SerializeField] private Toggle doubleSpeedToggle;
 
+    [Header("Panels")]
+    [SerializeField] private GameObject controlsPanelRoot;
+    [SerializeField] private FactorySettingsPanelController settingsPanelController;
+
     private readonly Dictionary<Vector2Int, PlacedBuildingRecord> spawnedByCell = new();
     private readonly Dictionary<int, PlacedBuildingRecord> buildingsByInstanceId = new();
     private SpriteRenderer hoverHighlightRenderer;
@@ -171,9 +175,20 @@ public class FactoryBuildingPlacer : MonoBehaviour
         defaultFixedDeltaTime = Time.fixedDeltaTime;
         selectedFactorySpeed = Mathf.Max(0.1f, normalFactorySpeed);
         ApplyFactorySpeed(selectedFactorySpeed);
+        ApplySavedSettings();
 
         HoveredMachineInstanceId = -1;
         SelectedMachineInstanceId = -1;
+    }
+
+    private void OnDisable()
+    {
+        RevertGlobalTimeToNormal();
+    }
+
+    private void OnDestroy()
+    {
+        RevertGlobalTimeToNormal();
     }
 
     private void Update()
@@ -1142,7 +1157,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         Keyboard keyboard = Keyboard.current;
         if (keyboard != null && (keyboard.leftAltKey.wasPressedThisFrame || keyboard.rightAltKey.wasPressedThisFrame))
         {
-            AreMachineProgressBarsPinnedVisible = !AreMachineProgressBarsPinnedVisible;
+            SetShowInfo(!AreMachineProgressBarsPinnedVisible);
         }
 
         if (!TryGetPointerGridPositionForMachineHover(out Vector2Int hoverGridPosition)
@@ -1384,10 +1399,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     public void SetFactorySpeedTo1x()
     {
-        selectedFactorySpeed = Mathf.Max(0.1f, normalFactorySpeed);
-        isShiftSpeedOverrideActive = false;
-        SetSpeedToggleVisual(isDoubleSelected: false);
-        ApplyFactorySpeed(selectedFactorySpeed);
+        SetFactorySpeedSelection(isDoubleSpeed: false, persistSetting: true);
     }
 
     public void SetFactorySpeedTo1x(bool isOn)
@@ -1400,10 +1412,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     public void SetFactorySpeedTo2x()
     {
-        selectedFactorySpeed = Mathf.Max(0.1f, boostedFactorySpeed);
-        isShiftSpeedOverrideActive = false;
-        SetSpeedToggleVisual(isDoubleSelected: true);
-        ApplyFactorySpeed(selectedFactorySpeed);
+        SetFactorySpeedSelection(isDoubleSpeed: true, persistSetting: true);
     }
 
     public void SetFactorySpeedTo2x(bool isOn)
@@ -1418,13 +1427,82 @@ public class FactoryBuildingPlacer : MonoBehaviour
     {
         float clampedSpeed = Mathf.Max(0.1f, speed);
 
-        if (Mathf.Approximately(Time.timeScale, clampedSpeed))
+        float targetFixedDeltaTime = defaultFixedDeltaTime * clampedSpeed;
+        if (Mathf.Approximately(Time.timeScale, clampedSpeed)
+            && Mathf.Approximately(Time.fixedDeltaTime, targetFixedDeltaTime))
         {
             return;
         }
 
         Time.timeScale = clampedSpeed;
-        Time.fixedDeltaTime = defaultFixedDeltaTime * clampedSpeed;
+        Time.fixedDeltaTime = targetFixedDeltaTime;
+    }
+
+    private void ApplySavedSettings()
+    {
+        GameSettings settings = GameSettings.Instance;
+        SetShowInfo(settings.ShowInfo, false);
+        SetShowControls(settings.ShowControls, false);
+        SetFactorySpeedSelection(settings.FactorySpeedIsDouble, false);
+    }
+
+    public void SetShowInfo(bool isVisible)
+    {
+        SetShowInfo(isVisible, true);
+    }
+
+    private void SetShowInfo(bool isVisible, bool persistSetting)
+    {
+        AreMachineProgressBarsPinnedVisible = isVisible;
+
+        if (persistSetting)
+        {
+            GameSettings.Instance.SetShowInfo(isVisible);
+        }
+    }
+
+    public void SetShowControls(bool isVisible)
+    {
+        SetShowControls(isVisible, true);
+    }
+
+    private void SetShowControls(bool isVisible, bool persistSetting)
+    {
+        if (settingsPanelController != null)
+        {
+            settingsPanelController.SetExpanded(isVisible, false);
+        }
+        else if (controlsPanelRoot != null && controlsPanelRoot.activeSelf != isVisible)
+        {
+            controlsPanelRoot.SetActive(isVisible);
+        }
+
+        if (persistSetting)
+        {
+            GameSettings.Instance.SetShowControls(isVisible);
+        }
+    }
+
+    private void SetFactorySpeedSelection(bool isDoubleSpeed, bool persistSetting)
+    {
+        selectedFactorySpeed = isDoubleSpeed
+            ? Mathf.Max(0.1f, boostedFactorySpeed)
+            : Mathf.Max(0.1f, normalFactorySpeed);
+
+        isShiftSpeedOverrideActive = false;
+        SetSpeedToggleVisual(isDoubleSpeed);
+        ApplyFactorySpeed(selectedFactorySpeed);
+
+        if (persistSetting)
+        {
+            GameSettings.Instance.SetFactorySpeedIsDouble(isDoubleSpeed);
+        }
+    }
+
+    private void RevertGlobalTimeToNormal()
+    {
+        Time.timeScale = 1f;
+        Time.fixedDeltaTime = defaultFixedDeltaTime;
     }
 
     private void SyncSpeedToggleVisualWithSelectedSpeed()
