@@ -216,19 +216,17 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             return;
         }
 
-        // Consume inputs
+        // Consume inputs with consolidated clearing logic
         slotAAmount -= costForSlotA;
         if (slotAAmount <= 0)
         {
             slotADefinition = null;
-            slotAAmount = 0;
         }
 
         slotBAmount -= costForSlotB;
         if (slotBAmount <= 0)
         {
             slotBDefinition = null;
-            slotBAmount = 0;
         }
 
         pendingOutputDefinition = recipe.Output;
@@ -260,12 +258,8 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             return false;
         }
 
-        if (ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, launchStartTile))
-        {
-            return false;
-        }
-
-        if (ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, outputTile))
+        if (ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, launchStartTile) ||
+            ItemEntitySceneQuery.HasItemAtOrReservedTile(tileManager, outputTile))
         {
             return false;
         }
@@ -440,19 +434,15 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             return false;
         }
 
-        Vector3 outputWorldPos = tileManager.GridToWorld(outputTile) + itemSpawnOffset;
-
         if (!item.TryReserveDestination(this, outputTile))
         {
             Destroy(item.gameObject);
-            launchingItem = null;
-            launchMoveTimer = 0f;
             return false;
         }
 
         launchingItem = item;
         launchStartWorldPosition = startWorldPosition;
-        launchTargetWorldPosition = outputWorldPos;
+        launchTargetWorldPosition = tileManager.GridToWorld(outputTile) + itemSpawnOffset;
         launchMoveTimer = 0f;
         return true;
     }
@@ -532,8 +522,8 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             return false;
         }
 
-        if (!TryGetOutputGridPosition(out Vector2Int outputTile)
-            || !TryGetLaunchStartTile(outputTile, out Vector2Int launchStartTile))
+        if (!TryGetOutputGridPosition(out Vector2Int outputTile) ||
+            !TryGetLaunchStartTile(outputTile, out Vector2Int launchStartTile))
         {
             return false;
         }

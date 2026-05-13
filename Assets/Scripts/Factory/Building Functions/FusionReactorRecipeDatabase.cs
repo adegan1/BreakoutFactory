@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -18,20 +19,6 @@ public class FusionReactorRecipeDatabase : ScriptableObject
     /// </summary>
     public FusionReactorRecipe FindRecipe(ItemDefinition a, ItemDefinition b)
     {
-        if (a == null || b == null)
-        {
-            return null;
-        }
-
-        for (int i = 0; i < recipes.Count; i++)
-        {
-            FusionReactorRecipe recipe = recipes[i];
-            if (recipe != null && recipe.Matches(a, b))
-            {
-                return recipe;
-            }
-        }
-
-        return null;
+        return recipes.FirstOrDefault(recipe => recipe != null && recipe.Matches(a, b));
     }
 }

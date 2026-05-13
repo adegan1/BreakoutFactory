@@ -73,16 +73,20 @@ public class MachineRadialProgressView : MonoBehaviour
 
     private void LateUpdate()
     {
-        ResolveReferencesIfNeeded();
-        ResolveProviderIfNeeded();
-        ResolveProgressDisplayInfoIfNeeded();
-        ResolveMachineInstanceIfNeeded();
         UpdateFill();
         UpdateBillboard();
     }
 
     private void ResolveReferencesIfNeeded()
     {
+        bool needsResolving = radialFillImage == null || statusIconImage == null || 
+                             tileManager == null || worldCamera == null;
+        
+        if (!needsResolving)
+        {
+            return;
+        }
+
         if (radialFillImage == null)
         {
             radialFillImage = GetComponentInChildren<Image>();
@@ -301,13 +305,11 @@ public class MachineRadialProgressView : MonoBehaviour
             return;
         }
 
+        bool shouldBeVisible = state.HasStatusIcon && state.StatusTargetAlpha > VisibleAlphaThreshold;
+
         if (!state.HasStatusIcon)
         {
-            if (statusIconImage.enabled)
-            {
-                statusIconImage.enabled = false;
-            }
-
+            statusIconImage.enabled = false;
             return;
         }
 
@@ -322,13 +324,9 @@ public class MachineRadialProgressView : MonoBehaviour
         }
 
         Color output = state.TargetStatusColor;
-        output.a *= Mathf.Clamp01(state.StatusTargetAlpha);
+        output.a *= state.StatusTargetAlpha; // Already [0,1] from BuildDisplayState
         statusIconImage.color = output;
-
-        if (statusIconImage.enabled != state.StatusTargetAlpha > VisibleAlphaThreshold)
-        {
-            statusIconImage.enabled = state.StatusTargetAlpha > VisibleAlphaThreshold;
-        }
+        statusIconImage.enabled = shouldBeVisible;
     }
 
     private void ApplyTintWithVisibility(Color tint, float alpha)
@@ -339,7 +337,7 @@ public class MachineRadialProgressView : MonoBehaviour
         }
 
         Color output = tint;
-        output.a *= Mathf.Clamp01(alpha);
+        output.a *= alpha; // Already clamped in UpdateFill
         radialFillImage.color = output;
     }
 
@@ -411,10 +409,7 @@ public class MachineRadialProgressView : MonoBehaviour
             radialFillImage.gameObject.SetActive(true);
         }
 
-        if (radialFillImage.enabled != isVisible)
-        {
-            radialFillImage.enabled = isVisible;
-        }
+        radialFillImage.enabled = isVisible;
     }
 
     private void UpdateBillboard()
