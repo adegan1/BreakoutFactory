@@ -10,22 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dd4e8a10846b007448780d9c07aae58b, type: 3}
-  m_Name: Wind Ball
+  m_Name: Mist Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallTypeData
   primarySourceElement: 0
   secondarySourceElement: 0
   primaryEffectProfile: 0
   secondaryEffectProfile: 0
-  displayName: Wind
+  displayName: Mist
   description: 
-  displayColor: {r: 0.39215687, g: 1, b: 0.654902, a: 1}
+  displayColor: {r: 1, g: 1, b: 1, a: 1}
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   size: 1
-  movementSpeed: 6
+  movementSpeed: 8
   damage: 1
   bounces: -1
-  passThroughBricks: 1
-  passThroughBalls: 1
+  passThroughBricks: 0
+  passThroughBalls: 0
   appliesBurn: 0
   burnDamage: 1
   burnTickInterval: 0.5
@@ -46,5 +46,5 @@ MonoBehaviour:
   impactBurst: 0
   impactBurstDamage: 1
   impactBurstRadius: 1.6
-  elements: 06000000
-  strongAgainst: 0300000001000000
+  elements: 00000000
+  strongAgainst: 

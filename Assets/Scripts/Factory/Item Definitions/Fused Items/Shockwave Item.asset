@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd729ac963a23a44196e6c80a38e66d8, type: 3}
+  m_Name: Shockwave Item
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
+  itemId: item.shockwave
+  displayName: Shockwave
+  description: 
+  icon: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
+  tint: {r: 1, g: 1, b: 1, a: 1}
+  baseValue: 1

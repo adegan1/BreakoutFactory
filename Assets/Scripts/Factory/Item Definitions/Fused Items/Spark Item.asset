@@ -10,12 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bd729ac963a23a44196e6c80a38e66d8, type: 3}
-  m_Name: Water
+  m_Name: Spark Item
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
-  itemId: item.water
-  displayName: Water
-  description: A single drop of water. More powerful than it looks.
+  itemId: item.spark
+  displayName: Spark
+  description: 
   icon: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  tint: {r: 0.039159846, g: 0.25258413, b: 0.754717, a: 1}
-  maxStackSize: 100
+  tint: {r: 1, g: 1, b: 1, a: 1}
   baseValue: 1

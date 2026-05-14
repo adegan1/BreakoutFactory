@@ -12,7 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd4e8a10846b007448780d9c07aae58b, type: 3}
   m_Name: Lightning Ball
   m_EditorClassIdentifier: Assembly-CSharp::BallTypeData
-  displayName: 
+  primarySourceElement: 0
+  secondarySourceElement: 0
+  primaryEffectProfile: 0
+  secondaryEffectProfile: 0
+  displayName: Lightning
   description: 
   displayColor: {r: 0.99215686, g: 0.8901961, b: 0.26666668, a: 1}
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
@@ -39,5 +43,8 @@ MonoBehaviour:
   createsWaterDrops: 0
   waterDropletType: {fileID: 0}
   waterDropCooldown: 0.08
+  impactBurst: 0
+  impactBurstDamage: 1
+  impactBurstRadius: 1.6
   elements: 03000000
   strongAgainst: 0200000006000000
