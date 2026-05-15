@@ -22,11 +22,11 @@ public class BrickController : MonoBehaviour
     [SerializeField] private bool moveDownward;
     [SerializeField] private float downwardSpeed;
 
-    [Header("Lightning VFX")]
-    [SerializeField] private bool enableLightningPulse = true;
-    [SerializeField] private Color lightningPulseColor = new Color(0.7f, 0.95f, 1f, 1f);
-    [SerializeField, Min(0.01f)] private float lightningPulseDuration = 0.12f;
-    [SerializeField, Range(0f, 1f)] private float lightningPulseStrength = 0.9f;
+    [Header("Damage Flash")]
+    [SerializeField] private bool enableDamageFlash = true;
+    [SerializeField] private Color damageFlashColor = new Color(1f, 0.9f, 0.9f, 1f);
+    [SerializeField, Min(0.01f)] private float damageFlashDuration = 0.12f;
+    [SerializeField, Range(0f, 1f)] private float damageFlashStrength = 0.9f;
 
     private int currentHitPoints;
     private int maxHitPoints;
@@ -49,7 +49,7 @@ public class BrickController : MonoBehaviour
     private float rootSpeedMultiplier = 1f;
     private float columnSlowTimeRemaining;
     private float columnSlowSpeedMultiplier = 1f;
-    private Coroutine lightningPulseRoutine;
+    private Coroutine damageFlashRoutine;
     private Coroutine dangerSequenceRoutine;
     private readonly List<BrickController> nearbyBricksBuffer = new List<BrickController>();
     private bool inDangerSequence;
@@ -265,9 +265,16 @@ public class BrickController : MonoBehaviour
 
     protected virtual void ApplyDamage(int amount)
     {
-        currentHitPoints -= Mathf.Max(0, amount);
+        int clampedAmount = Mathf.Max(0, amount);
+        if (clampedAmount <= 0)
+        {
+            return;
+        }
+
+        currentHitPoints -= clampedAmount;
 
         UpdateHealthAlpha();
+        TriggerDamageFlash();
 
         if (currentHitPoints <= 0)
         {
@@ -335,10 +342,10 @@ public class BrickController : MonoBehaviour
             dangerSequenceRoutine = null;
         }
 
-        if (lightningPulseRoutine != null)
+        if (damageFlashRoutine != null)
         {
-            StopCoroutine(lightningPulseRoutine);
-            lightningPulseRoutine = null;
+            StopCoroutine(damageFlashRoutine);
+            damageFlashRoutine = null;
         }
     }
 
@@ -644,7 +651,6 @@ public class BrickController : MonoBehaviour
 
         int burstDamage = Mathf.Max(1, ballTypeData.LightningBurstDamage);
         float burstRadius = Mathf.Max(0.1f, ballTypeData.LightningBurstRadius);
-        TriggerLightningPulse();
 
         CollectNearbyBricks(burstRadius, nearbyBricksBuffer);
         if (nearbyBricksBuffer.Count == 0)
@@ -660,7 +666,6 @@ public class BrickController : MonoBehaviour
             nearbyBricksBuffer[randomIndex] = nearbyBricksBuffer[i];
             nearbyBricksBuffer[i] = selected;
 
-            selected.TriggerLightningPulse();
             selected.ApplyDamage(burstDamage);
         }
     }
@@ -756,24 +761,24 @@ public class BrickController : MonoBehaviour
         return Mathf.Max(0, typeData.LightningTargetBonus);
     }
 
-    private void TriggerLightningPulse()
+    private void TriggerDamageFlash()
     {
-        if (!enableLightningPulse || spriteRenderer == null)
+        if (!enableDamageFlash || spriteRenderer == null)
         {
             return;
         }
 
-        if (lightningPulseRoutine != null)
+        if (damageFlashRoutine != null)
         {
-            StopCoroutine(lightningPulseRoutine);
+            StopCoroutine(damageFlashRoutine);
         }
 
-        lightningPulseRoutine = StartCoroutine(LightningPulseCoroutine());
+        damageFlashRoutine = StartCoroutine(DamageFlashCoroutine());
     }
 
-    private IEnumerator LightningPulseCoroutine()
+    private IEnumerator DamageFlashCoroutine()
     {
-        float duration = Mathf.Max(MinimumDurationSeconds, lightningPulseDuration);
+        float duration = Mathf.Max(MinimumDurationSeconds, damageFlashDuration);
         float halfDuration = duration * 0.5f;
         float elapsed = 0f;
 
@@ -792,15 +797,15 @@ public class BrickController : MonoBehaviour
                 pulse01 = 1f - (halfDuration <= 0f ? 1f : downElapsed / halfDuration);
             }
 
-            ApplyLightningPulseColor(Mathf.Clamp01(pulse01));
+            ApplyDamageFlashColor(Mathf.Clamp01(pulse01));
             yield return null;
         }
 
         SetBaseBrickColor();
-        lightningPulseRoutine = null;
+        damageFlashRoutine = null;
     }
 
-    private void ApplyLightningPulseColor(float pulse01)
+    private void ApplyDamageFlashColor(float pulse01)
     {
         if (spriteRenderer == null)
         {
@@ -808,10 +813,10 @@ public class BrickController : MonoBehaviour
         }
 
         Color baseColor = GetBaseBrickColor();
-        Color pulseColor = lightningPulseColor;
+        Color pulseColor = damageFlashColor;
         pulseColor.a = baseColor.a;
 
-        float weight = Mathf.Clamp01(lightningPulseStrength) * Mathf.Clamp01(pulse01);
+        float weight = Mathf.Clamp01(damageFlashStrength) * Mathf.Clamp01(pulse01);
         spriteRenderer.color = Color.Lerp(baseColor, pulseColor, weight);
     }
 

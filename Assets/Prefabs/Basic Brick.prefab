@@ -152,5 +152,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BrickController
   typeData: {fileID: 11400000, guid: 85e9b8c05e2b7214b819ed976f1dd770, type: 2}
+  growthSpeed: 6
   moveDownward: 1
   downwardSpeed: 0.1
+  enableDamageFlash: 1
+  damageFlashColor: {r: 1, g: 0.5707547, b: 0.5707547, a: 0.8156863}
+  damageFlashDuration: 0.12
+  damageFlashStrength: 0.9

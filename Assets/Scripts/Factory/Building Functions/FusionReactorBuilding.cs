@@ -150,6 +150,14 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         return true;
     }
 
+    public int GetRequiredInputDirectionQuarterTurns()
+    {
+        ResolveDependenciesIfNeeded();
+        int baseInputQuarterTurns = (int)inputSide;
+        int rotationQuarterTurns = buildingInstance != null ? buildingInstance.RotationQuarterTurns : 0;
+        return (baseInputQuarterTurns + rotationQuarterTurns) % 4;
+    }
+
     // ── IBuildingInputPreview ─────────────────────────────────────────────────
 
     public void GetInputTiles(

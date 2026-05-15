@@ -199,7 +199,28 @@ public class ConveyorBuilding : MonoBehaviour
         }
 
         IItemInputReceiver inputReceiver = destinationBuilding.GetComponent<IItemInputReceiver>();
-        return inputReceiver != null && inputReceiver.CanAcceptItemAtTile(tile, item);
+        if (inputReceiver == null)
+        {
+            return false;
+        }
+
+        // Validate the incoming direction matches the building's input side
+        Vector2Int conveyorFacingDirection = GetFacingDirection();
+        int requiredInputQuarterTurns = inputReceiver.GetRequiredInputDirectionQuarterTurns();
+        
+        if (requiredInputQuarterTurns >= 0)
+        {
+            Vector2Int requiredInputDirection = FactoryGridDirectionUtility.DirectionFromQuarterTurns(requiredInputQuarterTurns);
+            // The item comes from the opposite direction of the conveyor's movement
+            Vector2Int incomingDirection = -conveyorFacingDirection;
+            
+            if (incomingDirection != requiredInputDirection)
+            {
+                return false;
+            }
+        }
+
+        return inputReceiver.CanAcceptItemAtTile(tile, item);
     }
 
     private bool TryDeliverToInputReceiver(Vector2Int tile)
@@ -222,7 +243,28 @@ public class ConveyorBuilding : MonoBehaviour
         }
 
         IItemInputReceiver inputReceiver = destinationBuilding.GetComponent<IItemInputReceiver>();
-        return inputReceiver != null && inputReceiver.TryAcceptItem(carriedItem, tile);
+        if (inputReceiver == null)
+        {
+            return false;
+        }
+
+        // Validate the incoming direction matches the building's input side
+        Vector2Int conveyorFacingDirection = GetFacingDirection();
+        int requiredInputQuarterTurns = inputReceiver.GetRequiredInputDirectionQuarterTurns();
+        
+        if (requiredInputQuarterTurns >= 0)
+        {
+            Vector2Int requiredInputDirection = FactoryGridDirectionUtility.DirectionFromQuarterTurns(requiredInputQuarterTurns);
+            // The item comes from the opposite direction of the conveyor's movement
+            Vector2Int incomingDirection = -conveyorFacingDirection;
+            
+            if (incomingDirection != requiredInputDirection)
+            {
+                return false;
+            }
+        }
+
+        return inputReceiver.TryAcceptItem(carriedItem, tile);
     }
 
     private void BeginMoveToTile(Vector2Int outputTile)

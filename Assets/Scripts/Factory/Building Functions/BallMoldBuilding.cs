@@ -111,6 +111,13 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
             return false;
         }
 
+        // Fusion/compound items can only be input from the designated input side
+        if ((item.ItemDefinition.IsFusion || item.ItemDefinition.IsCompound) && tile == inputTile)
+        {
+            // Item is coming from outside to the input tile; this is valid for fusion items
+            return IsResourceTypeAccepted(item.ItemDefinition) && HasCapacityFor(Mathf.Max(1, item.Quantity));
+        }
+
         int incomingAmount = Mathf.Max(1, item.Quantity);
         return tile == inputTile
             && IsResourceTypeAccepted(item.ItemDefinition)
@@ -128,6 +135,14 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         AddToInventory(item.ItemDefinition, amount);
         Destroy(item.gameObject);
         return true;
+    }
+
+    public int GetRequiredInputDirectionQuarterTurns()
+    {
+        ResolveDependenciesIfNeeded();
+        int baseInputQuarterTurns = (int)inputSide;
+        int rotationQuarterTurns = buildingInstance != null ? buildingInstance.RotationQuarterTurns : 0;
+        return (baseInputQuarterTurns + rotationQuarterTurns) % 4;
     }
 
     public bool TryGetInputGridPosition(out Vector2Int inputGridPosition)

@@ -17,12 +17,18 @@ public class ItemDefinition : ScriptableObject
     // Balance
     [SerializeField, Min(0)] private int baseValue = 1;
 
+    // Fusion
+    [SerializeField] private bool isFusion = false;
+    [SerializeField] private bool isCompound = false;
+
     public string ItemId => itemId;
     public string DisplayName => displayName;
     public string Description => description;
     public Sprite Icon => icon;
     public Color Tint => tint;
     public int BaseValue => baseValue;
+    public bool IsFusion => isFusion;
+    public bool IsCompound => isCompound;
 
     private string BuildDefaultItemId()
     {

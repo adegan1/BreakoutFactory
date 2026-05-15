@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemId: item.fire
   displayName: Fire
-  description: A scorching flame. Don't touch it!
+  description: A scorching flame. It's hot to the touch.
   icon: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   tint: {r: 0.8584906, g: 0.26779583, b: 0, a: 1}
-  maxStackSize: 100
   baseValue: 1
+  isFusion: 0
+  isCompound: 0
