@@ -13,4 +13,24 @@ MonoBehaviour:
   m_Name: Fusion Recipe Database
   m_EditorClassIdentifier: Assembly-CSharp::FusionReactorRecipeDatabase
   recipes:
-  - {fileID: 11400000, guid: 5f5d7e111eee304478986e5fc2e1a347, type: 2}
+  - {fileID: 11400000, guid: 41fcc922312122642bcf36b28688c924, type: 2}
+  - {fileID: 11400000, guid: 38c19bbf23258704c81f277c55b4d035, type: 2}
+  - {fileID: 11400000, guid: 77805368fd797f644bc6569c65b0456a, type: 2}
+  - {fileID: 11400000, guid: 295ca0f692c5da247bf9925b050e74d0, type: 2}
+  - {fileID: 11400000, guid: 43ec3de34c6c69b4fb2d2015f8a6779d, type: 2}
+  - {fileID: 11400000, guid: 64876b35ccf8eb84f9c9df388ce983ba, type: 2}
+  - {fileID: 11400000, guid: a6c556cad545d454d90a0ff7f2603314, type: 2}
+  - {fileID: 11400000, guid: 0ae2b3efd3121f740951ba28050123c8, type: 2}
+  - {fileID: 11400000, guid: 815386a7affa73349bfd8ecacdeea3f7, type: 2}
+  - {fileID: 11400000, guid: 148cbedfa9b18b3499ffa5a2f7da2cc6, type: 2}
+  - {fileID: 11400000, guid: 59580b458e4501a47b4779ad830a2cb6, type: 2}
+  - {fileID: 11400000, guid: 2c04a408d7b456942b04599ce6b325f7, type: 2}
+  - {fileID: 11400000, guid: c29a40573608e0a428385a039464d5b8, type: 2}
+  - {fileID: 11400000, guid: f03434fee1f1bb448b27b4b33a6134aa, type: 2}
+  - {fileID: 11400000, guid: 4c4d81005cc22b3428cdb290bcdde4c4, type: 2}
+  - {fileID: 11400000, guid: fe97d9dcac65e34409e57a16bfc316ed, type: 2}
+  - {fileID: 11400000, guid: 7dd40fb2f30b9ec42b2f23978cd3671b, type: 2}
+  - {fileID: 11400000, guid: 9034df0ef34e02e42b436cf6dccfbccc, type: 2}
+  - {fileID: 11400000, guid: b806656b9690895449ba3b69432beb42, type: 2}
+  - {fileID: 11400000, guid: 301cf2b37fb73544ea4ed5a98c1e4857, type: 2}
+  - {fileID: 11400000, guid: 48ce88f8ad87a3b4795abc05304e3af6, type: 2}
