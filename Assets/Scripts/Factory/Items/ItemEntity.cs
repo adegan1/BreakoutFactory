@@ -72,6 +72,17 @@ public class ItemEntity : MonoBehaviour
         sourceMachineStateId = machineStateId;
     }
 
+    public bool TryRebindSourceGenerator(GeneratorBuilding generator, string machineStateId)
+    {
+        if (generator == null || string.IsNullOrEmpty(machineStateId) || sourceMachineStateId != machineStateId)
+        {
+            return false;
+        }
+
+        sourceGenerator = generator;
+        return true;
+    }
+
     public bool TryRefundToSourceGenerator(int amount = 1)
     {
         int refundAmount = Mathf.Max(0, amount);

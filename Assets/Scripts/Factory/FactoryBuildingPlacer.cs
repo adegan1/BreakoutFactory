@@ -51,6 +51,14 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [Header("UI Interaction")]
     [SerializeField] private LayerMask blockingUiLayers = 1 << 5;
 
+    [Header("Marquee Selection")]
+    [SerializeField] private Color selectionBoxFillColor = new Color(0.2f, 0.6f, 1f, 0.18f);
+    [SerializeField] private Color selectionBoxBorderColor = new Color(0.2f, 0.75f, 1f, 0.9f);
+
+    [Header("Selection Highlight")]
+    [SerializeField] private Color selectedBuildingHighlightTint = new Color(0.4f, 0.85f, 1f, 1f);
+    [SerializeField, Range(0f, 1f)] private float selectedBuildingHighlightStrength = 0.18f;
+
     [Header("Factory Speed")]
     [SerializeField, Min(0.1f)] private float normalFactorySpeed = 1f;
     [SerializeField, Min(0.1f)] private float boostedFactorySpeed = 2f;
@@ -76,12 +84,25 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private bool hasPointerTile;
     private Vector2Int pointerGridPosition;
     private Vector3 pointerWorldPoint;
+    private bool isBoxSelecting;
+    private Vector2Int boxSelectionStartTile;
+    private Vector2Int boxSelectionEndTile;
+    private Vector2 boxSelectionStartGuiPoint;
+    private Vector2 boxSelectionCurrentGuiPoint;
+    private bool isConveyorDragPlacing;
+    private bool hasConveyorDragTile;
+    private Vector2Int lastConveyorDragTile;
+    private bool isMovingSelectedGroup;
+    private Vector2Int selectedGroupPointerOffset;
+    private Vector2Int selectedGroupBoundsSize = Vector2Int.one;
     private int selectedRotationQuarterTurns;
     private float selectedFactorySpeed = 1f;
     private float defaultFixedDeltaTime = 0.02f;
     private bool isShiftSpeedOverrideActive;
     private readonly List<Vector2Int> reusableInputTiles = new();
     private readonly List<ItemEntity> reusableItemsOnInput = new();
+    private readonly HashSet<int> selectedBuildingInstanceIds = new();
+    private readonly List<GroupMoveEntry> selectedGroupMoveEntries = new();
     private static readonly List<RaycastResult> reusableUiRaycastResults = new();
     private static readonly Vector2Int[] CardinalDirections =
     {
@@ -113,6 +134,18 @@ public class FactoryBuildingPlacer : MonoBehaviour
             FootprintSize = footprintSize;
             PlacedRotationQuarterTurns = placedRotationQuarterTurns;
         }
+    }
+
+    private struct GroupMoveEntry
+    {
+        public BuildingDefinition Definition;
+        public Vector2Int RelativeTopLeft;
+        public Vector2Int FootprintSize;
+        public int RotationQuarterTurns;
+        public bool HasStoredMachineState;
+        public string StoredMachineStateId;
+        public int StoredResourceAmount;
+        public object SpecializedMoveState;
     }
 
     private void Reset()
@@ -196,12 +229,15 @@ public class FactoryBuildingPlacer : MonoBehaviour
         EnsureInventoryManagerAssigned();
         HandleFactorySpeedInput();
         MaintainSpeedToggleSelectionVisual();
+        HandleDeleteSelectedInput();
 
         Mouse mouse = Mouse.current;
         if (mouse == null)
         {
             hasPointerTile = false;
             HoveredMachineInstanceId = -1;
+            EndBoxSelection();
+            RefreshSelectedBuildingHighlights();
             SetHoverHighlightVisible(false);
             SetAllIndicatorsVisible(false);
             return;
@@ -227,17 +263,54 @@ public class FactoryBuildingPlacer : MonoBehaviour
             UpdateBuildingIndicators();
         }
 
+        if (mouse.leftButton.wasReleasedThisFrame)
+        {
+            EndConveyorDragPlacement();
+            EndBoxSelection();
+        }
+
         if (mouse.leftButton.wasPressedThisFrame && !pointerOverUi)
         {
-            bool didPlace = TryPlaceAtPointer();
-            if (didPlace)
+            if (isMovingSelectedGroup)
             {
-                SuppressHoverAtPointerTile();
+                TryPlaceMovedSelectedGroupAtPointer();
+            }
+            else if (CanUseConveyorDragPlacement())
+            {
+                BeginConveyorDragPlacement();
+                TryPlaceConveyorAlongDragPath();
+            }
+            else if (!hasSelectedBuilding)
+            {
+                if (HasSelectedBuildings() && IsPointerOverSelectedBuilding())
+                {
+                    BeginMovingSelectedGroup();
+                }
+                else
+                {
+                    BeginBoxSelection(mouse);
+                }
             }
             else
             {
-                TrySelectMachineAtPointer();
+                bool didPlace = TryPlaceAtPointer();
+                if (didPlace)
+                {
+                    SuppressHoverAtPointerTile();
+                }
+                else
+                {
+                    TrySelectMachineAtPointer();
+                }
             }
+        }
+        else if (isConveyorDragPlacing && mouse.leftButton.isPressed && !pointerOverUi)
+        {
+            TryPlaceConveyorAlongDragPath();
+        }
+        else if (isBoxSelecting && mouse.leftButton.isPressed)
+        {
+            ContinueBoxSelection(mouse);
         }
 
         if (mouse.rightButton.wasPressedThisFrame)
@@ -251,6 +324,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
                 TryRemoveAtPointer();
             }
         }
+
+        RefreshSelectedBuildingHighlights();
     }
 
     private void UpdateHoverHighlight()
@@ -275,6 +350,22 @@ public class FactoryBuildingPlacer : MonoBehaviour
             }
 
             suppressHoverUntilTileChange = false;
+        }
+
+        if (isMovingSelectedGroup)
+        {
+            if (!hasPointerTile)
+            {
+                SetHoverHighlightVisible(false);
+                return;
+            }
+
+            Vector2Int anchorTopLeft = GetMovedGroupAnchorTile();
+            bool canPlaceGroup = CanPlaceMovedSelectedGroup(anchorTopLeft);
+            Color previewColor = canPlaceGroup ? validHoverColor : blockedHoverColor;
+            DisplayFootprintHighlight(anchorTopLeft, selectedGroupBoundsSize, previewColor);
+            ApplyDefaultHoverVisual(previewColor);
+            return;
         }
 
         BuildingDefinition selectedDef = GetSelectedBuildingDefinition();
@@ -304,6 +395,28 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         SetHoverHighlightVisible(false);
+    }
+
+    private void OnGUI()
+    {
+        if (!isBoxSelecting)
+        {
+            return;
+        }
+
+        Rect selectionRect = BuildGuiSelectionRect(boxSelectionStartGuiPoint, boxSelectionCurrentGuiPoint);
+        if (selectionRect.width <= 0f || selectionRect.height <= 0f)
+        {
+            return;
+        }
+
+        DrawGuiRect(selectionRect, selectionBoxFillColor);
+
+        float borderThickness = 2f;
+        DrawGuiRect(new Rect(selectionRect.xMin, selectionRect.yMin, selectionRect.width, borderThickness), selectionBoxBorderColor);
+        DrawGuiRect(new Rect(selectionRect.xMin, selectionRect.yMax - borderThickness, selectionRect.width, borderThickness), selectionBoxBorderColor);
+        DrawGuiRect(new Rect(selectionRect.xMin, selectionRect.yMin, borderThickness, selectionRect.height), selectionBoxBorderColor);
+        DrawGuiRect(new Rect(selectionRect.xMax - borderThickness, selectionRect.yMin, borderThickness, selectionRect.height), selectionBoxBorderColor);
     }
 
     private void UpdateBuildingIndicators()
@@ -829,6 +942,598 @@ public class FactoryBuildingPlacer : MonoBehaviour
         SetAllIndicatorsVisible(false);
     }
 
+    private bool CanUseConveyorDragPlacement()
+    {
+        BuildingDefinition selectedDefinition = GetSelectedBuildingDefinition();
+        return selectedDefinition != null && IsConveyorDefinition(selectedDefinition);
+    }
+
+    private void HandleDeleteSelectedInput()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null || !keyboard.deleteKey.wasPressedThisFrame)
+        {
+            return;
+        }
+
+        if (isMovingSelectedGroup)
+        {
+            return;
+        }
+
+        DeleteSelectedBuildings();
+    }
+
+    private bool HasSelectedBuildings()
+    {
+        return selectedBuildingInstanceIds.Count > 0;
+    }
+
+    private void RefreshSelectedBuildingHighlights()
+    {
+        foreach (PlacedBuildingRecord record in buildingsByInstanceId.Values)
+        {
+            if (record == null || record.SpawnedObject == null)
+            {
+                continue;
+            }
+
+            int instanceId = record.SpawnedObject.GetInstanceID();
+            bool shouldHighlight = selectedBuildingInstanceIds.Contains(instanceId);
+            SetSelectionHighlight(record.SpawnedObject, shouldHighlight);
+        }
+    }
+
+    private void SetSelectionHighlight(GameObject targetObject, bool enabled)
+    {
+        if (targetObject == null)
+        {
+            return;
+        }
+
+        TintHighlightController highlightController = targetObject.GetComponent<TintHighlightController>();
+        if (!enabled)
+        {
+            if (highlightController != null)
+            {
+                highlightController.SetHighlight(false, selectedBuildingHighlightTint, selectedBuildingHighlightStrength);
+            }
+
+            return;
+        }
+
+        if (highlightController == null)
+        {
+            highlightController = targetObject.AddComponent<TintHighlightController>();
+        }
+
+        highlightController.SetHighlight(true, selectedBuildingHighlightTint, selectedBuildingHighlightStrength);
+    }
+
+    private void BeginBoxSelection(Mouse mouse)
+    {
+        if (!hasPointerTile)
+        {
+            return;
+        }
+
+        isBoxSelecting = true;
+        boxSelectionStartTile = pointerGridPosition;
+        boxSelectionEndTile = pointerGridPosition;
+
+        Vector2 mousePosition = mouse.position.ReadValue();
+        boxSelectionStartGuiPoint = ToGuiPoint(mousePosition);
+        boxSelectionCurrentGuiPoint = boxSelectionStartGuiPoint;
+    }
+
+    private void ContinueBoxSelection(Mouse mouse)
+    {
+        if (!isBoxSelecting)
+        {
+            return;
+        }
+
+        if (hasPointerTile)
+        {
+            boxSelectionEndTile = pointerGridPosition;
+        }
+
+        boxSelectionCurrentGuiPoint = ToGuiPoint(mouse.position.ReadValue());
+    }
+
+    private void EndBoxSelection()
+    {
+        if (!isBoxSelecting)
+        {
+            return;
+        }
+
+        isBoxSelecting = false;
+        SelectBuildingsInTileRect(boxSelectionStartTile, boxSelectionEndTile);
+    }
+
+    private void SelectBuildingsInTileRect(Vector2Int startTile, Vector2Int endTile)
+    {
+        selectedBuildingInstanceIds.Clear();
+
+        int minX = Mathf.Min(startTile.x, endTile.x);
+        int maxX = Mathf.Max(startTile.x, endTile.x);
+        int minY = Mathf.Min(startTile.y, endTile.y);
+        int maxY = Mathf.Max(startTile.y, endTile.y);
+
+        HashSet<PlacedBuildingRecord> uniqueRecords = new HashSet<PlacedBuildingRecord>(buildingsByInstanceId.Values);
+        foreach (PlacedBuildingRecord record in uniqueRecords)
+        {
+            if (record == null || record.SpawnedObject == null)
+            {
+                continue;
+            }
+
+            if (!DoesFootprintIntersectRect(record.TopLeftGridPosition, record.FootprintSize, minX, maxX, minY, maxY))
+            {
+                continue;
+            }
+
+            selectedBuildingInstanceIds.Add(record.SpawnedObject.GetInstanceID());
+        }
+
+        if (!HasSelectedBuildings())
+        {
+            SelectedMachineInstanceId = -1;
+        }
+    }
+
+    private static bool DoesFootprintIntersectRect(
+        Vector2Int topLeft,
+        Vector2Int footprintSize,
+        int minX,
+        int maxX,
+        int minY,
+        int maxY)
+    {
+        int footprintMinX = topLeft.x;
+        int footprintMaxX = topLeft.x + footprintSize.x - 1;
+        int footprintMinY = topLeft.y;
+        int footprintMaxY = topLeft.y + footprintSize.y - 1;
+
+        bool separated = footprintMaxX < minX || footprintMinX > maxX || footprintMaxY < minY || footprintMinY > maxY;
+        return !separated;
+    }
+
+    private bool IsPointerOverSelectedBuilding()
+    {
+        if (!hasPointerTile)
+        {
+            return false;
+        }
+
+        if (!spawnedByCell.TryGetValue(pointerGridPosition, out PlacedBuildingRecord record)
+            || record == null
+            || record.SpawnedObject == null)
+        {
+            return false;
+        }
+
+        return selectedBuildingInstanceIds.Contains(record.SpawnedObject.GetInstanceID());
+    }
+
+    private bool BeginMovingSelectedGroup()
+    {
+        if (!HasSelectedBuildings())
+        {
+            return false;
+        }
+
+        List<PlacedBuildingRecord> selectedRecords = new List<PlacedBuildingRecord>();
+        foreach (int instanceId in selectedBuildingInstanceIds)
+        {
+            if (!buildingsByInstanceId.TryGetValue(instanceId, out PlacedBuildingRecord record)
+                || record == null
+                || record.SpawnedObject == null)
+            {
+                continue;
+            }
+
+            selectedRecords.Add(record);
+        }
+
+        if (selectedRecords.Count == 0)
+        {
+            selectedBuildingInstanceIds.Clear();
+            return false;
+        }
+
+        Vector2Int selectionAnchor = selectedRecords[0].TopLeftGridPosition;
+        for (int i = 1; i < selectedRecords.Count; i++)
+        {
+            selectionAnchor.x = Mathf.Min(selectionAnchor.x, selectedRecords[i].TopLeftGridPosition.x);
+            selectionAnchor.y = Mathf.Min(selectionAnchor.y, selectedRecords[i].TopLeftGridPosition.y);
+        }
+
+        selectedGroupMoveEntries.Clear();
+        int maxRelativeX = 0;
+        int maxRelativeY = 0;
+
+        for (int i = 0; i < selectedRecords.Count; i++)
+        {
+            PlacedBuildingRecord record = selectedRecords[i];
+            Vector2Int relativeTopLeft = record.TopLeftGridPosition - selectionAnchor;
+
+            bool hasStoredMachineState = TryCaptureMachineState(
+                record.SpawnedObject,
+                out string storedMachineStateId,
+                out int storedResourceAmount);
+
+            object specializedMoveState = CaptureSpecializedMoveState(record.SpawnedObject);
+
+            selectedGroupMoveEntries.Add(new GroupMoveEntry
+            {
+                Definition = record.Definition,
+                RelativeTopLeft = relativeTopLeft,
+                FootprintSize = record.FootprintSize,
+                RotationQuarterTurns = record.PlacedRotationQuarterTurns,
+                HasStoredMachineState = hasStoredMachineState,
+                StoredMachineStateId = storedMachineStateId,
+                StoredResourceAmount = storedResourceAmount,
+                SpecializedMoveState = specializedMoveState
+            });
+
+            maxRelativeX = Mathf.Max(maxRelativeX, relativeTopLeft.x + record.FootprintSize.x - 1);
+            maxRelativeY = Mathf.Max(maxRelativeY, relativeTopLeft.y + record.FootprintSize.y - 1);
+        }
+
+        selectedGroupBoundsSize = new Vector2Int(maxRelativeX + 1, maxRelativeY + 1);
+        selectedGroupPointerOffset = hasPointerTile ? pointerGridPosition - selectionAnchor : Vector2Int.zero;
+
+        for (int i = 0; i < selectedRecords.Count; i++)
+        {
+            RemovePlacedBuilding(selectedRecords[i], false, dropPendingItemToGround: ShouldDropPendingItemDuringMove(selectedRecords[i]));
+        }
+
+        selectedBuildingInstanceIds.Clear();
+        isMovingSelectedGroup = selectedGroupMoveEntries.Count > 0;
+        RefreshAllConveyorVisuals();
+        return isMovingSelectedGroup;
+    }
+
+    private Vector2Int GetMovedGroupAnchorTile()
+    {
+        return pointerGridPosition - selectedGroupPointerOffset;
+    }
+
+    private bool CanPlaceMovedSelectedGroup(Vector2Int anchorTopLeft)
+    {
+        if (tileManager == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < selectedGroupMoveEntries.Count; i++)
+        {
+            GroupMoveEntry entry = selectedGroupMoveEntries[i];
+            Vector2Int targetTopLeft = anchorTopLeft + entry.RelativeTopLeft;
+
+            if (!tileManager.CanOccupyFootprint(targetTopLeft, entry.FootprintSize))
+            {
+                return false;
+            }
+
+            if (!CanPlaceWithItemExceptions(
+                    entry.Definition,
+                    targetTopLeft,
+                    entry.FootprintSize,
+                    entry.RotationQuarterTurns))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool TryPlaceMovedSelectedGroupAtPointer()
+    {
+        if (!isMovingSelectedGroup || !hasPointerTile)
+        {
+            return false;
+        }
+
+        Vector2Int anchorTopLeft = GetMovedGroupAnchorTile();
+        if (!CanPlaceMovedSelectedGroup(anchorTopLeft))
+        {
+            return false;
+        }
+
+        for (int i = 0; i < selectedGroupMoveEntries.Count; i++)
+        {
+            GroupMoveEntry entry = selectedGroupMoveEntries[i];
+            Vector2Int targetTopLeft = anchorTopLeft + entry.RelativeTopLeft;
+
+            if (!RestoreBuilding(entry.Definition, targetTopLeft, entry.RotationQuarterTurns))
+            {
+                return false;
+            }
+
+            if (spawnedByCell.TryGetValue(targetTopLeft, out PlacedBuildingRecord placedRecord)
+                && placedRecord != null
+                && placedRecord.SpawnedObject != null)
+            {
+                ApplySpecializedMoveState(placedRecord.SpawnedObject, entry.SpecializedMoveState);
+
+                if (entry.HasStoredMachineState)
+                {
+                    ApplyCapturedMachineState(placedRecord.SpawnedObject, entry.StoredMachineStateId, entry.StoredResourceAmount);
+                    RelinkItemSourceGeneratorReferences(placedRecord.SpawnedObject, entry.StoredMachineStateId);
+                }
+            }
+        }
+
+        selectedGroupMoveEntries.Clear();
+        isMovingSelectedGroup = false;
+        selectedGroupPointerOffset = Vector2Int.zero;
+        suppressHoverUntilTileChange = false;
+        RefreshAllConveyorVisuals();
+        return true;
+    }
+
+    private bool DeleteSelectedBuildings()
+    {
+        if (!HasSelectedBuildings())
+        {
+            return false;
+        }
+
+        List<PlacedBuildingRecord> selectedRecords = new List<PlacedBuildingRecord>();
+        foreach (int instanceId in selectedBuildingInstanceIds)
+        {
+            if (!buildingsByInstanceId.TryGetValue(instanceId, out PlacedBuildingRecord record)
+                || record == null
+                || record.SpawnedObject == null)
+            {
+                continue;
+            }
+
+            selectedRecords.Add(record);
+        }
+
+        bool removedAny = false;
+        for (int i = 0; i < selectedRecords.Count; i++)
+        {
+            removedAny |= RemovePlacedBuilding(selectedRecords[i], refundBuildingToInventoryOnRemove);
+        }
+
+        selectedBuildingInstanceIds.Clear();
+        if (removedAny)
+        {
+            RefreshAllConveyorVisuals();
+        }
+
+        return removedAny;
+    }
+
+    private static bool TryCaptureMachineState(
+        GameObject spawnedObject,
+        out string machineStateId,
+        out int storedResourceAmount)
+    {
+        machineStateId = null;
+        storedResourceAmount = 0;
+
+        if (spawnedObject == null)
+        {
+            return false;
+        }
+
+        IMachineStoredResourceReceiver receiver = spawnedObject.GetComponentInChildren<IMachineStoredResourceReceiver>();
+        IMachineResourceProgressProvider provider = spawnedObject.GetComponentInChildren<IMachineResourceProgressProvider>();
+        if (receiver == null || provider == null)
+        {
+            return false;
+        }
+
+        machineStateId = receiver.MachineStateId;
+        if (string.IsNullOrEmpty(machineStateId))
+        {
+            machineStateId = Guid.NewGuid().ToString("N");
+            receiver.SetMachineStateId(machineStateId);
+        }
+
+        storedResourceAmount = provider.CurrentResourceAmount;
+        return true;
+    }
+
+    private static void ApplyCapturedMachineState(
+        GameObject spawnedObject,
+        string machineStateId,
+        int storedResourceAmount)
+    {
+        if (spawnedObject == null)
+        {
+            return;
+        }
+
+        IMachineStoredResourceReceiver receiver = spawnedObject.GetComponentInChildren<IMachineStoredResourceReceiver>();
+        if (receiver == null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(machineStateId))
+        {
+            receiver.SetMachineStateId(machineStateId);
+        }
+
+        receiver.SetStoredResourceAmount(storedResourceAmount);
+    }
+
+    private static object CaptureSpecializedMoveState(GameObject spawnedObject)
+    {
+        if (spawnedObject == null)
+        {
+            return null;
+        }
+
+        BallMoldBuilding mold = spawnedObject.GetComponent<BallMoldBuilding>();
+        if (mold == null)
+        {
+            mold = spawnedObject.GetComponentInChildren<BallMoldBuilding>();
+        }
+
+        if (mold != null)
+        {
+            return mold.CaptureMoveState();
+        }
+
+        return null;
+    }
+
+    private static void ApplySpecializedMoveState(GameObject spawnedObject, object specializedMoveState)
+    {
+        if (spawnedObject == null || specializedMoveState == null)
+        {
+            return;
+        }
+
+        if (specializedMoveState is BallMoldBuilding.MoveState moldState)
+        {
+            BallMoldBuilding mold = spawnedObject.GetComponent<BallMoldBuilding>();
+            if (mold == null)
+            {
+                mold = spawnedObject.GetComponentInChildren<BallMoldBuilding>();
+            }
+
+            if (mold != null)
+            {
+                mold.ApplyMoveState(moldState);
+            }
+        }
+    }
+
+    private static bool ShouldDropPendingItemDuringMove(PlacedBuildingRecord record)
+    {
+        if (record == null || record.SpawnedObject == null)
+        {
+            return false;
+        }
+
+        // Fusion reactors should behave like normal removal while moving: drop internal pending output.
+        return record.SpawnedObject.GetComponent<FusionReactorBuilding>() != null;
+    }
+
+    private static void RelinkItemSourceGeneratorReferences(GameObject spawnedObject, string machineStateId)
+    {
+        if (spawnedObject == null || string.IsNullOrEmpty(machineStateId))
+        {
+            return;
+        }
+
+        if (!spawnedObject.TryGetComponent<GeneratorBuilding>(out GeneratorBuilding generator) || generator == null)
+        {
+            return;
+        }
+
+        ItemEntity[] items = ItemEntitySceneQuery.GetItems();
+        for (int i = 0; i < items.Length; i++)
+        {
+            ItemEntity item = items[i];
+            if (item == null)
+            {
+                continue;
+            }
+
+            item.TryRebindSourceGenerator(generator, machineStateId);
+        }
+    }
+
+    private static Vector2 ToGuiPoint(Vector2 screenPoint)
+    {
+        return new Vector2(screenPoint.x, Screen.height - screenPoint.y);
+    }
+
+    private static Rect BuildGuiSelectionRect(Vector2 start, Vector2 end)
+    {
+        float xMin = Mathf.Min(start.x, end.x);
+        float yMin = Mathf.Min(start.y, end.y);
+        float width = Mathf.Abs(end.x - start.x);
+        float height = Mathf.Abs(end.y - start.y);
+        return new Rect(xMin, yMin, width, height);
+    }
+
+    private static void DrawGuiRect(Rect rect, Color color)
+    {
+        Color previousColor = GUI.color;
+        GUI.color = color;
+        GUI.DrawTexture(rect, Texture2D.whiteTexture);
+        GUI.color = previousColor;
+    }
+
+    private void BeginConveyorDragPlacement()
+    {
+        isConveyorDragPlacing = true;
+        hasConveyorDragTile = false;
+    }
+
+    private void EndConveyorDragPlacement()
+    {
+        isConveyorDragPlacing = false;
+        hasConveyorDragTile = false;
+    }
+
+    private void TryPlaceConveyorAlongDragPath()
+    {
+        if (!isConveyorDragPlacing || !hasPointerTile)
+        {
+            return;
+        }
+
+        if (!CanUseConveyorDragPlacement())
+        {
+            EndConveyorDragPlacement();
+            return;
+        }
+
+        if (!hasConveyorDragTile)
+        {
+            if (TryPlaceAtGrid(pointerGridPosition, selectedRotationQuarterTurns))
+            {
+                hasConveyorDragTile = true;
+                lastConveyorDragTile = pointerGridPosition;
+                suppressHoverUntilTileChange = false;
+            }
+
+            return;
+        }
+
+        if (pointerGridPosition == lastConveyorDragTile)
+        {
+            return;
+        }
+
+        Vector2Int delta = pointerGridPosition - lastConveyorDragTile;
+        Vector2Int dragDirection = NormalizeCardinal(delta);
+        int steps = dragDirection.x != 0 ? Mathf.Abs(delta.x) : Mathf.Abs(delta.y);
+        if (steps <= 0)
+        {
+            return;
+        }
+
+        int rotationQuarterTurns = FactoryGridDirectionUtility.DirectionToQuarterTurns(dragDirection);
+
+        // Re-orient the previously placed belt so the chain points consistently along drag direction.
+        TryPlaceAtGrid(lastConveyorDragTile, rotationQuarterTurns);
+
+        for (int i = 1; i <= steps; i++)
+        {
+            Vector2Int nextTile = lastConveyorDragTile + (dragDirection * i);
+            if (!TryPlaceAtGrid(nextTile, rotationQuarterTurns))
+            {
+                break;
+            }
+
+            lastConveyorDragTile = nextTile;
+        }
+    }
+
     private void SetHoverHighlightVisible(bool isVisible)
     {
         if (hoverHighlight == null)
@@ -845,6 +1550,16 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private bool TryPlaceAtPointer()
     {
         if (!CanInteractAtPointer())
+        {
+            return false;
+        }
+
+        return TryPlaceAtGrid(pointerGridPosition, selectedRotationQuarterTurns);
+    }
+
+    private bool TryPlaceAtGrid(Vector2Int gridPosition, int rotationQuarterTurns)
+    {
+        if (tileManager == null || inventoryManager == null || !tileManager.IsInBounds(gridPosition))
         {
             return false;
         }
@@ -866,10 +1581,10 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return false;
         }
 
-        Vector2Int footprintSize = GetRotatedFootprintSize(selectedBuildingDefinition.FootprintSize);
-        Vector2Int optimalTopLeft = CalculateOptimalPlacementPosition(pointerGridPosition, footprintSize);
+        Vector2Int footprintSize = GetRotatedFootprintSize(selectedBuildingDefinition.FootprintSize, rotationQuarterTurns);
+        Vector2Int optimalTopLeft = CalculateOptimalPlacementPosition(gridPosition, footprintSize);
 
-        if (!CanPlaceWithItemExceptions(selectedBuildingDefinition, optimalTopLeft, footprintSize, selectedRotationQuarterTurns))
+        if (!CanPlaceWithItemExceptions(selectedBuildingDefinition, optimalTopLeft, footprintSize, rotationQuarterTurns))
         {
             inventoryManager.AddBuilding(selectedBuildingDefinition, 1);
             return false;
@@ -895,22 +1610,22 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         Vector3 spawnPosition = GetFootprintWorldCenter(optimalTopLeft, footprintSize);
         
-        float rotationDegrees = selectedRotationQuarterTurns * 90f;
+        float rotationDegrees = rotationQuarterTurns * 90f;
         Quaternion spawnRotation = Quaternion.Euler(0f, 0f, rotationDegrees);
         GameObject spawned = Instantiate(selectedBuildingPrefab, spawnPosition, spawnRotation);
 
         BuildingInstance buildingInstance = spawned.GetComponent<BuildingInstance>();
         if (buildingInstance != null)
         {
-            buildingInstance.SetGridPosition(optimalTopLeft, footprintSize, selectedRotationQuarterTurns);
+            buildingInstance.SetGridPosition(optimalTopLeft, footprintSize, rotationQuarterTurns);
             buildingInstance.Initialize(selectedBuildingDefinition);
         }
 
         ApplyStoredMachineResourceIfAvailable(spawned, selectedBuildingDefinition);
 
-        TryFeedItemsIntoPlacedInputBuilding(spawned, selectedBuildingDefinition, optimalTopLeft, footprintSize, selectedRotationQuarterTurns);
+        TryFeedItemsIntoPlacedInputBuilding(spawned, selectedBuildingDefinition, optimalTopLeft, footprintSize, rotationQuarterTurns);
 
-        PlacedBuildingRecord record = new PlacedBuildingRecord(spawned, selectedBuildingDefinition, optimalTopLeft, footprintSize, selectedRotationQuarterTurns);
+        PlacedBuildingRecord record = new PlacedBuildingRecord(spawned, selectedBuildingDefinition, optimalTopLeft, footprintSize, rotationQuarterTurns);
         buildingsByInstanceId[spawned.GetInstanceID()] = record;
 
         for (int x = 0; x < footprintSize.x; x++)
@@ -1003,7 +1718,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         return false;
     }
 
-    private bool RemovePlacedBuilding(PlacedBuildingRecord record, bool refundToInventory)
+    private bool RemovePlacedBuilding(PlacedBuildingRecord record, bool refundToInventory, bool dropPendingItemToGround = true)
     {
         if (!tileManager.ClearFootprint(record.TopLeftGridPosition, record.FootprintSize))
         {
@@ -1029,11 +1744,15 @@ public class FactoryBuildingPlacer : MonoBehaviour
             StoreMachineResourceForInventory(record.SpawnedObject, record.Definition);
         }
 
-        IMachinePendingItemDropper pendingItemDropper = record.SpawnedObject.GetComponentInChildren<IMachinePendingItemDropper>();
-        pendingItemDropper?.TryDropPendingItemToGround();
+        if (dropPendingItemToGround)
+        {
+            IMachinePendingItemDropper pendingItemDropper = record.SpawnedObject.GetComponentInChildren<IMachinePendingItemDropper>();
+            pendingItemDropper?.TryDropPendingItemToGround();
+        }
 
         Destroy(record.SpawnedObject);
         buildingsByInstanceId.Remove(instanceId);
+        selectedBuildingInstanceIds.Remove(instanceId);
 
         for (int x = 0; x < record.FootprintSize.x; x++)
         {
@@ -1687,9 +2406,13 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return false;
         }
 
+        selectedBuildingInstanceIds.Clear();
+        selectedGroupMoveEntries.Clear();
+        isMovingSelectedGroup = false;
         selectedBuildingIndex = index;
         hasSelectedBuilding = true;
         suppressHoverUntilTileChange = false;
+        RefreshSelectedBuildingHighlights();
         return true;
     }
 
@@ -1936,7 +2659,12 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private Vector2Int GetRotatedFootprintSize(Vector2Int baseFootprint)
     {
-        if ((selectedRotationQuarterTurns & 1) == 0)
+        return GetRotatedFootprintSize(baseFootprint, selectedRotationQuarterTurns);
+    }
+
+    private static Vector2Int GetRotatedFootprintSize(Vector2Int baseFootprint, int rotationQuarterTurns)
+    {
+        if ((rotationQuarterTurns & 1) == 0)
         {
             return baseFootprint;
         }
@@ -2074,6 +2802,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         hasSelectedBuilding = false;
         SelectedMachineInstanceId = -1;
         suppressHoverUntilTileChange = false;
+        RefreshSelectedBuildingHighlights();
         SetHoverHighlightVisible(false);
         SetAllIndicatorsVisible(false);
     }
@@ -2155,6 +2884,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         spawnedByCell.Clear();
         buildingsByInstanceId.Clear();
+        selectedBuildingInstanceIds.Clear();
+        selectedGroupMoveEntries.Clear();
+        isMovingSelectedGroup = false;
+        isBoxSelecting = false;
+        RefreshSelectedBuildingHighlights();
         HoveredMachineInstanceId = -1;
         SelectedMachineInstanceId = -1;
         suppressHoverUntilTileChange = false;

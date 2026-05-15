@@ -20,6 +20,19 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         Down
     }
 
+    public sealed class MoveState
+    {
+        public ItemDefinition SlotADefinition;
+        public ItemDefinition SlotBDefinition;
+        public int SlotAAmount;
+        public int SlotBAmount;
+        public bool HasItem;
+        public ItemDefinition PendingOutputDefinition;
+        public int PendingOutputQuantity;
+        public Color FirstInputTint;
+        public bool HasFirstInputTint;
+    }
+
     [Header("References")]
     [SerializeField] private BuildingInstance buildingInstance;
     [SerializeField] private TileManager tileManager;
@@ -595,4 +608,62 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
                 ? launchingItem.ItemDefinition.Tint
                 : ResourceTint)
         : ResourceTint;
+
+    public MoveState CaptureMoveState()
+    {
+        // Consolidate an in-flight launched item back into pending output before relocation.
+        if (launchingItem != null)
+        {
+            pendingOutputDefinition = launchingItem.ItemDefinition;
+            pendingOutputQuantity = Mathf.Max(1, launchingItem.Quantity);
+            hasItem = pendingOutputDefinition != null && pendingOutputQuantity > 0;
+
+            launchingItem.ClearReservedDestination(this);
+            launchingItem.ReleaseClaim(this);
+            Destroy(launchingItem.gameObject);
+            launchingItem = null;
+            launchMoveTimer = 0f;
+        }
+
+        return new MoveState
+        {
+            SlotADefinition = slotADefinition,
+            SlotBDefinition = slotBDefinition,
+            SlotAAmount = slotAAmount,
+            SlotBAmount = slotBAmount,
+            HasItem = hasItem,
+            PendingOutputDefinition = pendingOutputDefinition,
+            PendingOutputQuantity = pendingOutputQuantity,
+            FirstInputTint = firstInputTint,
+            HasFirstInputTint = hasFirstInputTint
+        };
+    }
+
+    public void ApplyMoveState(MoveState state)
+    {
+        if (state == null)
+        {
+            return;
+        }
+
+        slotADefinition = state.SlotADefinition;
+        slotBDefinition = state.SlotBDefinition;
+        slotAAmount = Mathf.Max(0, state.SlotAAmount);
+        slotBAmount = Mathf.Max(0, state.SlotBAmount);
+        hasItem = state.HasItem;
+        pendingOutputDefinition = state.PendingOutputDefinition;
+        pendingOutputQuantity = Mathf.Max(0, state.PendingOutputQuantity);
+        firstInputTint = state.FirstInputTint;
+        hasFirstInputTint = state.HasFirstInputTint;
+
+        if (launchingItem != null)
+        {
+            launchingItem.ClearReservedDestination(this);
+            launchingItem.ReleaseClaim(this);
+            Destroy(launchingItem.gameObject);
+            launchingItem = null;
+        }
+
+        launchMoveTimer = 0f;
+    }
 }

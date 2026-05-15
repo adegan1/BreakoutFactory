@@ -34,6 +34,26 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         public BallTypeData BallType;
     }
 
+    public sealed class MoveState
+    {
+        public readonly List<ItemEntry> Entries = new List<ItemEntry>();
+        public ItemDefinition AcceptedResourceDefinition;
+        public BallTypeData LastCreatedBallType;
+        public bool IsMoldCompleted;
+    }
+
+    public sealed class ItemEntry
+    {
+        public ItemDefinition Item;
+        public int Quantity;
+
+        public ItemEntry(ItemDefinition item, int quantity)
+        {
+            Item = item;
+            Quantity = quantity;
+        }
+    }
+
     [Header("References")]
     [SerializeField] private BuildingInstance buildingInstance;
     [SerializeField] private TileManager tileManager;
@@ -547,6 +567,57 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         {
             storedItems.Add(new StoredItemEntry(pair.Key, pair.Value));
         }
+    }
+
+    public MoveState CaptureMoveState()
+    {
+        MoveState state = new MoveState
+        {
+            AcceptedResourceDefinition = acceptedResourceDefinition,
+            LastCreatedBallType = lastCreatedBallType,
+            IsMoldCompleted = isMoldCompleted
+        };
+
+        foreach (KeyValuePair<ItemDefinition, int> pair in inventoryByItem)
+        {
+            if (pair.Key == null || pair.Value <= 0)
+            {
+                continue;
+            }
+
+            state.Entries.Add(new ItemEntry(pair.Key, pair.Value));
+        }
+
+        return state;
+    }
+
+    public void ApplyMoveState(MoveState state)
+    {
+        if (state == null)
+        {
+            return;
+        }
+
+        inventoryByItem.Clear();
+        for (int i = 0; i < state.Entries.Count; i++)
+        {
+            ItemEntry entry = state.Entries[i];
+            if (entry == null || entry.Item == null || entry.Quantity <= 0)
+            {
+                continue;
+            }
+
+            inventoryByItem.TryGetValue(entry.Item, out int current);
+            inventoryByItem[entry.Item] = current + entry.Quantity;
+        }
+
+        acceptedResourceDefinition = state.AcceptedResourceDefinition;
+        lastCreatedBallType = state.LastCreatedBallType;
+        isMoldCompleted = state.IsMoldCompleted;
+
+        ResolveAcceptedResourceDefinition();
+        SyncSerializedInventory();
+        ApplyBallPreviewVisualImmediate();
     }
 
     private void OnValidate()

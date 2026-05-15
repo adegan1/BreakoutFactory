@@ -65,6 +65,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
     private void Awake()
     {
         ResolveDependenciesIfNeeded();
+        EnsureMachineStateIdAssigned();
         RegisterMachineStateIdIfValid();
     }
 
@@ -130,6 +131,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
     public bool TrySpawnItem()
     {
         ResolveDependenciesIfNeeded();
+        EnsureMachineStateIdAssigned();
 
         if (launchingItem != null)
         {
@@ -401,6 +403,16 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
         }
 
         activeByMachineStateId[machineStateId] = this;
+    }
+
+    private void EnsureMachineStateIdAssigned()
+    {
+        if (!string.IsNullOrEmpty(machineStateId))
+        {
+            return;
+        }
+
+        machineStateId = System.Guid.NewGuid().ToString("N");
     }
 
     private void UnregisterMachineStateIdIfValid()
