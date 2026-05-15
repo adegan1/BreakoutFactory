@@ -50,6 +50,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     [Header("UI Interaction")]
     [SerializeField] private LayerMask blockingUiLayers = 1 << 5;
+    [SerializeField] private Button[] disabledWhileMovingButtons;
+    [SerializeField] private EventTrigger[] disabledWhileMovingEventTriggers;
 
     [Header("Marquee Selection")]
     [SerializeField] private Color selectionBoxFillColor = new Color(0.2f, 0.6f, 1f, 0.18f);
@@ -92,9 +94,15 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private bool isConveyorDragPlacing;
     private bool hasConveyorDragTile;
     private Vector2Int lastConveyorDragTile;
+    private bool isRightClickDragRemoving;
+    private Vector2Int lastRightClickDragTile;
     private bool isMovingSelectedGroup;
     private Vector2Int selectedGroupPointerOffset;
     private Vector2Int selectedGroupBoundsSize = Vector2Int.one;
+    private readonly List<Transform> movedGroupPreviewHighlights = new();
+    private readonly List<SpriteRenderer> movedGroupPreviewRenderers = new();
+    private readonly Dictionary<Button, bool> moveModeBlockedButtonStates = new();
+    private readonly Dictionary<EventTrigger, bool> moveModeBlockedEventTriggerStates = new();
     private int selectedRotationQuarterTurns;
     private float selectedFactorySpeed = 1f;
     private float defaultFixedDeltaTime = 0.02f;
@@ -216,11 +224,15 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private void OnDisable()
     {
+        RefreshMoveModeBlockedButtons(forceEnabled: true);
+        SetMovedGroupPreviewVisible(false);
         RevertGlobalTimeToNormal();
     }
 
     private void OnDestroy()
     {
+        RefreshMoveModeBlockedButtons(forceEnabled: true);
+        DestroyMovedGroupPreviewHighlights();
         RevertGlobalTimeToNormal();
     }
 
@@ -313,15 +325,34 @@ public class FactoryBuildingPlacer : MonoBehaviour
             ContinueBoxSelection(mouse);
         }
 
-        if (mouse.rightButton.wasPressedThisFrame)
+        if (isMovingSelectedGroup || isBoxSelecting)
         {
-            if (pointerOverUi)
+            isRightClickDragRemoving = false;
+        }
+        else
+        {
+            if (mouse.rightButton.wasPressedThisFrame && !pointerOverUi)
+            {
+                isRightClickDragRemoving = true;
+                lastRightClickDragTile = pointerGridPosition;
+                TryRemoveAtPointer();
+            }
+            else if (mouse.rightButton.wasPressedThisFrame && pointerOverUi)
             {
                 DeselectBuilding();
             }
-            else
+            else if (isRightClickDragRemoving && mouse.rightButton.isPressed && !pointerOverUi)
             {
-                TryRemoveAtPointer();
+                if (hasPointerTile && pointerGridPosition != lastRightClickDragTile)
+                {
+                    lastRightClickDragTile = pointerGridPosition;
+                    TryRemoveDragAtPointer();
+                }
+            }
+
+            if (mouse.rightButton.wasReleasedThisFrame)
+            {
+                isRightClickDragRemoving = false;
             }
         }
 
@@ -332,12 +363,21 @@ public class FactoryBuildingPlacer : MonoBehaviour
     {
         if (hoverHighlight == null)
         {
+            SetMovedGroupPreviewVisible(false);
+            return;
+        }
+
+        if (isBoxSelecting)
+        {
+            SetHoverHighlightVisible(false);
+            SetMovedGroupPreviewVisible(false);
             return;
         }
 
         if (!hasPointerTile)
         {
             SetHoverHighlightVisible(false);
+            SetMovedGroupPreviewVisible(false);
             return;
         }
 
@@ -346,6 +386,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             if (pointerGridPosition == suppressedHoverTile)
             {
                 SetHoverHighlightVisible(false);
+                SetMovedGroupPreviewVisible(false);
                 return;
             }
 
@@ -357,16 +398,17 @@ public class FactoryBuildingPlacer : MonoBehaviour
             if (!hasPointerTile)
             {
                 SetHoverHighlightVisible(false);
+                SetMovedGroupPreviewVisible(false);
                 return;
             }
 
             Vector2Int anchorTopLeft = GetMovedGroupAnchorTile();
             bool canPlaceGroup = CanPlaceMovedSelectedGroup(anchorTopLeft);
-            Color previewColor = canPlaceGroup ? validHoverColor : blockedHoverColor;
-            DisplayFootprintHighlight(anchorTopLeft, selectedGroupBoundsSize, previewColor);
-            ApplyDefaultHoverVisual(previewColor);
+            DisplayMovedGroupFootprintPreview(anchorTopLeft, canPlaceGroup);
             return;
         }
+
+        SetMovedGroupPreviewVisible(false);
 
         BuildingDefinition selectedDef = GetSelectedBuildingDefinition();
         Vector2Int footprintSize = selectedDef != null ? GetRotatedFootprintSize(selectedDef.FootprintSize) : Vector2Int.one;
@@ -869,6 +911,126 @@ public class FactoryBuildingPlacer : MonoBehaviour
         SetHoverHighlightVisible(true);
     }
 
+    private void DisplayMovedGroupFootprintPreview(Vector2Int anchorTopLeft, bool canPlace)
+    {
+        if (tileManager == null)
+        {
+            SetMovedGroupPreviewVisible(false);
+            return;
+        }
+
+        EnsureMovedGroupPreviewHighlightCapacity(selectedGroupMoveEntries.Count);
+
+        for (int i = 0; i < selectedGroupMoveEntries.Count; i++)
+        {
+            GroupMoveEntry entry = selectedGroupMoveEntries[i];
+            Transform previewHighlight = movedGroupPreviewHighlights[i];
+            SpriteRenderer previewRenderer = movedGroupPreviewRenderers[i];
+
+            if (previewHighlight == null)
+            {
+                continue;
+            }
+
+            Vector2Int targetTopLeft = anchorTopLeft + entry.RelativeTopLeft;
+            Vector3 footprintCenter = GetFootprintWorldCenter(targetTopLeft, entry.FootprintSize);
+            footprintCenter.z = tileManager.GridPlaneZ + hoverZOffset;
+
+            previewHighlight.position = footprintCenter;
+            previewHighlight.localScale = new Vector3(
+                entry.FootprintSize.x * tileManager.TileSize,
+                entry.FootprintSize.y * tileManager.TileSize,
+                1f);
+            previewHighlight.rotation = Quaternion.Euler(0f, 0f, entry.RotationQuarterTurns * 90f);
+            previewHighlight.gameObject.SetActive(true);
+
+            if (previewRenderer != null)
+            {
+                Sprite previewSprite = entry.Definition != null ? entry.Definition.BuildingSprite : null;
+                int previewQuarterTurns = entry.RotationQuarterTurns;
+
+                if (entry.Definition != null && IsConveyorDefinition(entry.Definition))
+                {
+                    ConveyorVisualResolver.Result conveyorVisual = ConveyorVisualResolver.Resolve(
+                        entry.Definition,
+                        GetIncomingDirectionForMovedGroupPreviewPosition(targetTopLeft, anchorTopLeft),
+                        entry.RotationQuarterTurns);
+
+                    previewSprite = conveyorVisual.Sprite;
+                    previewQuarterTurns = conveyorVisual.QuarterTurns;
+                }
+
+                previewRenderer.sprite = previewSprite != null ? previewSprite : defaultHoverSprite;
+
+                Color previewBaseColor = entry.Definition != null ? entry.Definition.BuildingColor : Color.white;
+                previewRenderer.color = BuildPreviewTint(previewBaseColor, canPlace);
+
+                previewHighlight.rotation = Quaternion.Euler(0f, 0f, previewQuarterTurns * 90f);
+            }
+        }
+
+        for (int i = selectedGroupMoveEntries.Count; i < movedGroupPreviewHighlights.Count; i++)
+        {
+            Transform previewHighlight = movedGroupPreviewHighlights[i];
+            if (previewHighlight != null)
+            {
+                previewHighlight.gameObject.SetActive(false);
+            }
+        }
+
+        SetHoverHighlightVisible(false);
+    }
+
+    private void EnsureMovedGroupPreviewHighlightCapacity(int count)
+    {
+        if (hoverHighlight == null)
+        {
+            return;
+        }
+
+        while (movedGroupPreviewHighlights.Count < count)
+        {
+            GameObject previewObject = Instantiate(hoverHighlight.gameObject, hoverHighlight.parent);
+            previewObject.name = hoverHighlight.gameObject.name + "_MovedGroupPreview";
+            previewObject.SetActive(false);
+
+            movedGroupPreviewHighlights.Add(previewObject.transform);
+            movedGroupPreviewRenderers.Add(previewObject.GetComponent<SpriteRenderer>());
+        }
+    }
+
+    private void SetMovedGroupPreviewVisible(bool isVisible)
+    {
+        for (int i = 0; i < movedGroupPreviewHighlights.Count; i++)
+        {
+            Transform previewHighlight = movedGroupPreviewHighlights[i];
+            if (previewHighlight == null)
+            {
+                continue;
+            }
+
+            if (previewHighlight.gameObject.activeSelf != isVisible)
+            {
+                previewHighlight.gameObject.SetActive(isVisible);
+            }
+        }
+    }
+
+    private void DestroyMovedGroupPreviewHighlights()
+    {
+        for (int i = 0; i < movedGroupPreviewHighlights.Count; i++)
+        {
+            Transform previewHighlight = movedGroupPreviewHighlights[i];
+            if (previewHighlight != null)
+            {
+                Destroy(previewHighlight.gameObject);
+            }
+        }
+
+        movedGroupPreviewHighlights.Clear();
+        movedGroupPreviewRenderers.Clear();
+    }
+
     private void ApplyDefaultHoverVisual(Color tint)
     {
         if (hoverHighlight == null || hoverHighlightRenderer == null)
@@ -971,6 +1133,20 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private void RefreshSelectedBuildingHighlights()
     {
+        int marqueeMinX = 0;
+        int marqueeMaxX = 0;
+        int marqueeMinY = 0;
+        int marqueeMaxY = 0;
+        bool hasMarqueePreview = isBoxSelecting;
+
+        if (hasMarqueePreview)
+        {
+            marqueeMinX = Mathf.Min(boxSelectionStartTile.x, boxSelectionEndTile.x);
+            marqueeMaxX = Mathf.Max(boxSelectionStartTile.x, boxSelectionEndTile.x);
+            marqueeMinY = Mathf.Min(boxSelectionStartTile.y, boxSelectionEndTile.y);
+            marqueeMaxY = Mathf.Max(boxSelectionStartTile.y, boxSelectionEndTile.y);
+        }
+
         foreach (PlacedBuildingRecord record in buildingsByInstanceId.Values)
         {
             if (record == null || record.SpawnedObject == null)
@@ -979,7 +1155,17 @@ public class FactoryBuildingPlacer : MonoBehaviour
             }
 
             int instanceId = record.SpawnedObject.GetInstanceID();
-            bool shouldHighlight = selectedBuildingInstanceIds.Contains(instanceId);
+            bool isSelected = selectedBuildingInstanceIds.Contains(instanceId);
+            bool isMarqueePreview = hasMarqueePreview
+                && DoesFootprintIntersectRect(
+                    record.TopLeftGridPosition,
+                    record.FootprintSize,
+                    marqueeMinX,
+                    marqueeMaxX,
+                    marqueeMinY,
+                    marqueeMaxY);
+
+            bool shouldHighlight = isSelected || isMarqueePreview;
             SetSelectionHighlight(record.SpawnedObject, shouldHighlight);
         }
     }
@@ -1192,6 +1378,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         selectedBuildingInstanceIds.Clear();
         isMovingSelectedGroup = selectedGroupMoveEntries.Count > 0;
+        RefreshMoveModeBlockedButtons();
         RefreshAllConveyorVisuals();
         return isMovingSelectedGroup;
     }
@@ -1270,6 +1457,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         selectedGroupMoveEntries.Clear();
         isMovingSelectedGroup = false;
+        RefreshMoveModeBlockedButtons();
         selectedGroupPointerOffset = Vector2Int.zero;
         suppressHoverUntilTileChange = false;
         RefreshAllConveyorVisuals();
@@ -1547,6 +1735,77 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
     }
 
+    private void RefreshMoveModeBlockedButtons(bool forceEnabled = false)
+    {
+        if (disabledWhileMovingButtons == null || disabledWhileMovingButtons.Length == 0)
+        {
+            // Continue through to event-trigger handling below.
+        }
+
+        bool shouldDisable = isMovingSelectedGroup && !forceEnabled;
+
+        for (int i = 0; i < disabledWhileMovingButtons.Length; i++)
+        {
+            Button button = disabledWhileMovingButtons[i];
+            if (button == null)
+            {
+                continue;
+            }
+
+            if (shouldDisable)
+            {
+                if (!moveModeBlockedButtonStates.ContainsKey(button))
+                {
+                    moveModeBlockedButtonStates[button] = button.interactable;
+                }
+
+                button.interactable = false;
+                continue;
+            }
+
+            if (moveModeBlockedButtonStates.TryGetValue(button, out bool previousInteractable))
+            {
+                button.interactable = previousInteractable;
+                moveModeBlockedButtonStates.Remove(button);
+            }
+        }
+
+        if (disabledWhileMovingEventTriggers != null && disabledWhileMovingEventTriggers.Length > 0)
+        {
+            for (int i = 0; i < disabledWhileMovingEventTriggers.Length; i++)
+            {
+                EventTrigger eventTrigger = disabledWhileMovingEventTriggers[i];
+                if (eventTrigger == null)
+                {
+                    continue;
+                }
+
+                if (shouldDisable)
+                {
+                    if (!moveModeBlockedEventTriggerStates.ContainsKey(eventTrigger))
+                    {
+                        moveModeBlockedEventTriggerStates[eventTrigger] = eventTrigger.enabled;
+                    }
+
+                    eventTrigger.enabled = false;
+                    continue;
+                }
+
+                if (moveModeBlockedEventTriggerStates.TryGetValue(eventTrigger, out bool previousEnabled))
+                {
+                    eventTrigger.enabled = previousEnabled;
+                    moveModeBlockedEventTriggerStates.Remove(eventTrigger);
+                }
+            }
+        }
+
+        if (!shouldDisable)
+        {
+            moveModeBlockedButtonStates.Clear();
+            moveModeBlockedEventTriggerStates.Clear();
+        }
+    }
+
     private bool TryPlaceAtPointer()
     {
         if (!CanInteractAtPointer())
@@ -1675,6 +1934,31 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         RefreshConveyorVisualsAround(topLeft, footprintSize);
         suppressHoverUntilTileChange = false;
+    }
+
+    // Simplified remove used while right-click dragging — skips deselect side effects.
+    private void TryRemoveDragAtPointer()
+    {
+        if (!CanInteractAtPointer())
+        {
+            return;
+        }
+
+        Vector2Int gridPosition = pointerGridPosition;
+        if (!spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord record) || record?.SpawnedObject == null)
+        {
+            return;
+        }
+
+        Vector2Int topLeft = record.TopLeftGridPosition;
+        Vector2Int footprintSize = record.FootprintSize;
+
+        if (!RemovePlacedBuilding(record, refundBuildingToInventoryOnRemove))
+        {
+            return;
+        }
+
+        RefreshConveyorVisualsAround(topLeft, footprintSize);
     }
 
     private bool TryRemoveLooseItemUnderPointer()
@@ -1970,6 +2254,60 @@ public class FactoryBuildingPlacer : MonoBehaviour
         return null;
     }
 
+    private Vector2Int? GetIncomingDirectionForMovedGroupPreviewPosition(Vector2Int targetPosition, Vector2Int anchorTopLeft)
+    {
+        for (int i = 0; i < CardinalDirections.Length; i++)
+        {
+            Vector2Int neighborPosition = targetPosition + CardinalDirections[i];
+
+            if (TryGetMovedGroupEntryAtWorldPosition(neighborPosition, anchorTopLeft, out GroupMoveEntry movedNeighbor)
+                && movedNeighbor.Definition != null
+                && IsConveyorDefinition(movedNeighbor.Definition))
+            {
+                Vector2Int neighborDirection = ConveyorVisualResolver.DirectionFromQuarterTurns(movedNeighbor.RotationQuarterTurns);
+                if (neighborPosition + neighborDirection == targetPosition)
+                {
+                    return neighborDirection;
+                }
+            }
+
+            if (!spawnedByCell.TryGetValue(neighborPosition, out PlacedBuildingRecord neighborRecord)
+                || neighborRecord == null
+                || neighborRecord.SpawnedObject == null
+                || !IsConveyorDefinition(neighborRecord.Definition))
+            {
+                continue;
+            }
+
+            int neighborQuarterTurns = neighborRecord.PlacedRotationQuarterTurns;
+            Vector2Int neighborWorldDirection = ConveyorVisualResolver.DirectionFromQuarterTurns(neighborQuarterTurns);
+            if (neighborPosition + neighborWorldDirection == targetPosition)
+            {
+                return neighborWorldDirection;
+            }
+        }
+
+        return null;
+    }
+
+    private bool TryGetMovedGroupEntryAtWorldPosition(Vector2Int worldPosition, Vector2Int anchorTopLeft, out GroupMoveEntry entry)
+    {
+        for (int i = 0; i < selectedGroupMoveEntries.Count; i++)
+        {
+            GroupMoveEntry candidate = selectedGroupMoveEntries[i];
+            if (anchorTopLeft + candidate.RelativeTopLeft != worldPosition)
+            {
+                continue;
+            }
+
+            entry = candidate;
+            return true;
+        }
+
+        entry = default;
+        return false;
+    }
+
     private bool CanInteractAtPointer()
     {
         return hasPointerTile && tileManager != null && inventoryManager != null;
@@ -2174,11 +2512,79 @@ public class FactoryBuildingPlacer : MonoBehaviour
         if (keyboard.rKey.wasPressedThisFrame)
         {
             bool isShiftHeld = keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed;
-            selectedRotationQuarterTurns = isShiftHeld
-                ? (selectedRotationQuarterTurns + 1) % 4
-                : (selectedRotationQuarterTurns + 3) % 4;
+            if (isMovingSelectedGroup)
+            {
+                RotateMovingSelectedGroup(isShiftHeld ? 1 : 3);
+            }
+            else
+            {
+                selectedRotationQuarterTurns = isShiftHeld
+                    ? (selectedRotationQuarterTurns + 1) % 4
+                    : (selectedRotationQuarterTurns + 3) % 4;
+            }
             suppressHoverUntilTileChange = false;
         }
+    }
+
+    private void RotateMovingSelectedGroup(int quarterTurnsDelta)
+    {
+        if (!isMovingSelectedGroup || selectedGroupMoveEntries.Count == 0)
+        {
+            return;
+        }
+
+        int normalizedDelta = ((quarterTurnsDelta % 4) + 4) % 4;
+        if (normalizedDelta == 0)
+        {
+            return;
+        }
+
+        Vector2Int originalBounds = selectedGroupBoundsSize;
+        List<GroupMoveEntry> rotatedEntries = new List<GroupMoveEntry>(selectedGroupMoveEntries.Count);
+
+        for (int i = 0; i < selectedGroupMoveEntries.Count; i++)
+        {
+            GroupMoveEntry entry = selectedGroupMoveEntries[i];
+            Vector2Int rotatedTopLeft = entry.RelativeTopLeft;
+            Vector2Int rotatedFootprint = entry.FootprintSize;
+            int rotatedQuarterTurns = entry.RotationQuarterTurns;
+
+            if (normalizedDelta == 1)
+            {
+                rotatedTopLeft = new Vector2Int(
+                    originalBounds.y - (entry.RelativeTopLeft.y + entry.FootprintSize.y),
+                    entry.RelativeTopLeft.x);
+                rotatedFootprint = new Vector2Int(entry.FootprintSize.y, entry.FootprintSize.x);
+                rotatedQuarterTurns = (rotatedQuarterTurns + 1) % 4;
+            }
+            else if (normalizedDelta == 2)
+            {
+                rotatedTopLeft = new Vector2Int(
+                    originalBounds.x - (entry.RelativeTopLeft.x + entry.FootprintSize.x),
+                    originalBounds.y - (entry.RelativeTopLeft.y + entry.FootprintSize.y));
+                rotatedQuarterTurns = (rotatedQuarterTurns + 2) % 4;
+            }
+            else if (normalizedDelta == 3)
+            {
+                rotatedTopLeft = new Vector2Int(
+                    entry.RelativeTopLeft.y,
+                    originalBounds.x - (entry.RelativeTopLeft.x + entry.FootprintSize.x));
+                rotatedFootprint = new Vector2Int(entry.FootprintSize.y, entry.FootprintSize.x);
+                rotatedQuarterTurns = (rotatedQuarterTurns + 3) % 4;
+            }
+
+            entry.RelativeTopLeft = rotatedTopLeft;
+            entry.FootprintSize = rotatedFootprint;
+            entry.RotationQuarterTurns = rotatedQuarterTurns;
+            rotatedEntries.Add(entry);
+        }
+
+        selectedGroupMoveEntries.Clear();
+        selectedGroupMoveEntries.AddRange(rotatedEntries);
+
+        selectedGroupBoundsSize = (normalizedDelta & 1) == 0
+            ? originalBounds
+            : new Vector2Int(originalBounds.y, originalBounds.x);
     }
 
     private void HandleFactorySpeedInput()
@@ -2397,6 +2803,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
     public bool TrySelectBuildingByIndex(int index)
     {
         if (inventoryManager == null)
+        {
+            return false;
+        }
+
+        if (isMovingSelectedGroup)
         {
             return false;
         }
@@ -2804,6 +3215,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         suppressHoverUntilTileChange = false;
         RefreshSelectedBuildingHighlights();
         SetHoverHighlightVisible(false);
+        SetMovedGroupPreviewVisible(false);
         SetAllIndicatorsVisible(false);
     }
 
@@ -2889,10 +3301,12 @@ public class FactoryBuildingPlacer : MonoBehaviour
         isMovingSelectedGroup = false;
         isBoxSelecting = false;
         RefreshSelectedBuildingHighlights();
+        RefreshMoveModeBlockedButtons(forceEnabled: true);
         HoveredMachineInstanceId = -1;
         SelectedMachineInstanceId = -1;
         suppressHoverUntilTileChange = false;
         SetHoverHighlightVisible(false);
+        SetMovedGroupPreviewVisible(false);
         SetAllIndicatorsVisible(false);
     }
 

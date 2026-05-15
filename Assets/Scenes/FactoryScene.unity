@@ -6914,13 +6914,23 @@ MonoBehaviour:
   blockingUiLayers:
     serializedVersion: 2
     m_Bits: 32
+  disabledWhileMovingButtons:
+  - {fileID: 633063395}
+  - {fileID: 1269278575}
+  disabledWhileMovingEventTriggers:
+  - {fileID: 633063394}
+  - {fileID: 1269278574}
+  selectionBoxFillColor: {r: 1, g: 0.7972814, b: 0.19999999, a: 0.18}
+  selectionBoxBorderColor: {r: 1, g: 0.6716937, b: 0.19999999, a: 0.9}
+  selectedBuildingHighlightTint: {r: 0.7735536, g: 1, b: 0.21226418, a: 1}
+  selectedBuildingHighlightStrength: 0.358
   normalFactorySpeed: 1
   boostedFactorySpeed: 2
   enableShiftSpeedBoost: 1
   normalSpeedToggle: {fileID: 1883652091}
   doubleSpeedToggle: {fileID: 1304502673}
-  controlsPanelRoot: {fileID: 0}
-  settingsPanelController: {fileID: 0}
+  controlsPanelRoot: {fileID: 1182989320}
+  settingsPanelController: {fileID: 1891409979}
 --- !u!4 &1025983502
 Transform:
   m_ObjectHideFlags: 0
@@ -12234,6 +12244,7 @@ MonoBehaviour:
     tooltipTrigger: {fileID: 1509898146}
     selectionButton: {fileID: 0}
     clickTarget: {fileID: 0}
+  unavailableTint: {r: 1, g: 1, b: 1, a: 0.35}
 --- !u!1 &1818772567
 GameObject:
   m_ObjectHideFlags: 0
