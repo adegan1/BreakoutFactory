@@ -230,6 +230,8 @@ MonoBehaviour:
   hideWhenZero: 1
   onlyShowWhenHoveredOrSelected: 1
   keepDefaultRotation: 1
+  keepDefaultWorldScale: 1
+  keepUniformXYScale: 1
   faceWorldCamera: 1
   worldCamera: {fileID: 0}
 --- !u!1 &9147091569400197178

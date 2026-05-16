@@ -364,7 +364,8 @@ public class MachineRadialProgressView : MonoBehaviour
         }
 
         return machineInstanceId == FactoryBuildingPlacer.HoveredMachineInstanceId
-            || machineInstanceId == FactoryBuildingPlacer.SelectedMachineInstanceId;
+            || machineInstanceId == FactoryBuildingPlacer.SelectedMachineInstanceId
+            || FactoryBuildingPlacer.IsMachineProgressContextSelected(machineInstanceId);
     }
 
     private bool IsMouseHoveringThisBuilding()

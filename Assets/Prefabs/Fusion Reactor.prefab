@@ -145,7 +145,7 @@ GameObject:
   - component: {fileID: 6715973741324709327}
   m_Layer: 7
   m_Name: ProgressBar
-  m_TagString: Untagged
+  m_TagString: AntiStretchUI
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -220,7 +220,7 @@ GameObject:
   - component: {fileID: 5244355776711180168}
   m_Layer: 7
   m_Name: ResourcePreview
-  m_TagString: Untagged
+  m_TagString: AntiStretchUI
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

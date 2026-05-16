@@ -11,6 +11,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
     public static bool AreMachineProgressBarsPinnedVisible { get; private set; }
     public static int HoveredMachineInstanceId { get; private set; } = -1;
     public static int SelectedMachineInstanceId { get; private set; } = -1;
+    private static readonly HashSet<int> selectedMachineProgressContextIds = new();
 
     [SerializeField] private TileManager tileManager;
     [SerializeField] private Camera worldCamera;
@@ -52,6 +53,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [SerializeField] private LayerMask blockingUiLayers = 1 << 5;
     [SerializeField] private Button[] disabledWhileMovingButtons;
     [SerializeField] private EventTrigger[] disabledWhileMovingEventTriggers;
+
+    [Header("UI Anti-Stretch")]
+    [SerializeField] private bool enableTaggedUiAntiStretch = true;
+    [SerializeField] private string antiStretchUiTag = "AntiStretchUI";
+    [SerializeField, Min(0.05f)] private float antiStretchUiRescanIntervalSeconds = 0.5f;
 
     [Header("Marquee Selection")]
     [SerializeField] private Color selectionBoxFillColor = new Color(0.2f, 0.6f, 1f, 0.18f);
@@ -103,10 +109,14 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private readonly List<SpriteRenderer> movedGroupPreviewRenderers = new();
     private readonly Dictionary<Button, bool> moveModeBlockedButtonStates = new();
     private readonly Dictionary<EventTrigger, bool> moveModeBlockedEventTriggerStates = new();
+    private readonly List<Transform> antiStretchUiTargets = new();
+    private readonly Dictionary<int, Vector3> antiStretchUiBaseLocalScales = new();
     private int selectedRotationQuarterTurns;
     private float selectedFactorySpeed = 1f;
     private float defaultFixedDeltaTime = 0.02f;
     private bool isShiftSpeedOverrideActive;
+    private bool hasWarnedMissingAntiStretchUiTag;
+    private float antiStretchUiNextRescanTime;
     private readonly List<Vector2Int> reusableInputTiles = new();
     private readonly List<ItemEntity> reusableItemsOnInput = new();
     private readonly HashSet<int> selectedBuildingInstanceIds = new();
@@ -125,6 +135,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
     public BuildingDefinition SelectedBuildingDefinition => GetSelectedBuildingDefinition();
     public GameObject SelectedBuildingPrefab => GetSelectedBuildingDefinition()?.BehaviorPrefab;
     public int SelectedRotationQuarterTurns => selectedRotationQuarterTurns;
+
+    public static bool IsMachineProgressContextSelected(int contextId)
+    {
+        return contextId >= 0 && selectedMachineProgressContextIds.Contains(contextId);
+    }
 
     private class PlacedBuildingRecord
     {
@@ -224,6 +239,9 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private void OnDisable()
     {
+        selectedMachineProgressContextIds.Clear();
+        antiStretchUiTargets.Clear();
+        antiStretchUiBaseLocalScales.Clear();
         RefreshMoveModeBlockedButtons(forceEnabled: true);
         SetMovedGroupPreviewVisible(false);
         RevertGlobalTimeToNormal();
@@ -231,9 +249,17 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private void OnDestroy()
     {
+        selectedMachineProgressContextIds.Clear();
+        antiStretchUiTargets.Clear();
+        antiStretchUiBaseLocalScales.Clear();
         RefreshMoveModeBlockedButtons(forceEnabled: true);
         DestroyMovedGroupPreviewHighlights();
         RevertGlobalTimeToNormal();
+    }
+
+    private void LateUpdate()
+    {
+        ApplyTaggedUiAntiStretch();
     }
 
     private void Update()
@@ -283,6 +309,9 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (mouse.leftButton.wasPressedThisFrame && !pointerOverUi)
         {
+            Keyboard keyboard = Keyboard.current;
+            bool isCtrlHeld = keyboard != null && (keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed);
+
             if (isMovingSelectedGroup)
             {
                 TryPlaceMovedSelectedGroupAtPointer();
@@ -294,7 +323,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
             }
             else if (!hasSelectedBuilding)
             {
-                if (HasSelectedBuildings() && IsPointerOverSelectedBuilding())
+                if (isCtrlHeld)
+                {
+                    TryAddBuildingAtPointerToSelection();
+                }
+                else if (HasSelectedBuildings() && IsPointerOverSelectedBuilding())
                 {
                     BeginMovingSelectedGroup();
                 }
@@ -1133,6 +1166,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private void RefreshSelectedBuildingHighlights()
     {
+        RefreshSelectedMachineProgressContextIds();
+
         int marqueeMinX = 0;
         int marqueeMaxX = 0;
         int marqueeMinY = 0;
@@ -1301,6 +1336,42 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         return selectedBuildingInstanceIds.Contains(record.SpawnedObject.GetInstanceID());
+    }
+
+    private bool TryAddBuildingAtPointerToSelection()
+    {
+        if (!hasPointerTile
+            || !spawnedByCell.TryGetValue(pointerGridPosition, out PlacedBuildingRecord record)
+            || record?.SpawnedObject == null)
+        {
+            return false;
+        }
+
+        int instanceId = record.SpawnedObject.GetInstanceID();
+        selectedBuildingInstanceIds.Add(instanceId);
+        SelectedMachineInstanceId = GetMachineProgressContextId(record);
+        return true;
+    }
+
+    private void RefreshSelectedMachineProgressContextIds()
+    {
+        selectedMachineProgressContextIds.Clear();
+
+        foreach (int instanceId in selectedBuildingInstanceIds)
+        {
+            if (!buildingsByInstanceId.TryGetValue(instanceId, out PlacedBuildingRecord record)
+                || record == null
+                || record.SpawnedObject == null)
+            {
+                continue;
+            }
+
+            int contextId = GetMachineProgressContextId(record);
+            if (contextId >= 0)
+            {
+                selectedMachineProgressContextIds.Add(contextId);
+            }
+        }
     }
 
     private bool BeginMovingSelectedGroup()
@@ -1804,6 +1875,106 @@ public class FactoryBuildingPlacer : MonoBehaviour
             moveModeBlockedButtonStates.Clear();
             moveModeBlockedEventTriggerStates.Clear();
         }
+    }
+
+    private void ApplyTaggedUiAntiStretch()
+    {
+        if (!enableTaggedUiAntiStretch || string.IsNullOrWhiteSpace(antiStretchUiTag))
+        {
+            return;
+        }
+
+        if (Time.unscaledTime >= antiStretchUiNextRescanTime || antiStretchUiTargets.Count == 0)
+        {
+            RescanAntiStretchUiTargets();
+            antiStretchUiNextRescanTime = Time.unscaledTime + antiStretchUiRescanIntervalSeconds;
+        }
+
+        for (int i = antiStretchUiTargets.Count - 1; i >= 0; i--)
+        {
+            Transform target = antiStretchUiTargets[i];
+            if (target == null)
+            {
+                antiStretchUiTargets.RemoveAt(i);
+                continue;
+            }
+
+            ApplyAntiStretchToTarget(target);
+        }
+    }
+
+    private void RescanAntiStretchUiTargets()
+    {
+        antiStretchUiTargets.Clear();
+
+        GameObject[] taggedObjects;
+        try
+        {
+            taggedObjects = GameObject.FindGameObjectsWithTag(antiStretchUiTag);
+        }
+        catch (UnityException)
+        {
+            if (!hasWarnedMissingAntiStretchUiTag)
+            {
+                Debug.LogWarning($"FactoryBuildingPlacer: tag '{antiStretchUiTag}' is not defined for anti-stretch UI.");
+                hasWarnedMissingAntiStretchUiTag = true;
+            }
+
+            return;
+        }
+
+        hasWarnedMissingAntiStretchUiTag = false;
+
+        for (int i = 0; i < taggedObjects.Length; i++)
+        {
+            GameObject taggedObject = taggedObjects[i];
+            if (taggedObject == null)
+            {
+                continue;
+            }
+
+            Transform target = taggedObject.transform;
+            antiStretchUiTargets.Add(target);
+
+            int id = target.GetInstanceID();
+            if (!antiStretchUiBaseLocalScales.ContainsKey(id))
+            {
+                antiStretchUiBaseLocalScales[id] = target.localScale;
+            }
+        }
+    }
+
+    private void ApplyAntiStretchToTarget(Transform target)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        int id = target.GetInstanceID();
+        if (!antiStretchUiBaseLocalScales.TryGetValue(id, out Vector3 baseLocalScale))
+        {
+            baseLocalScale = target.localScale;
+            antiStretchUiBaseLocalScales[id] = baseLocalScale;
+        }
+
+        Vector3 parentLossy = target.parent != null ? target.parent.lossyScale : Vector3.one;
+        float parentX = Mathf.Abs(parentLossy.x);
+        float parentY = Mathf.Abs(parentLossy.y);
+        if (parentX <= 0.00001f || parentY <= 0.00001f)
+        {
+            return;
+        }
+
+        float inheritedAxis = Mathf.Min(parentX, parentY);
+        float desiredWorldX = inheritedAxis * Mathf.Abs(baseLocalScale.x);
+        float desiredWorldY = inheritedAxis * Mathf.Abs(baseLocalScale.y);
+
+        Vector3 correctedLocalScale = baseLocalScale;
+        correctedLocalScale.x = Mathf.Sign(baseLocalScale.x == 0f ? 1f : baseLocalScale.x) * (desiredWorldX / parentX);
+        correctedLocalScale.y = Mathf.Sign(baseLocalScale.y == 0f ? 1f : baseLocalScale.y) * (desiredWorldY / parentY);
+
+        target.localScale = correctedLocalScale;
     }
 
     private bool TryPlaceAtPointer()
