@@ -2325,10 +2325,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
         return definition != null && definition.IsConveyor;
     }
 
-    /// <summary>
-    /// Checks if a tile position is occupied by a non-conveyor building.
-    /// Used by generators to determine if they can output to this position.
-    /// </summary>
+    // Checks if a tile position is occupied by a non-conveyor building.
+    // Used by generators to determine if they can output to this position.
     public bool IsPositionBlockedByNonConveyorBuilding(Vector2Int gridPosition)
     {
         if (!spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord record) || record == null)

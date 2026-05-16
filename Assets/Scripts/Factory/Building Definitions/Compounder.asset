@@ -10,15 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dda42522ed0f7e440a28bb05e45858a8, type: 3}
-  m_Name: Fusion Reactor
+  m_Name: Compounder
   m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
-  displayName: Fusion Reactor
-  description: Combines elemental resources to create new elements
+  displayName: Compounder
+  description: Compounds elemental resources to mix their effects. Note - Compounds
+    cannot be compounded or fused
   buildingSprite: {fileID: 7482667652216324306, guid: aaa3a88405f852449a8bf191b46d71c0, type: 3}
-  buildingColor: {r: 1, g: 0.6939391, b: 0.6462264, a: 1}
+  buildingColor: {r: 0.93362963, g: 0.7122642, b: 1, a: 1}
   footprintWidth: 2
   footprintHeight: 3
-  behaviorPrefab: {fileID: 1276502763047268258, guid: a6fc1b56d619dee4cb67941612852517, type: 3}
+  behaviorPrefab: {fileID: 1276502763047268258, guid: 6afaf2a12e596c04a9558618590967f7, type: 3}
   generatorSettings: {fileID: 0}
   isConveyor: 0
   conveyorStraightSprite: {fileID: 0}

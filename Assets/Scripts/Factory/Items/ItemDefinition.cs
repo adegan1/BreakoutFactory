@@ -21,6 +21,8 @@ public class ItemDefinition : ScriptableObject
     [SerializeField] private bool isFusion = false;
     [SerializeField] private bool isCompound = false;
 
+    [System.NonSerialized] private BallTypeData runtimeBallType;
+
     public string ItemId => itemId;
     public string DisplayName => displayName;
     public string Description => description;
@@ -29,6 +31,36 @@ public class ItemDefinition : ScriptableObject
     public int BaseValue => baseValue;
     public bool IsFusion => isFusion;
     public bool IsCompound => isCompound;
+    public BallTypeData RuntimeBallType => runtimeBallType;
+
+    public void InitializeAsRuntimeCompound(BallTypeData compoundBallType, string compoundItemId, int compoundBaseValue)
+    {
+        if (compoundBallType == null)
+        {
+            return;
+        }
+
+        string fallbackId = BuildRuntimeCompoundItemId(compoundBallType.DisplayName);
+        itemId = string.IsNullOrWhiteSpace(compoundItemId) ? fallbackId : compoundItemId.Trim();
+        displayName = compoundBallType.DisplayName;
+        description = compoundBallType.Description;
+        icon = compoundBallType.BallSprite;
+        tint = compoundBallType.DisplayColor;
+        baseValue = Mathf.Max(0, compoundBaseValue);
+        isFusion = false;
+        isCompound = true;
+        runtimeBallType = compoundBallType;
+        name = displayName;
+    }
+
+    private static string BuildRuntimeCompoundItemId(string sourceName)
+    {
+        string safeName = string.IsNullOrWhiteSpace(sourceName)
+            ? UnknownItemId
+            : sourceName.Trim().ToLowerInvariant().Replace(" ", ".").Replace("+", "plus");
+
+        return $"item.compound.{safeName}";
+    }
 
     private string BuildDefaultItemId()
     {

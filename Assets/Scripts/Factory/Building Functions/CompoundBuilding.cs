@@ -1,16 +1,25 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// Fusion Reactor machine.
+// Compounder machine.
 //
-// Layout (at 0 (default) rotation):
-//   - Two input slots on the LEFT side  (top-left and bottom-left tiles of the footprint)
-//   - One output slot on the RIGHT side (centre of the right edge)
+// Layout (at 0 / default rotation):
+//   - Two input slots on the LEFT side (top-left and bottom-left tiles of the footprint)
+//   - No output tile — the compound ball is sent directly to the crafted-ball queue
 //
-// When both inputs have received sufficient items matching a recipe in the database the
-// machine produces the output item and ejects it from the output side.
+// When both input slots each hold at least one item the machine consumes one of each,
+// looks up their corresponding BallTypeData via the configured mappings, creates a
+// runtime compound BallTypeData (inheriting abilities from both sources), and calls
+// InventoryManager.AddCraftedBall with the result.
 [DisallowMultipleComponent]
-public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInputPreview, IBuildingOutputPreview, IMachineResourceProgressProvider, IMachineProgressDisplayInfo, IMachinePendingItemDropper
+public class CompoundBuilding : MonoBehaviour,
+    IItemInputReceiver,
+    IBuildingInputPreview,
+    IBuildingOutputPreview,
+    IMachineResourceProgressProvider,
+    IMachineProgressDisplayInfo,
+    IMachinePendingItemDropper
 {
     public enum InputSide
     {
@@ -20,18 +29,21 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         Down
     }
 
-    public sealed class MoveState
+    [Serializable]
+    private class ItemToBallMapping
     {
-        public ItemDefinition SlotADefinition;
-        public ItemDefinition SlotBDefinition;
-        public int SlotAAmount;
-        public int SlotBAmount;
-        public bool HasItem;
-        public ItemDefinition PendingOutputDefinition;
-        public int PendingOutputQuantity;
-        public Color FirstInputTint;
-        public bool HasFirstInputTint;
+        public ItemDefinition SourceItem;
+        public BallTypeData SourceBallType;
     }
+
+    private sealed class CachedCompoundOutput
+    {
+        public string Key;
+        public BallTypeData BallType;
+        public ItemDefinition ItemDefinition;
+    }
+
+    private static readonly Dictionary<string, CachedCompoundOutput> CachedOutputsByKey = new();
 
     [Header("References")]
     [SerializeField] private BuildingInstance buildingInstance;
@@ -43,14 +55,15 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
     [SerializeField] private bool autoAssignSpawnedItemParent = true;
     [SerializeField] private string runtimeItemsParentName = "Runtime Items";
 
-    [Header("Recipes")]
-    [SerializeField] private FusionReactorRecipeDatabase recipeDatabase;
-
     [Header("Layout")]
     [Tooltip("Which side of the building the two inputs are on (at 0 rotation).")]
     [SerializeField] private InputSide inputSide = InputSide.Left;
     [Tooltip("How many of each input item can be stored per slot.")]
     [SerializeField, Min(1)] private int maxPerSlot = 10;
+
+    [Header("Ball Mappings")]
+    [Tooltip("Maps each accepted ItemDefinition to its source BallTypeData for compounding.")]
+    [SerializeField] private List<ItemToBallMapping> itemMappings = new();
 
     [Header("Output")]
     [SerializeField, Min(0.01f)] private float outputTravelDurationSeconds = 0.5f;
@@ -58,7 +71,6 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
 
     // ── Runtime state ─────────────────────────────────────────────────────────
 
-    // Two input slots; slot 0 = "top" (or first), slot 1 = "bottom" (or second)
     private ItemDefinition slotADefinition;
     private ItemDefinition slotBDefinition;
     private int slotAAmount;
@@ -68,7 +80,7 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
     private int pendingOutputQuantity;
     private Color firstInputTint = Color.white;
     private bool hasFirstInputTint;
-
+    private BallTypeData lastCompoundBall;
     private ItemEntity launchingItem;
     private float launchMoveTimer;
     private Vector3 launchStartWorldPosition;
@@ -100,13 +112,7 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             return;
         }
 
-        if (hasItem)
-        {
-            TryReleasePendingOutput();
-            return;
-        }
-
-        TryFuse();
+        TryCompound();
     }
 
     // ── IItemInputReceiver ────────────────────────────────────────────────────
@@ -123,15 +129,31 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             return false;
         }
 
+        // Only accept items that have a ball mapping
+        if (FindBallType(item.ItemDefinition) == null)
+        {
+            return false;
+        }
+
         GetInputTilesWorld(out Vector2Int tileA, out Vector2Int tileB);
 
         if (tile == tileA)
         {
+            if (slotBDefinition == item.ItemDefinition)
+            {
+                return false;
+            }
+
             return CanAcceptIntoSlot(item.ItemDefinition, ref slotADefinition, slotAAmount, item.Quantity);
         }
 
         if (tile == tileB)
         {
+            if (slotADefinition == item.ItemDefinition)
+            {
+                return false;
+            }
+
             return CanAcceptIntoSlot(item.ItemDefinition, ref slotBDefinition, slotBAmount, item.Quantity);
         }
 
@@ -163,7 +185,6 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         }
 
         RegisterFirstInputTint(item.ItemDefinition);
-
         Destroy(item.gameObject);
         return true;
     }
@@ -209,9 +230,9 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         return true;
     }
 
-    // ── Fusion logic ──────────────────────────────────────────────────────────
+    // ── Compounding logic ─────────────────────────────────────────────────────
 
-    private void TryFuse()
+    private void TryCompound()
     {
         if (hasItem)
         {
@@ -219,44 +240,183 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             return;
         }
 
-        if (recipeDatabase == null || slotADefinition == null || slotBDefinition == null)
+        if (slotADefinition == null || slotBDefinition == null)
         {
             return;
         }
 
-        FusionReactorRecipe recipe = recipeDatabase.FindRecipe(slotADefinition, slotBDefinition);
-        if (recipe == null || recipe.Output == null || recipe.OutputQuantity <= 0)
+        if (slotAAmount < 1 || slotBAmount < 1)
         {
             return;
         }
 
-        // Determine which slot maps to which recipe input
-        bool aIsInputA = slotADefinition == recipe.InputA;
-        int costForSlotA = aIsInputA ? recipe.CostA : recipe.CostB;
-        int costForSlotB = aIsInputA ? recipe.CostB : recipe.CostA;
+        BallTypeData ballA = FindBallType(slotADefinition);
+        BallTypeData ballB = FindBallType(slotBDefinition);
 
-        if (slotAAmount < costForSlotA || slotBAmount < costForSlotB)
+        if (ballA == null || ballB == null)
         {
             return;
         }
 
-        // Consume inputs with consolidated clearing logic
-        slotAAmount -= costForSlotA;
+        CachedCompoundOutput compoundOutput = ResolveOrCreateCompoundOutput(slotADefinition, slotBDefinition, ballA, ballB);
+        if (compoundOutput == null || compoundOutput.ItemDefinition == null)
+        {
+            return;
+        }
+
+        slotAAmount -= 1;
         if (slotAAmount <= 0)
         {
             slotADefinition = null;
         }
 
-        slotBAmount -= costForSlotB;
+        slotBAmount -= 1;
         if (slotBAmount <= 0)
         {
             slotBDefinition = null;
         }
 
-        pendingOutputDefinition = recipe.Output;
-        pendingOutputQuantity = recipe.OutputQuantity;
+        pendingOutputDefinition = compoundOutput.ItemDefinition;
+        pendingOutputQuantity = 1;
         hasItem = true;
+        lastCompoundBall = compoundOutput.BallType;
+
         TryReleasePendingOutput();
+
+        if (slotADefinition == null && slotBDefinition == null)
+        {
+            ResetInputTintState();
+        }
+    }
+
+    // ── IMachineResourceProgressProvider ─────────────────────────────────────
+
+    public int CurrentResourceAmount => slotAAmount + slotBAmount;
+    public int MaxResourceAmount => maxPerSlot * 2;
+    public float NormalizedResourceAmount => MaxResourceAmount > 0
+        ? Mathf.Clamp01((float)CurrentResourceAmount / MaxResourceAmount)
+        : 0f;
+    public Color ResourceTint => hasFirstInputTint ? firstInputTint : Color.white;
+
+    // ── IMachineProgressDisplayInfo ───────────────────────────────────────────
+
+    public bool HasProgressDisplay => HasPendingOrLaunchingOutput || slotAAmount > 0 || slotBAmount > 0;
+    public bool UseQuestionMarkSprite => !HasPendingOrLaunchingOutput;
+    public Sprite ProgressDisplaySprite => HasPendingOrLaunchingOutput
+        ? (pendingOutputDefinition != null ? pendingOutputDefinition.Icon : launchingItem != null ? launchingItem.ItemDefinition?.Icon : null)
+        : null;
+    public Color ProgressDisplayTint => HasPendingOrLaunchingOutput
+        ? (pendingOutputDefinition != null
+            ? pendingOutputDefinition.Tint
+            : launchingItem != null && launchingItem.ItemDefinition != null
+                ? launchingItem.ItemDefinition.Tint
+                : ResourceTint)
+        : ResourceTint;
+
+    // ── Ball mapping lookup ───────────────────────────────────────────────────
+
+    private BallTypeData FindBallType(ItemDefinition definition)
+    {
+        if (definition == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < itemMappings.Count; i++)
+        {
+            if (itemMappings[i].SourceItem == definition)
+            {
+                return itemMappings[i].SourceBallType;
+            }
+        }
+
+        return null;
+    }
+
+    private CachedCompoundOutput ResolveOrCreateCompoundOutput(
+        ItemDefinition sourceItemA,
+        ItemDefinition sourceItemB,
+        BallTypeData ballA,
+        BallTypeData ballB)
+    {
+        if (sourceItemA == null || sourceItemB == null || ballA == null || ballB == null)
+        {
+            return null;
+        }
+
+        BuildCanonicalPair(
+            sourceItemA,
+            sourceItemB,
+            ballA,
+            ballB,
+            out ItemDefinition firstItem,
+            out ItemDefinition secondItem,
+            out BallTypeData firstBall,
+            out BallTypeData secondBall);
+
+        string key = BuildCompoundKey(firstItem, secondItem);
+        if (CachedOutputsByKey.TryGetValue(key, out CachedCompoundOutput cachedOutput) &&
+            cachedOutput != null &&
+            cachedOutput.ItemDefinition != null &&
+            cachedOutput.BallType != null)
+        {
+            return cachedOutput;
+        }
+
+        BallTypeData compoundBall = ScriptableObject.CreateInstance<BallTypeData>();
+        compoundBall.InitializeAsCompound(firstBall, secondBall);
+        compoundBall.name = compoundBall.DisplayName;
+
+        ItemDefinition compoundItem = ScriptableObject.CreateInstance<ItemDefinition>();
+        compoundItem.InitializeAsRuntimeCompound(
+            compoundBall,
+            $"item.compound.{key}",
+            firstItem.BaseValue + secondItem.BaseValue);
+
+        CachedCompoundOutput newOutput = new CachedCompoundOutput
+        {
+            Key = key,
+            BallType = compoundBall,
+            ItemDefinition = compoundItem
+        };
+
+        CachedOutputsByKey[key] = newOutput;
+        return newOutput;
+    }
+
+    private static string BuildCompoundKey(ItemDefinition firstItem, ItemDefinition secondItem)
+    {
+        string firstId = string.IsNullOrWhiteSpace(firstItem.ItemId) ? firstItem.name : firstItem.ItemId;
+        string secondId = string.IsNullOrWhiteSpace(secondItem.ItemId) ? secondItem.name : secondItem.ItemId;
+        return $"{firstId}__{secondId}".ToLowerInvariant().Replace(" ", ".");
+    }
+
+    private static void BuildCanonicalPair(
+        ItemDefinition itemA,
+        ItemDefinition itemB,
+        BallTypeData ballA,
+        BallTypeData ballB,
+        out ItemDefinition firstItem,
+        out ItemDefinition secondItem,
+        out BallTypeData firstBall,
+        out BallTypeData secondBall)
+    {
+        string keyA = string.IsNullOrWhiteSpace(itemA.ItemId) ? itemA.name : itemA.ItemId;
+        string keyB = string.IsNullOrWhiteSpace(itemB.ItemId) ? itemB.name : itemB.ItemId;
+
+        if (string.CompareOrdinal(keyA, keyB) <= 0)
+        {
+            firstItem = itemA;
+            secondItem = itemB;
+            firstBall = ballA;
+            secondBall = ballB;
+            return;
+        }
+
+        firstItem = itemB;
+        secondItem = itemA;
+        firstBall = ballB;
+        secondBall = ballA;
     }
 
     private bool TryReleasePendingOutput()
@@ -308,11 +468,37 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         hasItem = false;
         pendingOutputDefinition = null;
         pendingOutputQuantity = 0;
-        ResetInputTintState();
         return true;
     }
 
-    // ── Output position ───────────────────────────────────────────────────────
+    public bool TryDropPendingItemToGround()
+    {
+        if (!hasItem || pendingOutputDefinition == null || pendingOutputQuantity <= 0 || itemEntityPrefab == null)
+        {
+            return false;
+        }
+
+        ResolveDependenciesIfNeeded();
+        if (buildingInstance == null || tileManager == null)
+        {
+            return false;
+        }
+
+        if (!TryGetOutputGridPosition(out Vector2Int outputTile) ||
+            !TryGetLaunchStartTile(outputTile, out Vector2Int launchStartTile))
+        {
+            return false;
+        }
+
+        Vector3 dropWorldPosition = tileManager.GridToWorld(launchStartTile) + itemSpawnOffset;
+        ItemEntity droppedItem = Instantiate(itemEntityPrefab, dropWorldPosition, Quaternion.identity, spawnedItemParent);
+        droppedItem.Initialize(pendingOutputDefinition, pendingOutputQuantity);
+
+        hasItem = false;
+        pendingOutputDefinition = null;
+        pendingOutputQuantity = 0;
+        return true;
+    }
 
     private bool TryGetOutputGridPosition(out Vector2Int outputGridPosition)
     {
@@ -339,7 +525,6 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
 
     private Vector2Int BuildOutputGridPosition(Vector2Int topLeft, Vector2Int footprintSize, int rotationQuarterTurns)
     {
-        // The output is on the opposite side from the inputs.
         Vector2Int baseInputDirection = GetBaseDirection(inputSide);
         Vector2Int baseOutputDirection = -baseInputDirection;
         Vector2Int worldOutputDirection = FactoryGridDirectionUtility.RotateDirection(baseOutputDirection, rotationQuarterTurns);
@@ -348,9 +533,61 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         return topLeft + outputOffset;
     }
 
+    private bool BeginLaunch(ItemEntity item, Vector3 startWorldPosition, Vector3 targetWorldPosition)
+    {
+        if (!TryGetOutputGridPosition(out Vector2Int outputTile))
+        {
+            Destroy(item.gameObject);
+            return false;
+        }
+
+        if (!item.TryReserveDestination(this, outputTile))
+        {
+            Destroy(item.gameObject);
+            return false;
+        }
+
+        launchingItem = item;
+        launchStartWorldPosition = startWorldPosition;
+        launchTargetWorldPosition = tileManager.GridToWorld(outputTile) + itemSpawnOffset;
+        launchMoveTimer = 0f;
+        return true;
+    }
+
+    private void TickLaunchMovement()
+    {
+        if (launchingItem == null)
+        {
+            return;
+        }
+
+        launchMoveTimer += Time.deltaTime;
+        float t = Mathf.Clamp01(launchMoveTimer / outputTravelDurationSeconds);
+        launchingItem.transform.position = Vector3.Lerp(launchStartWorldPosition, launchTargetWorldPosition, t);
+
+        if (t < 1f)
+        {
+            return;
+        }
+
+        launchingItem.transform.position = launchTargetWorldPosition;
+        launchingItem.ClearReservedDestination(this);
+        launchingItem.ReleaseClaim(this);
+        launchingItem = null;
+        launchMoveTimer = 0f;
+    }
+
+    private bool TryGetLaunchStartTile(Vector2Int outputTile, out Vector2Int launchStartTile)
+    {
+        Vector2Int outputDirection = FactoryGridDirectionUtility.RotateDirection(
+            -GetBaseDirection(inputSide),
+            buildingInstance != null ? buildingInstance.RotationQuarterTurns : 0);
+        launchStartTile = outputTile - outputDirection;
+        return tileManager != null && tileManager.IsInBounds(launchStartTile);
+    }
+
     // ── Input tile helpers ────────────────────────────────────────────────────
 
-    // Returns the two input grid positions using the building's live state.
     private void GetInputTilesWorld(out Vector2Int tileA, out Vector2Int tileB)
     {
         ResolveDependenciesIfNeeded();
@@ -360,8 +597,6 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         BuildBothInputTiles(topLeft, footprintSize, rotation, out tileA, out tileB);
     }
 
-    // Calculates both input tile positions given a top-left, footprint size, and rotation.
-    // Slot A = "top" position on the input side; Slot B = "bottom" position.
     private void BuildBothInputTiles(
         Vector2Int topLeftGridPosition,
         Vector2Int footprintSize,
@@ -372,7 +607,6 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         Vector2Int baseInputDirection = GetBaseDirection(inputSide);
         Vector2Int worldInputDirection = FactoryGridDirectionUtility.RotateDirection(baseInputDirection, rotationQuarterTurns);
 
-        // "Top" and "bottom" offsets along the input edge (both on the inner edge of the footprint)
         Vector2Int offsetA = GetInputEdgeTileOffset(worldInputDirection, footprintSize, topSlot: true);
         Vector2Int offsetB = GetInputEdgeTileOffset(worldInputDirection, footprintSize, topSlot: false);
 
@@ -380,12 +614,8 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         tileB = topLeftGridPosition + offsetB;
     }
 
-    // Returns an offset (relative to top-left) pointing to either the "top" or "bottom" tile
-    // on the input edge of the building's footprint.
-    // For a left-side input on a 2×3 footprint, top slot = (0,2) and bottom slot = (0,0).
     private static Vector2Int GetInputEdgeTileOffset(Vector2Int direction, Vector2Int footprintSize, bool topSlot)
     {
-        // The input edge interior tiles lie at x=0 (left) or x=w-1 (right) or y=0 (down) or y=h-1 (up).
         if (direction == Vector2Int.left)
         {
             return topSlot
@@ -444,51 +674,33 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         slotAmount += amount;
     }
 
-    // ── Launch helpers ────────────────────────────────────────────────────────
+    // ── Tint helpers ──────────────────────────────────────────────────────────
 
-    private bool BeginLaunch(ItemEntity item, Vector3 startWorldPosition, Vector3 targetWorldPosition)
+    private void RegisterFirstInputTint(ItemDefinition inputDefinition)
     {
-        if (!TryGetOutputGridPosition(out Vector2Int outputTile))
-        {
-            Destroy(item.gameObject);
-            return false;
-        }
-
-        if (!item.TryReserveDestination(this, outputTile))
-        {
-            Destroy(item.gameObject);
-            return false;
-        }
-
-        launchingItem = item;
-        launchStartWorldPosition = startWorldPosition;
-        launchTargetWorldPosition = tileManager.GridToWorld(outputTile) + itemSpawnOffset;
-        launchMoveTimer = 0f;
-        return true;
-    }
-
-    private void TickLaunchMovement()
-    {
-        if (launchingItem == null)
+        if (hasFirstInputTint || inputDefinition == null)
         {
             return;
         }
 
-        launchMoveTimer += Time.deltaTime;
-        float t = Mathf.Clamp01(launchMoveTimer / outputTravelDurationSeconds);
-        launchingItem.transform.position = Vector3.Lerp(launchStartWorldPosition, launchTargetWorldPosition, t);
-
-        if (t < 1f)
-        {
-            return;
-        }
-
-        launchingItem.transform.position = launchTargetWorldPosition;
-        launchingItem.ClearReservedDestination(this);
-        launchingItem.ReleaseClaim(this);
-        launchingItem = null;
-        launchMoveTimer = 0f;
+        firstInputTint = inputDefinition.Tint;
+        hasFirstInputTint = true;
     }
+
+    private void ResetInputTintState()
+    {
+        firstInputTint = Color.white;
+        hasFirstInputTint = false;
+    }
+
+    // ── Direction helpers ─────────────────────────────────────────────────────
+
+    private static Vector2Int GetBaseDirection(InputSide side)
+    {
+        return FactoryGridDirectionUtility.DirectionFromQuarterTurns((int)side);
+    }
+
+    private bool HasPendingOrLaunchingOutput => hasItem || launchingItem != null;
 
     // ── Dependency resolution ─────────────────────────────────────────────────
 
@@ -527,148 +739,5 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
 
         GameObject newParent = new GameObject(parentName);
         spawnedItemParent = newParent.transform;
-    }
-
-    public bool TryDropPendingItemToGround()
-    {
-        if (!hasItem || pendingOutputDefinition == null || pendingOutputQuantity <= 0 || itemEntityPrefab == null)
-        {
-            return false;
-        }
-
-        ResolveDependenciesIfNeeded();
-        if (buildingInstance == null || tileManager == null)
-        {
-            return false;
-        }
-
-        if (!TryGetOutputGridPosition(out Vector2Int outputTile) ||
-            !TryGetLaunchStartTile(outputTile, out Vector2Int launchStartTile))
-        {
-            return false;
-        }
-
-        Vector3 dropWorldPosition = tileManager.GridToWorld(launchStartTile) + itemSpawnOffset;
-        ItemEntity droppedItem = Instantiate(itemEntityPrefab, dropWorldPosition, Quaternion.identity, spawnedItemParent);
-        droppedItem.Initialize(pendingOutputDefinition, pendingOutputQuantity);
-
-        hasItem = false;
-        pendingOutputDefinition = null;
-        pendingOutputQuantity = 0;
-        ResetInputTintState();
-        return true;
-    }
-
-    private bool TryGetLaunchStartTile(Vector2Int outputTile, out Vector2Int launchStartTile)
-    {
-        Vector2Int outputDirection = FactoryGridDirectionUtility.RotateDirection(
-            -GetBaseDirection(inputSide),
-            buildingInstance != null ? buildingInstance.RotationQuarterTurns : 0);
-        launchStartTile = outputTile - outputDirection;
-        return tileManager != null && tileManager.IsInBounds(launchStartTile);
-    }
-
-    private void RegisterFirstInputTint(ItemDefinition inputDefinition)
-    {
-        if (hasFirstInputTint || inputDefinition == null)
-        {
-            return;
-        }
-
-        firstInputTint = inputDefinition.Tint;
-        hasFirstInputTint = true;
-    }
-
-    private void ResetInputTintState()
-    {
-        firstInputTint = Color.white;
-        hasFirstInputTint = false;
-    }
-
-    // ── Direction helpers ─────────────────────────────────────────────────────
-
-    private static Vector2Int GetBaseDirection(InputSide side)
-    {
-        return FactoryGridDirectionUtility.DirectionFromQuarterTurns((int)side);
-    }
-
-    public int CurrentResourceAmount => slotAAmount + slotBAmount;
-    public int MaxResourceAmount => maxPerSlot * 2;
-    public float NormalizedResourceAmount => MaxResourceAmount > 0
-        ? Mathf.Clamp01((float)CurrentResourceAmount / MaxResourceAmount)
-        : 0f;
-    public Color ResourceTint => hasFirstInputTint ? firstInputTint : Color.white;
-
-    private bool HasPendingOrLaunchingOutput => hasItem || launchingItem != null;
-
-    public bool HasProgressDisplay => HasPendingOrLaunchingOutput || slotAAmount > 0 || slotBAmount > 0;
-    public bool UseQuestionMarkSprite => !HasPendingOrLaunchingOutput;
-    public Sprite ProgressDisplaySprite => HasPendingOrLaunchingOutput
-        ? (pendingOutputDefinition != null ? pendingOutputDefinition.Icon : launchingItem != null ? launchingItem.ItemDefinition?.Icon : null)
-        : null;
-    public Color ProgressDisplayTint => HasPendingOrLaunchingOutput
-        ? (pendingOutputDefinition != null
-            ? pendingOutputDefinition.Tint
-            : launchingItem != null && launchingItem.ItemDefinition != null
-                ? launchingItem.ItemDefinition.Tint
-                : ResourceTint)
-        : ResourceTint;
-
-    public MoveState CaptureMoveState()
-    {
-        // Consolidate an in-flight launched item back into pending output before relocation.
-        if (launchingItem != null)
-        {
-            pendingOutputDefinition = launchingItem.ItemDefinition;
-            pendingOutputQuantity = Mathf.Max(1, launchingItem.Quantity);
-            hasItem = pendingOutputDefinition != null && pendingOutputQuantity > 0;
-
-            launchingItem.ClearReservedDestination(this);
-            launchingItem.ReleaseClaim(this);
-            Destroy(launchingItem.gameObject);
-            launchingItem = null;
-            launchMoveTimer = 0f;
-        }
-
-        return new MoveState
-        {
-            SlotADefinition = slotADefinition,
-            SlotBDefinition = slotBDefinition,
-            SlotAAmount = slotAAmount,
-            SlotBAmount = slotBAmount,
-            HasItem = hasItem,
-            PendingOutputDefinition = pendingOutputDefinition,
-            PendingOutputQuantity = pendingOutputQuantity,
-            FirstInputTint = firstInputTint,
-            HasFirstInputTint = hasFirstInputTint
-        };
-    }
-
-    public void ApplyMoveState(MoveState state)
-    {
-        if (state == null)
-        {
-            return;
-        }
-
-        slotADefinition = state.SlotADefinition;
-        slotBDefinition = state.SlotBDefinition;
-        slotAAmount = Mathf.Max(0, state.SlotAAmount);
-        slotBAmount = Mathf.Max(0, state.SlotBAmount);
-        hasItem = state.HasItem;
-        pendingOutputDefinition = state.PendingOutputDefinition;
-        pendingOutputQuantity = Mathf.Max(0, state.PendingOutputQuantity);
-        firstInputTint = state.FirstInputTint;
-        hasFirstInputTint = state.HasFirstInputTint;
-
-        if (launchingItem != null)
-        {
-            launchingItem.ClearReservedDestination(this);
-            launchingItem.ReleaseClaim(this);
-            Destroy(launchingItem.gameObject);
-            launchingItem = null;
-        }
-
-        launchMoveTimer = 0f;
     }
 }

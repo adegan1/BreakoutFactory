@@ -548,6 +548,11 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
             return null;
         }
 
+        if (itemDefinition.RuntimeBallType != null)
+        {
+            return itemDefinition.RuntimeBallType;
+        }
+
         for (int i = 0; i < ballGenerations.Count; i++)
         {
             BallPreviewBallTypeEntry entry = ballGenerations[i];

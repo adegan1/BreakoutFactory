@@ -7,6 +7,7 @@ TagManager:
   - BottomBoundary
   - Paddle
   - Ball
+  - AntiStretchUI
   layers:
   - Default
   - TransparentFX

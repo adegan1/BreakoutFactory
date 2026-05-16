@@ -6920,6 +6920,9 @@ MonoBehaviour:
   disabledWhileMovingEventTriggers:
   - {fileID: 633063394}
   - {fileID: 1269278574}
+  enableTaggedUiAntiStretch: 1
+  antiStretchUiTag: AntiStretchUI
+  antiStretchUiRescanIntervalSeconds: 0.5
   selectionBoxFillColor: {r: 1, g: 0.7972814, b: 0.19999999, a: 0.18}
   selectionBoxBorderColor: {r: 1, g: 0.6716937, b: 0.19999999, a: 0.9}
   selectedBuildingHighlightTint: {r: 0.7735536, g: 1, b: 0.21226418, a: 1}
@@ -6969,6 +6972,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fa46ecb9e6ac6c24d8d11ce263dcb1a5, type: 2}
   - {fileID: 11400000, guid: ef800fcd4d6ec5740bd5b340b8e28091, type: 2}
   - {fileID: 11400000, guid: 0a925421f591623439df52242c47b281, type: 2}
+  - {fileID: 11400000, guid: 1427acf08a3412a408a64d6967785b77, type: 2}
 --- !u!1 &1057299286
 GameObject:
   m_ObjectHideFlags: 0
@@ -13541,6 +13545,8 @@ MonoBehaviour:
   - buildingDefinition: {fileID: 11400000, guid: ef800fcd4d6ec5740bd5b340b8e28091, type: 2}
     quantity: 3
   - buildingDefinition: {fileID: 11400000, guid: 0a925421f591623439df52242c47b281, type: 2}
+    quantity: 3
+  - buildingDefinition: {fileID: 11400000, guid: 1427acf08a3412a408a64d6967785b77, type: 2}
     quantity: 3
   buildingInventory: []
   buildingHotbarSlots: []
