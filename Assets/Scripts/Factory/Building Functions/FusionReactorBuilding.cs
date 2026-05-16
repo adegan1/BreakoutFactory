@@ -124,14 +124,28 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         }
 
         GetInputTilesWorld(out Vector2Int tileA, out Vector2Int tileB);
+        ItemDefinition reservedForTileA = GetReservedIncomingDefinitionForTile(tileA, item);
+        ItemDefinition reservedForTileB = GetReservedIncomingDefinitionForTile(tileB, item);
 
         if (tile == tileA)
         {
+            ItemDefinition otherDefinition = slotBDefinition ?? reservedForTileB;
+            if (!CanParticipateInRecipe(item.ItemDefinition, otherDefinition))
+            {
+                return false;
+            }
+
             return CanAcceptIntoSlot(item.ItemDefinition, ref slotADefinition, slotAAmount, item.Quantity);
         }
 
         if (tile == tileB)
         {
+            ItemDefinition otherDefinition = slotADefinition ?? reservedForTileA;
+            if (!CanParticipateInRecipe(item.ItemDefinition, otherDefinition))
+            {
+                return false;
+            }
+
             return CanAcceptIntoSlot(item.ItemDefinition, ref slotBDefinition, slotBAmount, item.Quantity);
         }
 
@@ -140,7 +154,12 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
 
     public bool TryAcceptItem(ItemEntity item, Vector2Int tile)
     {
-        if (!CanAcceptItemAtTile(tile, item))
+        if (hasItem || item == null || item.ItemDefinition == null)
+        {
+            return false;
+        }
+
+        if (item.ItemDefinition.IsCompound)
         {
             return false;
         }
@@ -148,17 +167,46 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         GetInputTilesWorld(out Vector2Int tileA, out Vector2Int tileB);
 
         int amount = Mathf.Max(1, item.Quantity);
+        bool acceptedIntoA = false;
 
         if (tile == tileA)
         {
+            if (!CanParticipateInRecipe(item.ItemDefinition, slotBDefinition) ||
+                !CanAcceptIntoSlot(item.ItemDefinition, ref slotADefinition, slotAAmount, amount))
+            {
+                return false;
+            }
+
             AcceptIntoSlot(item.ItemDefinition, amount, ref slotADefinition, ref slotAAmount);
+            acceptedIntoA = true;
         }
         else if (tile == tileB)
         {
+            if (!CanParticipateInRecipe(item.ItemDefinition, slotADefinition) ||
+                !CanAcceptIntoSlot(item.ItemDefinition, ref slotBDefinition, slotBAmount, amount))
+            {
+                return false;
+            }
+
             AcceptIntoSlot(item.ItemDefinition, amount, ref slotBDefinition, ref slotBAmount);
         }
         else
         {
+            return false;
+        }
+
+        // Defensive rollback: keep pair-valid state even when multiple insertions resolve in one tick.
+        if (!IsCurrentPairRecipeValid())
+        {
+            if (acceptedIntoA)
+            {
+                RemoveFromSlot(item.ItemDefinition, amount, ref slotADefinition, ref slotAAmount);
+            }
+            else
+            {
+                RemoveFromSlot(item.ItemDefinition, amount, ref slotBDefinition, ref slotBAmount);
+            }
+
             return false;
         }
 
@@ -442,6 +490,100 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
     {
         slotDefinition = incoming;
         slotAmount += amount;
+    }
+
+    private static void RemoveFromSlot(
+        ItemDefinition definition,
+        int amount,
+        ref ItemDefinition slotDefinition,
+        ref int slotAmount)
+    {
+        if (definition == null || slotDefinition != definition || amount <= 0)
+        {
+            return;
+        }
+
+        slotAmount = Mathf.Max(0, slotAmount - amount);
+        if (slotAmount <= 0)
+        {
+            slotDefinition = null;
+        }
+    }
+
+    private bool IsCurrentPairRecipeValid()
+    {
+        if (slotADefinition == null || slotBDefinition == null)
+        {
+            return true;
+        }
+
+        if (recipeDatabase == null)
+        {
+            return false;
+        }
+
+        FusionReactorRecipe recipe = recipeDatabase.FindRecipe(slotADefinition, slotBDefinition);
+        return recipe != null && recipe.Output != null && recipe.OutputQuantity > 0;
+    }
+
+    private ItemDefinition GetReservedIncomingDefinitionForTile(Vector2Int tile, ItemEntity ignoredItem)
+    {
+        ItemEntity[] items = ItemEntitySceneQuery.GetItems();
+        for (int i = 0; i < items.Length; i++)
+        {
+            ItemEntity candidate = items[i];
+            if (candidate == null || candidate == ignoredItem || candidate.ItemDefinition == null)
+            {
+                continue;
+            }
+
+            if (candidate.TryGetReservedDestination(out Vector2Int reservedTile) && reservedTile == tile)
+            {
+                return candidate.ItemDefinition;
+            }
+        }
+
+        return null;
+    }
+
+    private bool CanParticipateInRecipe(ItemDefinition incomingDefinition, ItemDefinition otherSlotDefinition)
+    {
+        if (incomingDefinition == null || recipeDatabase == null)
+        {
+            return false;
+        }
+
+        IReadOnlyList<FusionReactorRecipe> recipes = recipeDatabase.Recipes;
+        if (recipes == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < recipes.Count; i++)
+        {
+            FusionReactorRecipe recipe = recipes[i];
+            if (recipe == null || recipe.Output == null || recipe.OutputQuantity <= 0)
+            {
+                continue;
+            }
+
+            if (otherSlotDefinition == null)
+            {
+                if (recipe.InputA == incomingDefinition || recipe.InputB == incomingDefinition)
+                {
+                    return true;
+                }
+
+                continue;
+            }
+
+            if (recipe.Matches(incomingDefinition, otherSlotDefinition))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // ── Launch helpers ────────────────────────────────────────────────────────

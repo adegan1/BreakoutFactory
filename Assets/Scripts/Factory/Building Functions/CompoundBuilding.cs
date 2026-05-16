@@ -136,10 +136,13 @@ public class CompoundBuilding : MonoBehaviour,
         }
 
         GetInputTilesWorld(out Vector2Int tileA, out Vector2Int tileB);
+        ItemDefinition reservedForTileA = GetReservedIncomingDefinitionForTile(tileA, item);
+        ItemDefinition reservedForTileB = GetReservedIncomingDefinitionForTile(tileB, item);
 
         if (tile == tileA)
         {
-            if (slotBDefinition == item.ItemDefinition)
+            ItemDefinition otherDefinition = slotBDefinition ?? reservedForTileB;
+            if (otherDefinition == item.ItemDefinition)
             {
                 return false;
             }
@@ -149,7 +152,8 @@ public class CompoundBuilding : MonoBehaviour,
 
         if (tile == tileB)
         {
-            if (slotADefinition == item.ItemDefinition)
+            ItemDefinition otherDefinition = slotADefinition ?? reservedForTileA;
+            if (otherDefinition == item.ItemDefinition)
             {
                 return false;
             }
@@ -162,7 +166,17 @@ public class CompoundBuilding : MonoBehaviour,
 
     public bool TryAcceptItem(ItemEntity item, Vector2Int tile)
     {
-        if (!CanAcceptItemAtTile(tile, item))
+        if (hasItem || item == null || item.ItemDefinition == null)
+        {
+            return false;
+        }
+
+        if (item.ItemDefinition.IsCompound)
+        {
+            return false;
+        }
+
+        if (FindBallType(item.ItemDefinition) == null)
         {
             return false;
         }
@@ -170,17 +184,46 @@ public class CompoundBuilding : MonoBehaviour,
         GetInputTilesWorld(out Vector2Int tileA, out Vector2Int tileB);
 
         int amount = Mathf.Max(1, item.Quantity);
+        bool acceptedIntoA = false;
 
         if (tile == tileA)
         {
+            if (slotBDefinition == item.ItemDefinition ||
+                !CanAcceptIntoSlot(item.ItemDefinition, ref slotADefinition, slotAAmount, amount))
+            {
+                return false;
+            }
+
             AcceptIntoSlot(item.ItemDefinition, amount, ref slotADefinition, ref slotAAmount);
+            acceptedIntoA = true;
         }
         else if (tile == tileB)
         {
+            if (slotADefinition == item.ItemDefinition ||
+                !CanAcceptIntoSlot(item.ItemDefinition, ref slotBDefinition, slotBAmount, amount))
+            {
+                return false;
+            }
+
             AcceptIntoSlot(item.ItemDefinition, amount, ref slotBDefinition, ref slotBAmount);
         }
         else
         {
+            return false;
+        }
+
+        // Defensive rollback: avoid illegal duplicate pairs under same-tick multi-item insertion.
+        if (slotADefinition != null && slotADefinition == slotBDefinition)
+        {
+            if (acceptedIntoA)
+            {
+                RemoveFromSlot(item.ItemDefinition, amount, ref slotADefinition, ref slotAAmount);
+            }
+            else
+            {
+                RemoveFromSlot(item.ItemDefinition, amount, ref slotBDefinition, ref slotBAmount);
+            }
+
             return false;
         }
 
@@ -672,6 +715,44 @@ public class CompoundBuilding : MonoBehaviour,
     {
         slotDefinition = incoming;
         slotAmount += amount;
+    }
+
+    private static void RemoveFromSlot(
+        ItemDefinition definition,
+        int amount,
+        ref ItemDefinition slotDefinition,
+        ref int slotAmount)
+    {
+        if (definition == null || slotDefinition != definition || amount <= 0)
+        {
+            return;
+        }
+
+        slotAmount = Mathf.Max(0, slotAmount - amount);
+        if (slotAmount <= 0)
+        {
+            slotDefinition = null;
+        }
+    }
+
+    private ItemDefinition GetReservedIncomingDefinitionForTile(Vector2Int tile, ItemEntity ignoredItem)
+    {
+        ItemEntity[] items = ItemEntitySceneQuery.GetItems();
+        for (int i = 0; i < items.Length; i++)
+        {
+            ItemEntity candidate = items[i];
+            if (candidate == null || candidate == ignoredItem || candidate.ItemDefinition == null)
+            {
+                continue;
+            }
+
+            if (candidate.TryGetReservedDestination(out Vector2Int reservedTile) && reservedTile == tile)
+            {
+                return candidate.ItemDefinition;
+            }
+        }
+
+        return null;
     }
 
     // ── Tint helpers ──────────────────────────────────────────────────────────
