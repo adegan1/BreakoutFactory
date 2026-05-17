@@ -21,7 +21,7 @@ MonoBehaviour:
   displayColor: {r: 1, g: 1, b: 1, a: 1}
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   size: 1
-  movementSpeed: 8
+  movementSpeed: 7
   damage: 1
   bounces: -1
   passThroughBricks: 0
@@ -34,17 +34,61 @@ MonoBehaviour:
   lightningBurstTargetCount: 2
   lightningBurstDamage: 1
   lightningBurstRadius: 2
+  createsLightningSnake: 0
+  lightningSnakeBounceCount: 4
+  lightningSnakeDamage: 1
+  lightningSnakeRadius: 2
+  lightningSnakeWaterSplitCount: 2
+  lightningSnakeBounceDelay: 0.06
   earthCrack: 0
   shatterDamage: 2
   shatterRadius: 1.4
   appliesRoot: 0
   rootDuration: 2
   rootSpeedMultiplier: 0.6
+  createsCombustion: 1
+  combustionBurnDamage: 1
+  combustionBurnTickInterval: 0.7
+  combustionBurnHitCount: 10
+  combustionExplosionDamage: 2
+  combustionExplosionRadius: 1.4
+  createsFireSpread: 0
+  fireSpreadRadius: 1.75
+  fireSpreadCooldown: 0.35
+  fireSpreadBonusBurnDamage: 1
+  fireSpreadBurnSpeedMultiplier: 1.25
+  fireSpreadBurnHitCountBonus: 1
+  createsForestFire: 0
+  forestFireBurnDamage: 1
+  forestFireBurnTickInterval: 0.5
+  forestFireBurnHitCount: 3
+  forestFireSpreadGenerations: 2
   createsWaterDrops: 0
   waterDropletType: {fileID: 0}
   waterDropCooldown: 0.08
+  createsFlameTrail: 0
+  flameTrailSprite: {fileID: 0}
+  flameTrailColor: {r: 1, g: 0.45, b: 0.1, a: 0.95}
+  flameTrailSizeMultiplier: 0.55
+  flameTrailSpawnInterval: 0.2
+  flameTrailRiseSpeed: 2.5
+  flameTrailLifetime: 2.25
+  flameTrailImpactDamage: 1
+  flameTrailBurnDamage: 1
+  flameTrailBurnTickInterval: 0.5
+  flameTrailBurnHitCount: 2
+  timedEffectInitialDelay: 0.15
+  createsSteamBurst: 0
+  steamBurstBallType: {fileID: 0}
+  steamBurstBallCount: 8
+  steamBurstMinInterval: 3
+  steamBurstMaxInterval: 6
+  steamBurstSpawnRadius: 0.18
+  steamBurstSpeedMultiplier: 1.35
+  steamBurstSpeedLerpDuration: 1.5
   impactBurst: 0
   impactBurstDamage: 1
   impactBurstRadius: 1.6
+  isCompound: 0
   elements: 00000000
   strongAgainst: 

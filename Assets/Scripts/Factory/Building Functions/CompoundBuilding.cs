@@ -147,7 +147,7 @@ public class CompoundBuilding : MonoBehaviour,
                 return false;
             }
 
-            return CanAcceptIntoSlot(item.ItemDefinition, ref slotADefinition, slotAAmount, item.Quantity);
+            return FactoryMachineUtility.CanAcceptIntoSlot(item.ItemDefinition, slotADefinition, slotAAmount, item.Quantity, maxPerSlot);
         }
 
         if (tile == tileB)
@@ -158,7 +158,7 @@ public class CompoundBuilding : MonoBehaviour,
                 return false;
             }
 
-            return CanAcceptIntoSlot(item.ItemDefinition, ref slotBDefinition, slotBAmount, item.Quantity);
+            return FactoryMachineUtility.CanAcceptIntoSlot(item.ItemDefinition, slotBDefinition, slotBAmount, item.Quantity, maxPerSlot);
         }
 
         return false;
@@ -189,23 +189,23 @@ public class CompoundBuilding : MonoBehaviour,
         if (tile == tileA)
         {
             if (slotBDefinition == item.ItemDefinition ||
-                !CanAcceptIntoSlot(item.ItemDefinition, ref slotADefinition, slotAAmount, amount))
+                !FactoryMachineUtility.CanAcceptIntoSlot(item.ItemDefinition, slotADefinition, slotAAmount, amount, maxPerSlot))
             {
                 return false;
             }
 
-            AcceptIntoSlot(item.ItemDefinition, amount, ref slotADefinition, ref slotAAmount);
+            FactoryMachineUtility.AcceptIntoSlot(item.ItemDefinition, amount, ref slotADefinition, ref slotAAmount);
             acceptedIntoA = true;
         }
         else if (tile == tileB)
         {
             if (slotADefinition == item.ItemDefinition ||
-                !CanAcceptIntoSlot(item.ItemDefinition, ref slotBDefinition, slotBAmount, amount))
+                !FactoryMachineUtility.CanAcceptIntoSlot(item.ItemDefinition, slotBDefinition, slotBAmount, amount, maxPerSlot))
             {
                 return false;
             }
 
-            AcceptIntoSlot(item.ItemDefinition, amount, ref slotBDefinition, ref slotBAmount);
+            FactoryMachineUtility.AcceptIntoSlot(item.ItemDefinition, amount, ref slotBDefinition, ref slotBAmount);
         }
         else
         {
@@ -215,14 +215,14 @@ public class CompoundBuilding : MonoBehaviour,
         // Defensive rollback: avoid illegal duplicate pairs under same-tick multi-item insertion.
         if (slotADefinition != null && slotADefinition == slotBDefinition)
         {
-            if (acceptedIntoA)
-            {
-                RemoveFromSlot(item.ItemDefinition, amount, ref slotADefinition, ref slotAAmount);
-            }
-            else
-            {
-                RemoveFromSlot(item.ItemDefinition, amount, ref slotBDefinition, ref slotBAmount);
-            }
+            FactoryMachineUtility.RollbackAcceptedInput(
+                item.ItemDefinition,
+                amount,
+                acceptedIntoA,
+                ref slotADefinition,
+                ref slotAAmount,
+                ref slotBDefinition,
+                ref slotBAmount);
 
             return false;
         }
@@ -508,9 +508,7 @@ public class CompoundBuilding : MonoBehaviour,
             return false;
         }
 
-        hasItem = false;
-        pendingOutputDefinition = null;
-        pendingOutputQuantity = 0;
+        FactoryMachineUtility.ClearPendingOutput(ref hasItem, ref pendingOutputDefinition, ref pendingOutputQuantity);
         return true;
     }
 
@@ -537,9 +535,7 @@ public class CompoundBuilding : MonoBehaviour,
         ItemEntity droppedItem = Instantiate(itemEntityPrefab, dropWorldPosition, Quaternion.identity, spawnedItemParent);
         droppedItem.Initialize(pendingOutputDefinition, pendingOutputQuantity);
 
-        hasItem = false;
-        pendingOutputDefinition = null;
-        pendingOutputQuantity = 0;
+        FactoryMachineUtility.ClearPendingOutput(ref hasItem, ref pendingOutputDefinition, ref pendingOutputQuantity);
         return true;
     }
 
@@ -687,53 +683,6 @@ public class CompoundBuilding : MonoBehaviour,
     }
 
     // ── Slot helpers ──────────────────────────────────────────────────────────
-
-    private bool CanAcceptIntoSlot(
-        ItemDefinition incoming,
-        ref ItemDefinition slotDefinition,
-        int currentAmount,
-        int incomingAmount)
-    {
-        if (incoming == null || incomingAmount <= 0)
-        {
-            return false;
-        }
-
-        if (slotDefinition != null && slotDefinition != incoming)
-        {
-            return false;
-        }
-
-        return currentAmount + incomingAmount <= maxPerSlot;
-    }
-
-    private static void AcceptIntoSlot(
-        ItemDefinition incoming,
-        int amount,
-        ref ItemDefinition slotDefinition,
-        ref int slotAmount)
-    {
-        slotDefinition = incoming;
-        slotAmount += amount;
-    }
-
-    private static void RemoveFromSlot(
-        ItemDefinition definition,
-        int amount,
-        ref ItemDefinition slotDefinition,
-        ref int slotAmount)
-    {
-        if (definition == null || slotDefinition != definition || amount <= 0)
-        {
-            return;
-        }
-
-        slotAmount = Mathf.Max(0, slotAmount - amount);
-        if (slotAmount <= 0)
-        {
-            slotDefinition = null;
-        }
-    }
 
     private ItemDefinition GetReservedIncomingDefinitionForTile(Vector2Int tile, ItemEntity ignoredItem)
     {

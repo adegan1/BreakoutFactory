@@ -131,13 +131,6 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
             return false;
         }
 
-        // Fusion/compound items can only be input from the designated input side
-        if ((item.ItemDefinition.IsFusion || item.ItemDefinition.IsCompound) && tile == inputTile)
-        {
-            // Item is coming from outside to the input tile; this is valid for fusion items
-            return IsResourceTypeAccepted(item.ItemDefinition) && HasCapacityFor(Mathf.Max(1, item.Quantity));
-        }
-
         int incomingAmount = Mathf.Max(1, item.Quantity);
         return tile == inputTile
             && IsResourceTypeAccepted(item.ItemDefinition)

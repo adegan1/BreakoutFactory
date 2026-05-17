@@ -46,12 +46,18 @@ MonoBehaviour:
   appliesRoot: 0
   rootDuration: 2
   rootSpeedMultiplier: 0.6
-  createsCombustion: 1
+  createsCombustion: 0
   combustionBurnDamage: 1
   combustionBurnTickInterval: 0.7
   combustionBurnHitCount: 10
   combustionExplosionDamage: 2
-  combustionExplosionRadius: 1.8
+  combustionExplosionRadius: 1.4
+  createsFireSpread: 1
+  fireSpreadRadius: 0.75
+  fireSpreadCooldown: 0.5
+  fireSpreadBonusBurnDamage: 1
+  fireSpreadBurnSpeedMultiplier: 1.25
+  fireSpreadBurnHitCountBonus: 2
   createsForestFire: 0
   forestFireBurnDamage: 1
   forestFireBurnTickInterval: 0.1

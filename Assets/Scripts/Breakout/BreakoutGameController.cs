@@ -170,23 +170,9 @@ public class BreakoutGameController : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (allBricksClearedRoutine != null)
-        {
-            StopCoroutine(allBricksClearedRoutine);
-            allBricksClearedRoutine = null;
-        }
-
-        if (brickSlowStopRoutine != null)
-        {
-            StopCoroutine(brickSlowStopRoutine);
-            brickSlowStopRoutine = null;
-        }
-
-        if (forceStopBallsRoutine != null)
-        {
-            StopCoroutine(forceStopBallsRoutine);
-            forceStopBallsRoutine = null;
-        }
+        StopAndClearCoroutine(ref allBricksClearedRoutine);
+        StopAndClearCoroutine(ref brickSlowStopRoutine);
+        StopAndClearCoroutine(ref forceStopBallsRoutine);
 
         foreach (BallController activeBall in activeBalls)
         {
@@ -405,10 +391,7 @@ public class BreakoutGameController : MonoBehaviour
 
         EnterLevelCompleteLock();
 
-        if (allBricksClearedRoutine != null)
-        {
-            StopCoroutine(allBricksClearedRoutine);
-        }
+        StopAndClearCoroutine(ref allBricksClearedRoutine);
 
         float delay = reason == LevelEndReason.LevelComplete ? Mathf.Max(0f, allBricksClearedDelaySeconds) : 0f;
         allBricksClearedRoutine = StartCoroutine(InvokeLevelEnded(reason, delay));
@@ -516,10 +499,7 @@ public class BreakoutGameController : MonoBehaviour
         StartBrickSlowStop();
 
         ForceStopAllBallsOnScreen();
-        if (forceStopBallsRoutine != null)
-        {
-            StopCoroutine(forceStopBallsRoutine);
-        }
+        StopAndClearCoroutine(ref forceStopBallsRoutine);
 
         forceStopBallsRoutine = StartCoroutine(ForceStopBallsForFrames(Mathf.Max(1, forcedBallStopFrames)));
     }
@@ -578,10 +558,7 @@ public class BreakoutGameController : MonoBehaviour
 
     private void StartBrickSlowStop()
     {
-        if (brickSlowStopRoutine != null)
-        {
-            StopCoroutine(brickSlowStopRoutine);
-        }
+        StopAndClearCoroutine(ref brickSlowStopRoutine);
 
         BrickController[] bricks = FindObjectsByType<BrickController>(FindObjectsSortMode.None);
         if (bricks.Length == 0)
@@ -858,5 +835,16 @@ public class BreakoutGameController : MonoBehaviour
     private void CleanupInactiveBalls()
     {
         activeBalls.RemoveWhere(b => b == null);
+    }
+
+    private void StopAndClearCoroutine(ref Coroutine routine)
+    {
+        if (routine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(routine);
+        routine = null;
     }
 }
