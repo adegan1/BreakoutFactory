@@ -21,7 +21,7 @@ MonoBehaviour:
   displayColor: {r: 1, g: 1, b: 1, a: 1}
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   size: 1
-  movementSpeed: 8
+  movementSpeed: 5
   damage: 1
   bounces: -1
   passThroughBricks: 0
@@ -34,17 +34,49 @@ MonoBehaviour:
   lightningBurstTargetCount: 2
   lightningBurstDamage: 1
   lightningBurstRadius: 2
+  createsLightningSnake: 0
+  lightningSnakeBounceCount: 4
+  lightningSnakeDamage: 1
+  lightningSnakeRadius: 2
+  lightningSnakeWaterSplitCount: 2
+  lightningSnakeBounceDelay: 0.06
   earthCrack: 0
   shatterDamage: 2
   shatterRadius: 1.4
   appliesRoot: 0
   rootDuration: 2
   rootSpeedMultiplier: 0.6
+  createsForestFire: 0
+  forestFireBurnDamage: 1
+  forestFireBurnTickInterval: 0.5
+  forestFireBurnHitCount: 3
+  forestFireSpreadGenerations: 2
   createsWaterDrops: 0
   waterDropletType: {fileID: 0}
   waterDropCooldown: 0.08
+  createsFlameTrail: 0
+  flameTrailSprite: {fileID: 0}
+  flameTrailColor: {r: 1, g: 0.45, b: 0.1, a: 0.95}
+  flameTrailSizeMultiplier: 0.55
+  flameTrailSpawnInterval: 0.2
+  flameTrailRiseSpeed: 2.5
+  flameTrailLifetime: 2.25
+  flameTrailImpactDamage: 1
+  flameTrailBurnDamage: 1
+  flameTrailBurnTickInterval: 0.5
+  flameTrailBurnHitCount: 2
+  timedEffectInitialDelay: 2
+  createsSteamBurst: 1
+  steamBurstBallType: {fileID: 11400000, guid: 8d7a7bd372b658f4ea5b09320d9018ec, type: 2}
+  steamBurstBallCount: 8
+  steamBurstMinInterval: 4
+  steamBurstMaxInterval: 8
+  steamBurstSpawnRadius: 0.18
+  steamBurstSpeedMultiplier: 1.35
+  steamBurstSpeedLerpDuration: 1.5
   impactBurst: 0
   impactBurstDamage: 1
   impactBurstRadius: 1.6
+  isCompound: 0
   elements: 00000000
   strongAgainst: 

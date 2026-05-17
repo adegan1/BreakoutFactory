@@ -662,6 +662,19 @@ public class BreakoutGameController : MonoBehaviour
             drop.StopMovement();
             drop.ApplyLevelCompletePauseVisual(pauseGrayscaleBlend, pauseAlphaMultiplier);
         }
+
+        FlameTrailProjectile[] flames = FindObjectsByType<FlameTrailProjectile>(FindObjectsSortMode.None);
+        for (int i = 0; i < flames.Length; i++)
+        {
+            FlameTrailProjectile flame = flames[i];
+            if (flame == null)
+            {
+                continue;
+            }
+
+            flame.StopMovement();
+            flame.ApplyLevelCompletePauseVisual(pauseGrayscaleBlend, pauseAlphaMultiplier);
+        }
     }
 
     private void ApplyPauseVisualToPaddle()

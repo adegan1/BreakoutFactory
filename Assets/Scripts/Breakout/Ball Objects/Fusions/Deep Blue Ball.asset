@@ -43,8 +43,20 @@ MonoBehaviour:
   createsWaterDrops: 0
   waterDropletType: {fileID: 0}
   waterDropCooldown: 0.08
+  createsFlameTrail: 0
+  flameTrailSprite: {fileID: 0}
+  flameTrailColor: {r: 1, g: 0.45, b: 0.1, a: 0.95}
+  flameTrailSizeMultiplier: 0.55
+  flameTrailSpawnInterval: 0.2
+  flameTrailRiseSpeed: 2.5
+  flameTrailLifetime: 2.25
+  flameTrailImpactDamage: 1
+  flameTrailBurnDamage: 1
+  flameTrailBurnTickInterval: 0.5
+  flameTrailBurnHitCount: 2
   impactBurst: 0
   impactBurstDamage: 1
-  impactBurstRadius: 1.6
+  impactBurstRadius: 4.15
+  isCompound: 0
   elements: 00000000
   strongAgainst: 

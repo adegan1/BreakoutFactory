@@ -8,6 +8,19 @@ public class BallController : MonoBehaviour
     private const float VelocitySqrThreshold = 0.001f;
     private const float SideWallNormalThreshold = 0.7f;
     private const float WaterDropSpawnOffset = 0.12f;
+    private const float FlameTrailSpawnOffset = 0.05f;
+    private const float SteamBurstDirectionOffset = 0.22f;
+    private static readonly Vector2[] SteamBurstDirections =
+    {
+        new Vector2(1f, 0f),
+        new Vector2(1f, 1f),
+        new Vector2(0f, 1f),
+        new Vector2(-1f, 1f),
+        new Vector2(-1f, 0f),
+        new Vector2(-1f, -1f),
+        new Vector2(0f, -1f),
+        new Vector2(1f, -1f)
+    };
     private static readonly Vector2[] WaterDropDirections =
     {
         new Vector2(1f, 1f),
@@ -57,6 +70,12 @@ public class BallController : MonoBehaviour
     private bool destroyAfterCurrentBrickHit;
     private int remainingBrickBounces = -1;
     private float nextWaterDropAllowedTime;
+    private float nextFlameTrailAllowedTime;
+    private float steamBurstTimeRemaining;
+    private float timedEffectActivationTime;
+    private float speedBoostMultiplier = 1f;
+    private float speedBoostLerpRate;
+    private bool suppressTimedSpawnEffects;
     private Vector2 travelDirection = Vector2.up;
     private Vector2 lastVelocity;
     private Vector2 previousPosition;
@@ -121,18 +140,20 @@ public class BallController : MonoBehaviour
         if (!hasBeenLost && transform.position.y < bottomKillY)
         {
             LoseBall();
-        }
-    }
-
-    private void FixedUpdate()
-    {
-        if (!launched || hasBeenLost)
-        {
             return;
         }
 
-        UpdateStagnationState();
+        if (launched && !hasBeenLost)
+        {
+            if (Time.time < timedEffectActivationTime)
+            {
+                return;
+            }
 
+            UpdateSpeedBoost();
+            TrySpawnFlameTrailOverTime();
+            TrySpawnSteamBurstOverTime();
+        }
         Vector2 currentVelocity = rb.linearVelocity;
 
         if (currentVelocity.sqrMagnitude > VelocitySqrThreshold)
@@ -159,6 +180,7 @@ public class BallController : MonoBehaviour
 
         launched = true;
         SetTravelDirection(direction, defaultYSign: 1f);
+        ScheduleTimedSpawnEffects();
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -311,8 +333,108 @@ public class BallController : MonoBehaviour
 
     private void ApplyVelocity()
     {
-        rb.linearVelocity = travelDirection * speed;
+        rb.linearVelocity = travelDirection * GetCurrentSpeed();
         lastVelocity = rb.linearVelocity;
+    }
+
+    private float GetCurrentSpeed()
+    {
+        return Mathf.Max(0f, speed) * Mathf.Max(1f, speedBoostMultiplier);
+    }
+
+    private void UpdateSpeedBoost()
+    {
+        if (speedBoostMultiplier <= 1f)
+        {
+            speedBoostMultiplier = 1f;
+            speedBoostLerpRate = 0f;
+            return;
+        }
+
+        if (speedBoostLerpRate <= 0f)
+        {
+            speedBoostMultiplier = 1f;
+            return;
+        }
+
+        speedBoostMultiplier = Mathf.MoveTowards(speedBoostMultiplier, 1f, speedBoostLerpRate * Time.deltaTime);
+    }
+
+    private void ApplyTemporarySpeedBoost(float peakMultiplier, float lerpDuration)
+    {
+        float clampedPeakMultiplier = Mathf.Max(1f, peakMultiplier);
+        float clampedDuration = Mathf.Max(0.01f, lerpDuration);
+        speedBoostMultiplier = Mathf.Max(speedBoostMultiplier, clampedPeakMultiplier);
+        speedBoostLerpRate = (speedBoostMultiplier - 1f) / clampedDuration;
+    }
+
+    public void SetTimedSpawnEffectsSuppressed(bool suppressed)
+    {
+        suppressTimedSpawnEffects = suppressed;
+        if (suppressTimedSpawnEffects)
+        {
+            steamBurstTimeRemaining = 0f;
+        }
+    }
+
+    public void ResetSpawnedRuntimeState()
+    {
+        launched = false;
+        hasBeenLost = false;
+        destroyAfterCurrentBrickHit = false;
+        remainingBrickBounces = -1;
+        nextWaterDropAllowedTime = 0f;
+        nextFlameTrailAllowedTime = 0f;
+        steamBurstTimeRemaining = 0f;
+        timedEffectActivationTime = 0f;
+        speedBoostMultiplier = 1f;
+        speedBoostLerpRate = 0f;
+        travelDirection = Vector2.up;
+        lastVelocity = Vector2.zero;
+        previousPosition = rb != null ? rb.position : (Vector2)transform.position;
+        stagnantTime = 0f;
+        noVerticalMovementTime = 0f;
+        wallStickTime = 0f;
+        lastWallNormal = Vector2.zero;
+        brickTriggersInside.Clear();
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+        }
+    }
+
+    private void ScheduleTimedSpawnEffects()
+    {
+        if (suppressTimedSpawnEffects || typeData == null)
+        {
+            nextFlameTrailAllowedTime = 0f;
+            steamBurstTimeRemaining = 0f;
+            timedEffectActivationTime = 0f;
+            speedBoostMultiplier = 1f;
+            speedBoostLerpRate = 0f;
+            return;
+        }
+
+        timedEffectActivationTime = Time.time + Mathf.Max(0f, typeData.TimedEffectInitialDelay);
+
+        if (typeData.CreatesFlameTrail)
+        {
+            nextFlameTrailAllowedTime = timedEffectActivationTime + Mathf.Max(0.01f, typeData.FlameTrailSpawnInterval);
+        }
+        else
+        {
+            nextFlameTrailAllowedTime = 0f;
+        }
+
+        if (typeData.CreatesSteamBurst)
+        {
+            steamBurstTimeRemaining = Mathf.Max(0f, timedEffectActivationTime - Time.time) + GetRandomSteamBurstInterval();
+        }
+        else
+        {
+            steamBurstTimeRemaining = 0f;
+        }
     }
 
     private void UpdateStagnationState()
@@ -405,10 +527,12 @@ public class BallController : MonoBehaviour
         }
 
         speed = Mathf.Max(0f, typeData.MovementSpeed);
-        passThroughBricks = typeData.PassThroughBricks;
+        passThroughBricks = typeData.PassThroughBricks || typeData.CreatesFireSpread;
         passThroughBalls = typeData.PassThroughBalls;
         remainingBrickBounces = typeData.Bounces;
         nextWaterDropAllowedTime = 0f;
+        nextFlameTrailAllowedTime = 0f;
+        steamBurstTimeRemaining = 0f;
 
         if (ballCollider != null)
         {
@@ -693,6 +817,7 @@ public class BallController : MonoBehaviour
             Vector2 direction = WaterDropDirections[i].normalized;
             Vector3 spawnPosition = transform.position + (Vector3)(direction * WaterDropSpawnOffset);
             BallController spawnedBall = Instantiate(this, spawnPosition, Quaternion.identity);
+            spawnedBall.ResetSpawnedRuntimeState();
             spawnedBall.SetTypeData(typeData.WaterDropletType);
 
             Collider2D spawnedCollider = spawnedBall.GetComponent<Collider2D>();
@@ -700,8 +825,113 @@ public class BallController : MonoBehaviour
             {
                 Physics2D.IgnoreCollision(ballCollider, spawnedCollider, true);
             }
-
             spawnedBall.Launch(direction);
         }
+    }
+
+    private void TrySpawnSteamBurstOverTime()
+    {
+        if (typeData == null || !typeData.CreatesSteamBurst || suppressTimedSpawnEffects)
+        {
+            return;
+        }
+
+        steamBurstTimeRemaining -= Time.deltaTime;
+        if (steamBurstTimeRemaining > 0f)
+        {
+            return;
+        }
+
+        SpawnSteamBurst();
+        steamBurstTimeRemaining = GetRandomSteamBurstInterval();
+    }
+
+    private void SpawnSteamBurst()
+    {
+        BallTypeData burstBallType = typeData != null ? typeData.SteamBurstBallType : null;
+        if (burstBallType == null)
+        {
+            return;
+        }
+
+        int burstCount = Mathf.Max(2, typeData.SteamBurstBallCount);
+        float spawnRadius = Mathf.Max(0.01f, typeData.SteamBurstSpawnRadius);
+
+        ApplyTemporarySpeedBoost(typeData.SteamBurstSpeedMultiplier, typeData.SteamBurstSpeedLerpDuration);
+
+        for (int i = 0; i < burstCount; i++)
+        {
+            Vector2 direction = SteamBurstDirections[i % SteamBurstDirections.Length].normalized;
+            Vector3 spawnPosition = transform.position + (Vector3)(direction * spawnRadius);
+            SpawnBallCopy(burstBallType, spawnPosition, direction);
+        }
+
+        ReverseHorizontalTravelDirection();
+    }
+
+    private BallController SpawnBallCopy(BallTypeData spawnedTypeData, Vector3 spawnPosition, Vector2 launchDirection)
+    {
+        if (spawnedTypeData == null)
+        {
+            return null;
+        }
+
+        BallController spawnedBall = Instantiate(this, spawnPosition, Quaternion.identity);
+        spawnedBall.ResetSpawnedRuntimeState();
+        spawnedBall.SetTypeData(spawnedTypeData);
+
+        Collider2D spawnedCollider = spawnedBall.GetComponent<Collider2D>();
+        if (ballCollider != null && spawnedCollider != null)
+        {
+            Physics2D.IgnoreCollision(ballCollider, spawnedCollider, true);
+        }
+
+        spawnedBall.Launch(launchDirection);
+        return spawnedBall;
+    }
+
+    private void ReverseHorizontalTravelDirection()
+    {
+        float ySign = Mathf.Sign(travelDirection.y == 0f ? 1f : travelDirection.y);
+        float reversedX = -travelDirection.x;
+
+        if (Mathf.Abs(reversedX) < minimumHorizontalDirection)
+        {
+            reversedX = (travelDirection.x >= 0f ? -1f : 1f) * minimumHorizontalDirection;
+        }
+
+        Vector2 redirected = new Vector2(reversedX, travelDirection.y);
+        SetTravelDirection(redirected, ySign);
+    }
+
+    private float GetRandomSteamBurstInterval()
+    {
+        if (typeData == null)
+        {
+            return 0f;
+        }
+
+        float minInterval = Mathf.Max(0.1f, Mathf.Min(typeData.SteamBurstMinInterval, typeData.SteamBurstMaxInterval));
+        float maxInterval = Mathf.Max(minInterval, Mathf.Max(typeData.SteamBurstMinInterval, typeData.SteamBurstMaxInterval));
+        return Random.Range(minInterval, maxInterval);
+    }
+
+    private void TrySpawnFlameTrailOverTime()
+    {
+        if (typeData == null || !typeData.CreatesFlameTrail)
+        {
+            return;
+        }
+
+        if (Time.time < nextFlameTrailAllowedTime)
+        {
+            return;
+        }
+
+        nextFlameTrailAllowedTime = Time.time + typeData.FlameTrailSpawnInterval;
+
+        float spawnOffsetY = ballCollider != null ? ballCollider.bounds.extents.y + FlameTrailSpawnOffset : FlameTrailSpawnOffset;
+        Vector3 spawnPosition = transform.position - new Vector3(0f, spawnOffsetY, 0f);
+        FlameTrailProjectile.Spawn(typeData, spawnPosition, transform.lossyScale.x, ballCollider);
     }
 }

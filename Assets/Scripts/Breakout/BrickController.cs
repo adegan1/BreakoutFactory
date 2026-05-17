@@ -4,6 +4,20 @@ using System.Collections.Generic;
 
 public class BrickController : MonoBehaviour
 {
+    private struct LightningSnakeNode
+    {
+        public Vector3 OriginPosition;
+        public BrickController ExcludedBrick;
+        public int RemainingBounces;
+
+        public LightningSnakeNode(Vector3 originPosition, BrickController excludedBrick, int remainingBounces)
+        {
+            OriginPosition = originPosition;
+            ExcludedBrick = excludedBrick;
+            RemainingBounces = remainingBounces;
+        }
+    }
+
     private const float MinimumRootSpeedMultiplier = 0.05f;
     private const float MinimumDurationSeconds = 0.01f;
     private const float MinimumEffectRadius = 0.1f;
@@ -39,6 +53,13 @@ public class BrickController : MonoBehaviour
     private bool isCracked;
     private bool isRooted;
     private bool hasColumnSlow;
+    private bool hasCombustion;
+    private bool combustionExplosionTriggered;
+    private int combustionExplosionDamage;
+    private float combustionExplosionRadius;
+    private float nextFireSpreadAllowedTime;
+    private bool hasForestFire;
+    private int forestFireSpreadGenerationsRemaining;
     private int crackShatterDamage = 1;
     private float crackShatterRadius = 1f;
     private int burnDamage;
@@ -189,6 +210,9 @@ public class BrickController : MonoBehaviour
         ClearEarthCrack();
         ClearRoot();
         ClearColumnSlow();
+        ClearCombustion();
+        nextFireSpreadAllowedTime = 0f;
+        ClearForestFire();
 
         if (spriteRenderer != null)
         {
@@ -278,9 +302,16 @@ public class BrickController : MonoBehaviour
 
         if (currentHitPoints <= 0)
         {
+            TryTriggerCombustionExplosionOnDestroyed();
+            TrySpreadForestFireOnDestroyed();
             OnBrickDestroyed();
             Destroy(gameObject);
         }
+    }
+
+    public void ApplyDirectEffectDamage(int amount)
+    {
+        ApplyDamage(amount);
     }
 
     private void UpdateHealthAlpha()
@@ -373,6 +404,12 @@ public class BrickController : MonoBehaviour
 
         if (burnHitsRemaining <= 0)
         {
+            if (hasCombustion && !combustionExplosionTriggered)
+            {
+                TriggerCombustionExplosion();
+                return;
+            }
+
             ClearBurn();
         }
     }
@@ -396,6 +433,11 @@ public class BrickController : MonoBehaviour
         burnHitsRemaining = hitCount;
     }
 
+    public void ApplyExternalBurn(int damagePerTick, float tickInterval, int hitCount)
+    {
+        ApplyBurn(damagePerTick, tickInterval, hitCount);
+    }
+
     private void ClearBurn()
     {
         isBurning = false;
@@ -403,6 +445,181 @@ public class BrickController : MonoBehaviour
         burnTickInterval = 0f;
         burnTickTimer = 0f;
         burnHitsRemaining = 0;
+    }
+
+    private void ApplyCombustion(BallTypeData ballTypeData)
+    {
+        if (ballTypeData == null)
+        {
+            return;
+        }
+
+        hasCombustion = true;
+        combustionExplosionDamage = Mathf.Max(combustionExplosionDamage, Mathf.Max(1, ballTypeData.CombustionExplosionDamage));
+        combustionExplosionRadius = Mathf.Max(combustionExplosionRadius, Mathf.Max(MinimumEffectRadius, ballTypeData.CombustionExplosionRadius));
+
+        ApplyBurn(
+            Mathf.Max(1, ballTypeData.CombustionBurnDamage),
+            Mathf.Max(MinimumDurationSeconds, ballTypeData.CombustionBurnTickInterval),
+            Mathf.Max(1, ballTypeData.CombustionBurnHitCount));
+    }
+
+    private void ClearCombustion()
+    {
+        hasCombustion = false;
+        combustionExplosionTriggered = false;
+        combustionExplosionDamage = 0;
+        combustionExplosionRadius = 0f;
+    }
+
+    private void TriggerCombustionExplosion()
+    {
+        if (combustionExplosionTriggered)
+        {
+            return;
+        }
+
+        combustionExplosionTriggered = true;
+
+        int explosionDamage = Mathf.Max(1, combustionExplosionDamage);
+        float explosionRadius = Mathf.Max(MinimumEffectRadius, combustionExplosionRadius);
+        CollectNearbyBricks(explosionRadius, nearbyBricksBuffer);
+        for (int i = 0; i < nearbyBricksBuffer.Count; i++)
+        {
+            nearbyBricksBuffer[i].ApplyDamage(explosionDamage);
+        }
+
+        if (currentHitPoints > 0)
+        {
+            ApplyDamage(currentHitPoints);
+        }
+    }
+
+    private void TryTriggerCombustionExplosionOnDestroyed()
+    {
+        if (!hasCombustion || !isBurning || combustionExplosionTriggered)
+        {
+            return;
+        }
+
+        TriggerCombustionExplosion();
+    }
+
+    private void ApplyFireSpread(BallTypeData ballTypeData)
+    {
+        if (ballTypeData == null)
+        {
+            return;
+        }
+
+        if (!CanTriggerFireSpread())
+        {
+            return;
+        }
+
+        float cooldown = Mathf.Max(0f, ballTypeData.FireSpreadCooldown);
+        if (Time.time < nextFireSpreadAllowedTime)
+        {
+            return;
+        }
+
+        nextFireSpreadAllowedTime = Time.time + cooldown;
+
+        float spreadRadius = Mathf.Max(MinimumEffectRadius, ballTypeData.FireSpreadRadius);
+        CollectNearbyBricks(spreadRadius, nearbyBricksBuffer);
+        if (nearbyBricksBuffer.Count == 0)
+        {
+            return;
+        }
+
+        int bonusDamage = Mathf.Max(0, ballTypeData.FireSpreadBonusBurnDamage);
+        float burnSpeedMultiplier = Mathf.Max(1f, ballTypeData.FireSpreadBurnSpeedMultiplier);
+        int bonusHitCount = Mathf.Max(0, ballTypeData.FireSpreadBurnHitCountBonus);
+
+        for (int i = 0; i < nearbyBricksBuffer.Count; i++)
+        {
+            nearbyBricksBuffer[i].ApplyFireSpreadBurn(ballTypeData, bonusDamage, burnSpeedMultiplier, bonusHitCount);
+        }
+    }
+
+    private bool CanTriggerFireSpread()
+    {
+        if (isBurning)
+        {
+            return true;
+        }
+
+        return typeData != null && typeData.Type == BallTypeData.BallElement.Fire;
+    }
+
+    private void ApplyFireSpreadBurn(BallTypeData sourceBallTypeData, int bonusDamage, float burnSpeedMultiplier, int bonusHitCount)
+    {
+        int sourceDamage = sourceBallTypeData != null && sourceBallTypeData.AppliesBurn
+            ? sourceBallTypeData.BurnDamage
+            : 1;
+        float sourceInterval = sourceBallTypeData != null && sourceBallTypeData.AppliesBurn
+            ? sourceBallTypeData.BurnTickInterval
+            : 0.5f;
+        int sourceHits = sourceBallTypeData != null && sourceBallTypeData.AppliesBurn
+            ? sourceBallTypeData.BurnHitCount
+            : 1;
+
+        int baseDamage = isBurning ? burnDamage : sourceDamage;
+        float baseInterval = isBurning ? burnTickInterval : sourceInterval;
+        int baseHitCount = isBurning ? burnHitsRemaining : sourceHits;
+
+        int spreadDamage = Mathf.Max(1, baseDamage + bonusDamage);
+        float spreadInterval = Mathf.Max(MinimumDurationSeconds, baseInterval / Mathf.Max(1f, burnSpeedMultiplier));
+        int spreadHitCount = Mathf.Max(1, baseHitCount + bonusHitCount);
+        ApplyBurn(spreadDamage, spreadInterval, spreadHitCount);
+    }
+
+    private void ApplyForestFire(BallTypeData ballTypeData)
+    {
+        if (ballTypeData == null)
+        {
+            return;
+        }
+
+        int spreadGenerations = Mathf.Max(0, ballTypeData.ForestFireSpreadGenerations);
+        ApplyForestFireSource(
+            Mathf.Max(1, ballTypeData.ForestFireBurnDamage),
+            Mathf.Max(MinimumDurationSeconds, ballTypeData.ForestFireBurnTickInterval),
+            Mathf.Max(1, ballTypeData.ForestFireBurnHitCount),
+            spreadGenerations);
+    }
+
+    private void ApplyForestFireSource(int damagePerTick, float tickInterval, int hitCount, int spreadGenerations)
+    {
+        hasForestFire = true;
+        forestFireSpreadGenerationsRemaining = Mathf.Max(forestFireSpreadGenerationsRemaining, spreadGenerations);
+        ApplyBurn(damagePerTick, tickInterval, hitCount);
+    }
+
+    private void ClearForestFire()
+    {
+        hasForestFire = false;
+        forestFireSpreadGenerationsRemaining = 0;
+    }
+
+    private void TrySpreadForestFireOnDestroyed()
+    {
+        if (!hasForestFire || !isBurning || forestFireSpreadGenerationsRemaining <= 0)
+        {
+            return;
+        }
+
+        int nextGenerations = forestFireSpreadGenerationsRemaining - 1;
+        int spreadDamage = Mathf.Max(1, burnDamage);
+        float spreadTickInterval = Mathf.Max(MinimumDurationSeconds, burnTickInterval);
+        int spreadHitCount = Mathf.Max(1, burnHitsRemaining);
+
+        CollectOrthogonalAdjacentBricks(this, nearbyBricksBuffer);
+        for (int i = 0; i < nearbyBricksBuffer.Count; i++)
+        {
+            BrickController adjacent = nearbyBricksBuffer[i];
+            adjacent.ApplyForestFireSource(spreadDamage, spreadTickInterval, spreadHitCount, nextGenerations);
+        }
     }
 
     private int GetBurnDamage()
@@ -691,6 +908,89 @@ public class BrickController : MonoBehaviour
         }
     }
 
+    private void ApplyLightningSnake(BallTypeData ballTypeData)
+    {
+        if (ballTypeData == null)
+        {
+            return;
+        }
+
+        int bounceCount = Mathf.Max(0, ballTypeData.LightningSnakeBounceCount);
+        if (bounceCount <= 0)
+        {
+            return;
+        }
+
+        int snakeDamage = Mathf.Max(1, ballTypeData.LightningSnakeDamage);
+        float snakeRadius = Mathf.Max(MinimumEffectRadius, ballTypeData.LightningSnakeRadius);
+        int waterSplitCount = Mathf.Max(1, ballTypeData.LightningSnakeWaterSplitCount);
+        float bounceDelay = Mathf.Max(0f, ballTypeData.LightningSnakeBounceDelay);
+
+        StartCoroutine(ApplyLightningSnakeCoroutine(
+            transform.position,
+            this,
+            bounceCount,
+            snakeDamage,
+            snakeRadius,
+            waterSplitCount,
+            bounceDelay));
+    }
+
+    private IEnumerator ApplyLightningSnakeCoroutine(
+        Vector3 startPosition,
+        BrickController startExcludedBrick,
+        int bounceCount,
+        int snakeDamage,
+        float snakeRadius,
+        int waterSplitCount,
+        float bounceDelay)
+    {
+        Queue<LightningSnakeNode> activeSnakes = new Queue<LightningSnakeNode>();
+        List<BrickController> localNearbyBuffer = new List<BrickController>();
+        activeSnakes.Enqueue(new LightningSnakeNode(startPosition, startExcludedBrick, bounceCount));
+
+        while (activeSnakes.Count > 0)
+        {
+            int waveCount = activeSnakes.Count;
+            bool spawnedNextWave = false;
+
+            for (int i = 0; i < waveCount; i++)
+            {
+                LightningSnakeNode node = activeSnakes.Dequeue();
+                if (node.RemainingBounces <= 0)
+                {
+                    continue;
+                }
+
+                BrickController nextTarget = GetRandomNearbyBrick(node.OriginPosition, node.ExcludedBrick, snakeRadius, localNearbyBuffer);
+                if (nextTarget == null)
+                {
+                    continue;
+                }
+
+                nextTarget.ApplyDamage(snakeDamage);
+
+                int remainingAfterHit = node.RemainingBounces - 1;
+                if (remainingAfterHit <= 0)
+                {
+                    continue;
+                }
+
+                int branchCount = IsWaterBrick(nextTarget) ? waterSplitCount : 1;
+                for (int branch = 0; branch < branchCount; branch++)
+                {
+                    activeSnakes.Enqueue(new LightningSnakeNode(nextTarget.transform.position, nextTarget, remainingAfterHit));
+                    spawnedNextWave = true;
+                }
+            }
+
+            if (spawnedNextWave && bounceDelay > 0f)
+            {
+                yield return new WaitForSeconds(bounceDelay);
+            }
+        }
+    }
+
     private void ApplyBallTypeEffects(BallTypeData ballTypeData)
     {
         if (ballTypeData == null)
@@ -708,6 +1008,11 @@ public class BrickController : MonoBehaviour
             ApplyLightningBurst(ballTypeData);
         }
 
+        if (ballTypeData.CreatesLightningSnake)
+        {
+            ApplyLightningSnake(ballTypeData);
+        }
+
         if (ballTypeData.EarthCrack)
         {
             ApplyEarthCrackHit(ballTypeData);
@@ -718,6 +1023,21 @@ public class BrickController : MonoBehaviour
             ApplyRootToBrickAndAbove(ballTypeData.RootDuration, ballTypeData.RootSpeedMultiplier);
         }
 
+        if (ballTypeData.CreatesCombustion)
+        {
+            ApplyCombustion(ballTypeData);
+        }
+
+        if (ballTypeData.CreatesFireSpread)
+        {
+            ApplyFireSpread(ballTypeData);
+        }
+
+        if (ballTypeData.CreatesForestFire)
+        {
+            ApplyForestFire(ballTypeData);
+        }
+
         if (ballTypeData.ImpactBurst)
         {
             ApplyImpactBurst(ballTypeData);
@@ -726,9 +1046,14 @@ public class BrickController : MonoBehaviour
 
     private void CollectNearbyBricks(float radius, List<BrickController> results)
     {
+        CollectNearbyBricks(transform.position, this, radius, results);
+    }
+
+    private void CollectNearbyBricks(Vector3 center, BrickController excludedBrick, float radius, List<BrickController> results)
+    {
         results.Clear();
 
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, Mathf.Max(MinimumEffectRadius, radius));
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(center, Mathf.Max(MinimumEffectRadius, radius));
         if (colliders == null || colliders.Length == 0)
         {
             return;
@@ -742,12 +1067,100 @@ public class BrickController : MonoBehaviour
                 continue;
             }
 
-            if (nearbyBrick == this || nearbyBrick.CurrentHitPoints <= 0 || results.Contains(nearbyBrick))
+            if (nearbyBrick == excludedBrick || nearbyBrick.CurrentHitPoints <= 0 || results.Contains(nearbyBrick))
             {
                 continue;
             }
 
             results.Add(nearbyBrick);
+        }
+    }
+
+    private BrickController GetRandomNearbyBrick(BrickController origin, float radius)
+    {
+        if (origin == null)
+        {
+            return null;
+        }
+
+        return GetRandomNearbyBrick(origin.transform.position, origin, radius, nearbyBricksBuffer);
+    }
+
+    private BrickController GetRandomNearbyBrick(Vector3 originPosition, BrickController excludedBrick, float radius, List<BrickController> resultsBuffer)
+    {
+        if (resultsBuffer == null)
+        {
+            return null;
+        }
+
+        CollectNearbyBricks(originPosition, excludedBrick, radius, resultsBuffer);
+        if (resultsBuffer.Count == 0)
+        {
+            return null;
+        }
+
+        int randomIndex = Random.Range(0, resultsBuffer.Count);
+        return resultsBuffer[randomIndex];
+    }
+
+    private static bool IsWaterBrick(BrickController brick)
+    {
+        return brick != null
+            && brick.typeData != null
+            && brick.typeData.Type == BallTypeData.BallElement.Water;
+    }
+
+    private void CollectOrthogonalAdjacentBricks(BrickController origin, List<BrickController> results)
+    {
+        results.Clear();
+        if (origin == null)
+        {
+            return;
+        }
+
+        Transform parent = origin.transform.parent;
+        if (parent == null)
+        {
+            return;
+        }
+
+        float sourceWidth = origin.brickCollider != null ? origin.brickCollider.bounds.size.x : 1f;
+        float sourceHeight = origin.brickCollider != null ? origin.brickCollider.bounds.size.y : 1f;
+        float rowTolerance = Mathf.Max(MinimumColumnTolerance, sourceHeight * 0.35f);
+        float columnTolerance = Mathf.Max(MinimumColumnTolerance, sourceWidth * 0.35f);
+        float minHorizontalGap = sourceWidth * 0.45f;
+        float maxHorizontalGap = sourceWidth * 1.6f;
+        float minVerticalGap = sourceHeight * 0.45f;
+        float maxVerticalGap = sourceHeight * 1.6f;
+
+        Vector3 originPosition = origin.transform.position;
+
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform child = parent.GetChild(i);
+            if (child == null || child == origin.transform)
+            {
+                continue;
+            }
+
+            if (!child.TryGetComponent<BrickController>(out BrickController adjacent) || adjacent.CurrentHitPoints <= 0)
+            {
+                continue;
+            }
+
+            float dx = Mathf.Abs(child.position.x - originPosition.x);
+            float dy = Mathf.Abs(child.position.y - originPosition.y);
+
+            bool sameRow = dy <= rowTolerance;
+            bool sameColumn = dx <= columnTolerance;
+            bool horizontalNeighbor = sameRow && dx >= minHorizontalGap && dx <= maxHorizontalGap;
+            bool verticalNeighbor = sameColumn && dy >= minVerticalGap && dy <= maxVerticalGap;
+            if (!horizontalNeighbor && !verticalNeighbor)
+            {
+                continue;
+            }
+
+            results.Add(adjacent);
         }
     }
 
