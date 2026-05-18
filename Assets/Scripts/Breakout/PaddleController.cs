@@ -180,7 +180,7 @@ public class PaddleController : MonoBehaviour
 
     private void HandleHealthChanged(int current, int max)
     {
-        if (lastKnownHealth >= 0 && current >= lastKnownHealth)
+        if (lastKnownHealth >= 0 && current > lastKnownHealth)
         {
             TriggerHealFlash();
         }

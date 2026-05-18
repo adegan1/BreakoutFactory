@@ -39,8 +39,6 @@ public class BallController : MonoBehaviour
 
     [Header("Anti-Stuck")]
     [SerializeField] private bool ignoreOtherBallCollisions = false;
-    [SerializeField] private float stuckRecoveryDelay = 0.2f;
-    [SerializeField] private float minimumMovementPerFixedStep = 0.001f;
     [SerializeField] private float unstuckNudgeDistance = 0.05f;
     [SerializeField] private float axisStuckDelay = 5f;
     [SerializeField] private float wallStickRecoveryDelay = 0.15f;
@@ -77,8 +75,8 @@ public class BallController : MonoBehaviour
     private float steamBurstTimeRemaining;
     private float timedEffectActivationTime;
     private float speedBoostMultiplier = 1f;
-        private float blackoutTimer;
-        private int firstAidHealingAccumulated;
+    private float blackoutTimer;
+    private int firstAidHealingAccumulated;
     private float speedBoostLerpRate;
     private bool suppressTimedSpawnEffects;
     private BallTypeData.DirectionRestraint movementRestraint;
@@ -87,8 +85,6 @@ public class BallController : MonoBehaviour
     private float cycloneCurveSign = 1f;
     private Vector2 travelDirection = Vector2.up;
     private Vector2 lastVelocity;
-    private Vector2 previousPosition;
-    private float stagnantTime;
     private float noVerticalMovementTime;
     private float wallStickTime;
     private float rollingThunderCurrentScaleMultiplier;
@@ -134,7 +130,6 @@ public class BallController : MonoBehaviour
         trailRenderer = GetComponent<TrailRenderer>();
         defaultSprite = spriteRenderer != null ? spriteRenderer.sprite : null;
         baseLocalScale = transform.localScale;
-        previousPosition = rb.position;
     }
 
     private void Start()
@@ -162,9 +157,9 @@ public class BallController : MonoBehaviour
 
             UpdateSpeedBoost();
             TrySpawnFlameTrailOverTime();
-                TrySpawnFertilePatchOverTime();
+            TrySpawnFertilePatchOverTime();
             TrySpawnSteamBurstOverTime();
-                    TryApplyBlackout();
+            TryApplyBlackout();
         }
         Vector2 currentVelocity = rb.linearVelocity;
 
@@ -221,8 +216,10 @@ public class BallController : MonoBehaviour
 
         if (collision.gameObject.CompareTag("Paddle"))
         {
-            TrySpawnLinearProjectile(Vector2.up);
-            if (destroyOnWallHit) { Destroy(gameObject); return; }
+            if (TryHandleTaggedCollisionEffects(collision.gameObject, Vector2.zero))
+            {
+                return;
+            }
 
             ContactPoint2D paddleContact = collision.GetContact(0);
             ApplyPaddleBounce(paddleContact.collider.bounds, paddleContact.normal);
@@ -230,26 +227,9 @@ public class BallController : MonoBehaviour
         }
 
         ContactPoint2D contact = collision.GetContact(0);
-        if (collision.gameObject.CompareTag("SideWall"))
+        Vector2 sideWallDirection = contact.normal.x >= 0f ? Vector2.right : Vector2.left;
+        if (TryHandleTaggedCollisionEffects(collision.gameObject, sideWallDirection))
         {
-            Vector2 waveDirection = contact.normal.x >= 0f ? Vector2.right : Vector2.left;
-            TrySpawnLinearProjectile(waveDirection);
-            TryApplyShockTherapyOnWallHit(collision.gameObject);
-            if (destroyOnWallHit) { Destroy(gameObject); return; }
-        }
-        else if (collision.gameObject.CompareTag("TopWall"))
-        {
-            if (typeData != null && typeData.LinearProjectileIncludesTopWall)
-            {
-                TrySpawnLinearProjectile(Vector2.down);
-            }
-
-            TryApplyShockTherapyOnWallHit(collision.gameObject);
-            if (destroyOnWallHit) { Destroy(gameObject); return; }
-        }
-        else if (destroyOnWallHit)
-        {
-            Destroy(gameObject);
             return;
         }
 
@@ -327,31 +307,9 @@ public class BallController : MonoBehaviour
 
         if (passThroughBricks)
         {
-            if (other.CompareTag("Paddle"))
+            Vector2 sideWallDirection = transform.position.x >= other.bounds.center.x ? Vector2.right : Vector2.left;
+            if (TryHandleTaggedCollisionEffects(other.gameObject, sideWallDirection))
             {
-                TrySpawnLinearProjectile(Vector2.up);
-                if (destroyOnWallHit) { Destroy(gameObject); return; }
-            }
-            else if (other.CompareTag("SideWall"))
-            {
-                Vector2 waveDirection = transform.position.x >= other.bounds.center.x ? Vector2.right : Vector2.left;
-                TrySpawnLinearProjectile(waveDirection);
-                TryApplyShockTherapyOnWallHit(other.gameObject);
-                if (destroyOnWallHit) { Destroy(gameObject); return; }
-            }
-            else if (other.CompareTag("TopWall"))
-            {
-                if (typeData != null && typeData.LinearProjectileIncludesTopWall)
-                {
-                    TrySpawnLinearProjectile(Vector2.down);
-                }
-
-                TryApplyShockTherapyOnWallHit(other.gameObject);
-                if (destroyOnWallHit) { Destroy(gameObject); return; }
-            }
-            else if (destroyOnWallHit)
-            {
-                Destroy(gameObject);
                 return;
             }
 
@@ -486,8 +444,6 @@ public class BallController : MonoBehaviour
         speedBoostLerpRate = 0f;
         travelDirection = Vector2.up;
         lastVelocity = Vector2.zero;
-        previousPosition = rb != null ? rb.position : (Vector2)transform.position;
-        stagnantTime = 0f;
         noVerticalMovementTime = 0f;
         wallStickTime = 0f;
         rollingThunderCurrentScaleMultiplier = 1f;
@@ -544,46 +500,49 @@ public class BallController : MonoBehaviour
         }
     }
 
-    private void UpdateStagnationState()
+    private bool TryHandleTaggedCollisionEffects(GameObject hitObject, Vector2 sideWallDirection)
     {
-        float movedDistance = (rb.position - previousPosition).magnitude;
-        if (movedDistance <= minimumMovementPerFixedStep)
+        if (hitObject == null)
         {
-            stagnantTime += Time.fixedDeltaTime;
-            if (stagnantTime >= stuckRecoveryDelay)
-            {
-                ForceUnstuck();
-                stagnantTime = 0f;
-            }
-        }
-        else
-        {
-            stagnantTime = 0f;
+            return false;
         }
 
-        previousPosition = rb.position;
+        if (hitObject.CompareTag("Paddle"))
+        {
+            TrySpawnLinearProjectile(Vector2.up);
+            return TryDestroyOnWallHit();
+        }
+
+        if (hitObject.CompareTag("SideWall"))
+        {
+            TrySpawnLinearProjectile(sideWallDirection);
+            TryApplyShockTherapyOnWallHit(hitObject);
+            return TryDestroyOnWallHit();
+        }
+
+        if (hitObject.CompareTag("TopWall"))
+        {
+            if (typeData != null && typeData.LinearProjectileIncludesTopWall)
+            {
+                TrySpawnLinearProjectile(Vector2.down);
+            }
+
+            TryApplyShockTherapyOnWallHit(hitObject);
+            return TryDestroyOnWallHit();
+        }
+
+        return TryDestroyOnWallHit();
     }
 
-    private void ForceUnstuck()
+    private bool TryDestroyOnWallHit()
     {
-        if (movementRestraint != BallTypeData.DirectionRestraint.None)
+        if (!destroyOnWallHit)
         {
-            Vector2 nudgeDir = movementRestraint == BallTypeData.DirectionRestraint.HorizontalOnly
-                ? new Vector2(lastVelocity.x >= 0f ? 1f : -1f, 0f)
-                : new Vector2(0f, lastVelocity.y >= 0f ? 1f : -1f);
-            rb.position += nudgeDir * unstuckNudgeDistance;
-            travelDirection = nudgeDir;
-            ApplyVelocity();
-            return;
+            return false;
         }
 
-        float randomHorizontal = Random.Range(-1f, 1f);
-        float ySign = Mathf.Sign(travelDirection.y == 0f ? 1f : travelDirection.y);
-        Vector2 recoveryDirection = new Vector2(randomHorizontal, ySign);
-        Vector2 normalizedRecovery = NormalizeDirection(recoveryDirection, ySign);
-
-        rb.position += normalizedRecovery * unstuckNudgeDistance;
-        SetTravelDirection(normalizedRecovery, ySign);
+        Destroy(gameObject);
+        return true;
     }
 
     private void UpdateVerticalAxisRecovery(Vector2 currentVelocity)
@@ -687,7 +646,7 @@ public class BallController : MonoBehaviour
         }
 
         speed = Mathf.Max(0f, typeData.MovementSpeed);
-        passThroughBricks = typeData.PassThroughBricks || typeData.CreatesFireSpread || typeData.CreatesLinearProjectile || typeData.CreatesRollingThunder || typeData.CreatesAbrasion || typeData.CreatesCyclone;
+        passThroughBricks = typeData.PassThroughBricks;
         passThroughBalls = typeData.PassThroughBalls;
         cycloneCurveSign = Random.value < 0.5f ? -1f : 1f;
         movementRestraint = movementRestraintOverride != BallTypeData.DirectionRestraint.None

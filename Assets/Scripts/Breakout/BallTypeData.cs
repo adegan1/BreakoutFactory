@@ -220,7 +220,7 @@ public class BallTypeData : ScriptableObject
     public float MovementSpeed => movementSpeed;
     public int Damage => damage;
     public int Bounces => bounces;
-    public bool PassThroughBricks => passThroughBricks || createsFireSpread || createsLinearProjectile || createsRollingThunder || createsAbrasion || createsCyclone;
+    public bool PassThroughBricks => passThroughBricks;
     public bool PassThroughBalls => passThroughBalls;
     public DirectionRestraint MovementRestraint => directionRestraint;
     public bool DestroyOnWall => destroyOnWall;
@@ -460,9 +460,6 @@ public class BallTypeData : ScriptableObject
             abrasionWeakenDuration = Mathf.Max(
                 a.CreatesAbrasion ? a.AbrasionWeakenDuration : 0f,
                 b.CreatesAbrasion ? b.AbrasionWeakenDuration : 0f);
-
-            // Abrasion needs pierce-like traversal to affect every brick it touches.
-            passThroughBricks = true;
         }
 
         createsCyclone = a.CreatesCyclone || b.CreatesCyclone;
@@ -477,9 +474,6 @@ public class BallTypeData : ScriptableObject
             cycloneCurveStrength = Mathf.Max(
                 a.CreatesCyclone ? a.CycloneCurveStrength : 0f,
                 b.CreatesCyclone ? b.CycloneCurveStrength : 0f);
-
-            // Cyclone uses pierce-like traversal so it can multi-hit each touched brick.
-            passThroughBricks = true;
         }
 
         appliesRoot = a.AppliesRoot || b.AppliesRoot;
@@ -551,9 +545,6 @@ public class BallTypeData : ScriptableObject
             fireSpreadBurnHitCountBonus = Mathf.Max(
                 a.CreatesFireSpread ? a.FireSpreadBurnHitCountBonus : 0,
                 b.CreatesFireSpread ? b.FireSpreadBurnHitCountBonus : 0);
-
-            // Fire spread needs pierce-like traversal to trigger across multiple bricks.
-            passThroughBricks = true;
         }
 
         createsForestFire = a.CreatesForestFire || b.CreatesForestFire;
@@ -710,9 +701,6 @@ public class BallTypeData : ScriptableObject
         {
             linearProjectileType = a.LinearProjectileType != null ? a.LinearProjectileType : b.LinearProjectileType;
             linearProjectileIncludesTopWall = a.LinearProjectileIncludesTopWall || b.LinearProjectileIncludesTopWall;
-
-            // Linear projectiles need to travel through bricks.
-            passThroughBricks = true;
         }
 
         createsBlackout = a.CreatesBlackout || b.CreatesBlackout;

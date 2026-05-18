@@ -13,9 +13,11 @@ public class FertilePatchProjectile : MonoBehaviour
     private float lifetimeRemaining;
     private int crackShatterDamage;
     private float crackShatterRadius;
+    private bool appliesCrack;
     private float rootRadius;
     private float rootDuration;
     private float rootSpeedMultiplier;
+    private bool appliesRoot;
     private bool isMovementLocked;
 
     public static FertilePatchProjectile Spawn(BallTypeData sourceTypeData, Vector3 position, float sourceScale, Collider2D ignoredCollider)
@@ -103,9 +105,11 @@ public class FertilePatchProjectile : MonoBehaviour
         lifetimeRemaining = Mathf.Max(MinimumLifetimeSeconds, sourceTypeData.FertilePatchLifetime);
         crackShatterDamage = Mathf.Max(1, sourceTypeData.FertilePatchCrackShatterDamage);
         crackShatterRadius = Mathf.Max(0.1f, sourceTypeData.FertilePatchCrackShatterRadius);
+        appliesCrack = sourceTypeData.EarthCrack;
         rootRadius = Mathf.Max(0.1f, sourceTypeData.FertilePatchRootRadius);
         rootDuration = Mathf.Max(MinimumLifetimeSeconds, sourceTypeData.FertilePatchRootDuration);
         rootSpeedMultiplier = Mathf.Clamp01(sourceTypeData.FertilePatchRootSpeedMultiplier);
+        appliesRoot = sourceTypeData.AppliesRoot;
 
         if (spriteRenderer != null)
         {
@@ -135,7 +139,14 @@ public class FertilePatchProjectile : MonoBehaviour
             return;
         }
 
-        brick.ApplyFertileLandPatch(crackShatterDamage, crackShatterRadius, rootRadius, rootDuration, rootSpeedMultiplier);
+        brick.ApplyFertileLandPatch(
+            appliesCrack,
+            crackShatterDamage,
+            crackShatterRadius,
+            appliesRoot,
+            rootRadius,
+            rootDuration,
+            rootSpeedMultiplier);
         Destroy(gameObject);
     }
 }

@@ -42,8 +42,8 @@ MonoBehaviour:
   lightningSnakeRadius: 2
   lightningSnakeWaterSplitCount: 2
   lightningSnakeBounceDelay: 0.06
-  earthCrack: 0
-  shatterDamage: 2
+  earthCrack: 1
+  shatterDamage: 1
   shatterRadius: 1.4
   createsTremor: 1
   tremorCrackDamage: 1

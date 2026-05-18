@@ -102,6 +102,8 @@ public class BrickController : MonoBehaviour
     private Coroutine damageFlashRoutine;
     private Coroutine dangerSequenceRoutine;
     private readonly List<BrickController> nearbyBricksBuffer = new List<BrickController>();
+    private readonly List<BrickController> crossLineBricksBuffer = new List<BrickController>();
+    private readonly List<BrickController> seedSpreadCandidatesBuffer = new List<BrickController>();
     private bool inDangerSequence;
     private Vector3 dangerBasePosition;
 
@@ -369,15 +371,29 @@ public class BrickController : MonoBehaviour
         ApplyDamage(amount, DamageSource.Effect);
     }
 
-    public void ApplyFertileLandPatch(int crackDamage, float crackRadius, float rootRadius, float rootDuration, float rootSpeedMultiplier)
+    public void ApplyFertileLandPatch(
+        bool applyCrack,
+        int crackDamage,
+        float crackRadius,
+        bool applyRoot,
+        float rootRadius,
+        float rootDuration,
+        float rootSpeedMultiplier)
     {
         if (currentHitPoints <= 0)
         {
             return;
         }
 
-        SetCrackedState(crackDamage, crackRadius);
-        ApplyRootInRadius(rootRadius, rootDuration, rootSpeedMultiplier);
+        if (applyCrack)
+        {
+            SetCrackedState(crackDamage, crackRadius);
+        }
+
+        if (applyRoot)
+        {
+            ApplyRootInRadius(rootRadius, rootDuration, rootSpeedMultiplier);
+        }
     }
 
     private void ApplyCollapse(BallTypeData ballTypeData)
@@ -865,12 +881,11 @@ public class BrickController : MonoBehaviour
     private void TriggerElectricCascade()
     {
         int shockDamage = Mathf.Max(1, conductiveShockDamage);
-        List<BrickController> cascadeTargets = new List<BrickController>();
-        CollectCrossLineBricks(this, cascadeTargets);
+        CollectCrossLineBricks(this, crossLineBricksBuffer);
 
-        for (int i = 0; i < cascadeTargets.Count; i++)
+        for (int i = 0; i < crossLineBricksBuffer.Count; i++)
         {
-            BrickController target = cascadeTargets[i];
+            BrickController target = crossLineBricksBuffer[i];
             if (target == null)
             {
                 continue;
@@ -1385,10 +1400,8 @@ public class BrickController : MonoBehaviour
             ApplyCrackHit(ballTypeData.ShatterDamage, ballTypeData.ShatterRadius);
         }
 
-        if (ballTypeData.CreatesTremor)
-        {
-            ApplyCrackHit(ballTypeData.TremorCrackDamage, ballTypeData.TremorCrackRadius);
-        }
+        // Tremor modifies crack-shatter propagation if a crack is already present.
+        // Crack application itself is now explicit via EarthCrack/FertileLand settings.
 
         if (ballTypeData.CreatesAbrasion)
         {
@@ -1440,7 +1453,7 @@ public class BrickController : MonoBehaviour
             ApplyPressurizedSplash(ballTypeData);
         }
 
-        if (ballTypeData.CreatesSeed)
+        if (ballTypeData.CreatesSeed && ballTypeData.AppliesRoot)
         {
             ApplySeedRoot(ballTypeData, ballTypeData.SeedSpreadGenerations);
         }
@@ -1476,16 +1489,6 @@ public class BrickController : MonoBehaviour
 
             results.Add(nearbyBrick);
         }
-    }
-
-    private BrickController GetRandomNearbyBrick(BrickController origin, float radius)
-    {
-        if (origin == null)
-        {
-            return null;
-        }
-
-        return GetRandomNearbyBrick(origin.transform.position, origin, radius, nearbyBricksBuffer);
     }
 
     private BrickController GetRandomNearbyBrick(Vector3 originPosition, BrickController excludedBrick, float radius, List<BrickController> resultsBuffer)
@@ -1729,7 +1732,7 @@ public class BrickController : MonoBehaviour
 
     private void ApplySeedRoot(BallTypeData ballTypeData, int generationsRemaining)
     {
-        if (ballTypeData == null || generationsRemaining < 0)
+        if (ballTypeData == null || !ballTypeData.AppliesRoot || generationsRemaining < 0)
         {
             return;
         }
@@ -1758,25 +1761,25 @@ public class BrickController : MonoBehaviour
 
     private void SpreadSeedRoot(int generationsLeft, int spreadCount, float spreadRadius, float duration, float speedMult)
     {
-        List<BrickController> candidates = new List<BrickController>();
-        CollectNearbyBricks(spreadRadius, candidates);
+        seedSpreadCandidatesBuffer.Clear();
+        CollectNearbyBricks(spreadRadius, seedSpreadCandidatesBuffer);
 
         // Remove bricks already seed-rooted so spread always reaches new bricks.
-        for (int i = candidates.Count - 1; i >= 0; i--)
+        for (int i = seedSpreadCandidatesBuffer.Count - 1; i >= 0; i--)
         {
-            if (candidates[i].hasSeedRoot)
+            if (seedSpreadCandidatesBuffer[i].hasSeedRoot)
             {
-                candidates.RemoveAt(i);
+                seedSpreadCandidatesBuffer.RemoveAt(i);
             }
         }
 
-        int toSpread = Mathf.Min(spreadCount, candidates.Count);
+        int toSpread = Mathf.Min(spreadCount, seedSpreadCandidatesBuffer.Count);
         for (int i = 0; i < toSpread; i++)
         {
-            int randomIndex = Random.Range(i, candidates.Count);
-            BrickController target = candidates[randomIndex];
-            candidates[randomIndex] = candidates[i];
-            candidates[i] = target;
+            int randomIndex = Random.Range(i, seedSpreadCandidatesBuffer.Count);
+            BrickController target = seedSpreadCandidatesBuffer[randomIndex];
+            seedSpreadCandidatesBuffer[randomIndex] = seedSpreadCandidatesBuffer[i];
+            seedSpreadCandidatesBuffer[i] = target;
 
             target.ApplySeedRootDirect(duration, speedMult, spreadRadius, spreadCount, generationsLeft - 1);
         }

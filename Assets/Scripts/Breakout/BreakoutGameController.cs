@@ -91,7 +91,11 @@ public class BreakoutGameController : MonoBehaviour
     {
         BrickController.BrickDestroyed += HandleBrickDestroyed;
         BrickController.BrickRemovedByDanger += HandleBrickRemovedByDanger;
-        PlayerStats.Instance.HealthChanged += HandlePlayerHealthChanged;
+
+        if (PlayerStats.HasInstance)
+        {
+            PlayerStats.Instance.HealthChanged += HandlePlayerHealthChanged;
+        }
     }
 
     private void OnDisable()
@@ -730,7 +734,7 @@ public class BreakoutGameController : MonoBehaviour
         for (int i = 0; i < weightedBuildingDrops.Count; i++)
         {
             BuildingDropTableEntry entry = weightedBuildingDrops[i];
-            if (entry == null || entry.BuildingDefinition == null || entry.Weight <= 0f)
+            if (!IsValidDropEntry(entry))
             {
                 continue;
             }
@@ -748,7 +752,7 @@ public class BreakoutGameController : MonoBehaviour
         for (int i = 0; i < weightedBuildingDrops.Count; i++)
         {
             BuildingDropTableEntry entry = weightedBuildingDrops[i];
-            if (entry == null || entry.BuildingDefinition == null || entry.Weight <= 0f)
+            if (!IsValidDropEntry(entry))
             {
                 continue;
             }
@@ -762,6 +766,11 @@ public class BreakoutGameController : MonoBehaviour
         }
 
         return false;
+    }
+
+    private static bool IsValidDropEntry(BuildingDropTableEntry entry)
+    {
+        return entry != null && entry.BuildingDefinition != null && entry.Weight > 0f;
     }
 
     public bool IsCollector(Transform collectorTransform)

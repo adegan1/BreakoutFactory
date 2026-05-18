@@ -301,13 +301,13 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
 
         DrawSection("Recipe", primarySourceElementProperty, secondarySourceElementProperty, primaryEffectProfileProperty, secondaryEffectProfileProperty);
         DrawSection("Display", displayNameProperty, descriptionProperty, displayColorProperty, ballSpriteProperty, sizeProperty);
-        DrawSection("Movement", movementSpeedProperty);
-        DrawSection("Core Combat", damageProperty, bouncesProperty);
-        DrawSection("Brick Interaction", passThroughBricksProperty, passThroughBallsProperty, directionRestraintProperty, destroyOnWallProperty, appliesBurnProperty);
+        DrawSection("Movement", movementSpeedProperty, directionRestraintProperty);
+        DrawSection("Core Combat", damageProperty, bouncesProperty, timedEffectInitialDelayProperty);
+        DrawSection("Brick Interaction", passThroughBricksProperty, passThroughBallsProperty, destroyOnWallProperty, appliesBurnProperty);
         DrawConditionalGroup(appliesBurnProperty, burnDamageProperty, burnTickIntervalProperty, burnHitCountProperty);
-        EditorGUILayout.PropertyField(lightningBurstProperty);
+        EditorGUILayout.PropertyField(lightningBurstProperty, new GUIContent("Lightning Burst"));
         DrawConditionalGroup(lightningBurstProperty, lightningBurstTargetCountProperty, lightningBurstDamageProperty, lightningBurstRadiusProperty);
-        EditorGUILayout.PropertyField(createsLightningSnakeProperty);
+        EditorGUILayout.PropertyField(createsLightningSnakeProperty, new GUIContent("Lightning Snake"));
         DrawConditionalGroup(
             createsLightningSnakeProperty,
             lightningSnakeBounceCountProperty,
@@ -315,17 +315,21 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             lightningSnakeRadiusProperty,
             lightningSnakeWaterSplitCountProperty,
             lightningSnakeBounceDelayProperty);
-        EditorGUILayout.PropertyField(earthCrackProperty);
+        EditorGUILayout.PropertyField(earthCrackProperty, new GUIContent("Apply Crack"));
         DrawConditionalGroup(earthCrackProperty, shatterDamageProperty, shatterRadiusProperty);
-        EditorGUILayout.PropertyField(createsTremorProperty);
+        EditorGUILayout.PropertyField(createsTremorProperty, new GUIContent("Tremor"));
         DrawConditionalGroup(createsTremorProperty, tremorCrackDamageProperty, tremorCrackRadiusProperty);
-        EditorGUILayout.PropertyField(createsAbrasionProperty);
+        if (createsTremorProperty.boolValue && !earthCrackProperty.boolValue)
+        {
+            EditorGUILayout.HelpBox("Tremor modifies existing crack/shatter behavior. Enable Earth Crack (or another crack source) for consistent results.", MessageType.Info);
+        }
+        EditorGUILayout.PropertyField(createsAbrasionProperty, new GUIContent("Abrasion"));
         DrawConditionalGroup(createsAbrasionProperty, abrasionWeakenDurationProperty);
-        EditorGUILayout.PropertyField(createsCycloneProperty);
+        EditorGUILayout.PropertyField(createsCycloneProperty, new GUIContent("Cyclone"));
         DrawConditionalGroup(createsCycloneProperty, cycloneFollowUpHitCountProperty, cycloneHitDelayProperty, cycloneCurveStrengthProperty);
-        EditorGUILayout.PropertyField(appliesRootProperty);
+        EditorGUILayout.PropertyField(appliesRootProperty, new GUIContent("Apply Root"));
         DrawConditionalGroup(appliesRootProperty, rootDurationProperty, rootSpeedMultiplierProperty);
-        EditorGUILayout.PropertyField(createsSeedProperty);
+        EditorGUILayout.PropertyField(createsSeedProperty, new GUIContent("Seed Spread"));
         DrawConditionalGroup(
             createsSeedProperty,
             seedRootDurationProperty,
@@ -333,7 +337,11 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             seedSpreadRadiusProperty,
             seedSpreadCountProperty,
             seedSpreadGenerationsProperty);
-        EditorGUILayout.PropertyField(createsCombustionProperty);
+        if (createsSeedProperty.boolValue && !appliesRootProperty.boolValue)
+        {
+            EditorGUILayout.HelpBox("Seed spread now depends on Applies Root. Enable Applies Root to activate Seed effects.", MessageType.Info);
+        }
+        EditorGUILayout.PropertyField(createsCombustionProperty, new GUIContent("Combustion"));
         DrawConditionalGroup(
             createsCombustionProperty,
             combustionBurnDamageProperty,
@@ -341,7 +349,7 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             combustionBurnHitCountProperty,
             combustionExplosionDamageProperty,
             combustionExplosionRadiusProperty);
-        EditorGUILayout.PropertyField(createsFireSpreadProperty);
+        EditorGUILayout.PropertyField(createsFireSpreadProperty, new GUIContent("Fire Spread"));
         DrawConditionalGroup(
             createsFireSpreadProperty,
             fireSpreadRadiusProperty,
@@ -349,16 +357,24 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             fireSpreadBonusBurnDamageProperty,
             fireSpreadBurnSpeedMultiplierProperty,
             fireSpreadBurnHitCountBonusProperty);
-        EditorGUILayout.PropertyField(createsForestFireProperty);
+        EditorGUILayout.PropertyField(createsForestFireProperty, new GUIContent("Forest Fire"));
         DrawConditionalGroup(
             createsForestFireProperty,
             forestFireBurnDamageProperty,
             forestFireBurnTickIntervalProperty,
             forestFireBurnHitCountProperty,
             forestFireSpreadGenerationsProperty);
-        EditorGUILayout.PropertyField(createsWaterDropsProperty);
+        EditorGUILayout.PropertyField(createsWaterDropsProperty, new GUIContent("Water Drops"));
         DrawConditionalGroup(createsWaterDropsProperty, waterDropletTypeProperty, waterDropCooldownProperty);
-        EditorGUILayout.PropertyField(createsFlameTrailProperty);
+        EditorGUILayout.PropertyField(createsPressurizedSplashProperty, new GUIContent("Pressurized Splash"));
+        DrawConditionalGroup(
+            createsPressurizedSplashProperty,
+            pressurePerHitProperty,
+            maxPressureProperty,
+            splashDropletTypeProperty,
+            splashDropletCountProperty);
+
+        EditorGUILayout.PropertyField(createsFlameTrailProperty, new GUIContent("Flame Trail"));
         DrawConditionalGroup(
             createsFlameTrailProperty,
             flameTrailSpriteProperty,
@@ -371,7 +387,7 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             flameTrailBurnDamageProperty,
             flameTrailBurnTickIntervalProperty,
             flameTrailBurnHitCountProperty);
-        EditorGUILayout.PropertyField(createsFertileLandProperty);
+        EditorGUILayout.PropertyField(createsFertileLandProperty, new GUIContent("Fertile Land"));
         DrawConditionalGroup(
             createsFertileLandProperty,
             fertilePatchSpriteProperty,
@@ -385,8 +401,19 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             fertilePatchRootRadiusProperty,
             fertilePatchRootDurationProperty,
             fertilePatchRootSpeedMultiplierProperty);
-        EditorGUILayout.PropertyField(timedEffectInitialDelayProperty);
-        EditorGUILayout.PropertyField(createsSteamBurstProperty);
+        if (createsFertileLandProperty.boolValue)
+        {
+            if (!earthCrackProperty.boolValue)
+            {
+                EditorGUILayout.HelpBox("Fertile Land crack values apply only when Earth Crack is enabled.", MessageType.Info);
+            }
+
+            if (!appliesRootProperty.boolValue)
+            {
+                EditorGUILayout.HelpBox("Fertile Land root values apply only when Applies Root is enabled.", MessageType.Info);
+            }
+        }
+        EditorGUILayout.PropertyField(createsSteamBurstProperty, new GUIContent("Steam Burst"));
         DrawConditionalGroup(
             createsSteamBurstProperty,
             steamBurstBallTypeProperty,
@@ -396,25 +423,25 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             steamBurstSpawnRadiusProperty,
             steamBurstSpeedMultiplierProperty,
             steamBurstSpeedLerpDurationProperty);
-        EditorGUILayout.PropertyField(impactBurstProperty);
+        EditorGUILayout.PropertyField(impactBurstProperty, new GUIContent("Impact Burst"));
         DrawConditionalGroup(impactBurstProperty, impactBurstDamageProperty, impactBurstRadiusProperty);
-        EditorGUILayout.PropertyField(createsCollapseProperty);
+        EditorGUILayout.PropertyField(createsCollapseProperty, new GUIContent("Collapse"));
         DrawConditionalGroup(createsCollapseProperty, collapseRadiusProperty, collapseDurationProperty);
-        EditorGUILayout.PropertyField(createsLinearProjectileProperty, new GUIContent("Create Linear Projectile"));
+        EditorGUILayout.PropertyField(createsLinearProjectileProperty, new GUIContent("Linear Projectile"));
         DrawConditionalGroup(
             createsLinearProjectileProperty,
             linearProjectileTypeProperty,
             linearProjectileIncludesTopWallProperty);
-        EditorGUILayout.PropertyField(createsBlackoutProperty);
+        EditorGUILayout.PropertyField(createsBlackoutProperty, new GUIContent("Blackout"));
         DrawConditionalGroup(createsBlackoutProperty, blackoutDamageProperty, blackoutIntervalProperty);
-        EditorGUILayout.PropertyField(createsFirstAidProperty);
+        EditorGUILayout.PropertyField(createsFirstAidProperty, new GUIContent("First Aid"));
         DrawConditionalGroup(createsFirstAidProperty, firstAidHealPerHitProperty, firstAidHealThresholdProperty, firstAidExplosionDamageProperty, firstAidExplosionRadiusProperty);
-        EditorGUILayout.PropertyField(createsElectricCascadeProperty);
+        EditorGUILayout.PropertyField(createsElectricCascadeProperty, new GUIContent("Electric Cascade"));
         DrawConditionalGroup(
             createsElectricCascadeProperty,
             electricCascadeShockDamageProperty,
             electricCascadeConductiveDurationProperty);
-        EditorGUILayout.PropertyField(createsRollingThunderProperty);
+        EditorGUILayout.PropertyField(createsRollingThunderProperty, new GUIContent("Rolling Thunder"));
         DrawConditionalGroup(
             createsRollingThunderProperty,
             rollingThunderStartScaleMultiplierProperty,
@@ -423,20 +450,13 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             rollingThunderSpawnBallTypeProperty,
             rollingThunderMinLaunchAngleProperty,
             rollingThunderMaxLaunchAngleProperty);
-        EditorGUILayout.PropertyField(createsShockTherapyProperty);
+        EditorGUILayout.PropertyField(createsShockTherapyProperty, new GUIContent("Shock Therapy"));
         DrawConditionalGroup(
             createsShockTherapyProperty,
             shockTherapyMinTargetsProperty,
             shockTherapyMaxTargetsProperty,
             shockTherapyDamageProperty,
             shockTherapyHealAmountProperty);
-        EditorGUILayout.PropertyField(createsPressurizedSplashProperty);
-        DrawConditionalGroup(
-            createsPressurizedSplashProperty,
-            pressurePerHitProperty,
-            maxPressureProperty,
-            splashDropletTypeProperty,
-            splashDropletCountProperty);
 
         DrawSection("Compound", isCompoundProperty);
 

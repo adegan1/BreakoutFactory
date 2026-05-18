@@ -26,8 +26,10 @@ MonoBehaviour:
   bounces: -1
   passThroughBricks: 0
   passThroughBalls: 0
-  appliesBurn: 0
-  burnDamage: 1
+  directionRestraint: 0
+  destroyOnWall: 0
+  appliesBurn: 1
+  burnDamage: 2
   burnTickInterval: 0.5
   burnHitCount: 3
   lightningBurst: 0
@@ -43,9 +45,36 @@ MonoBehaviour:
   earthCrack: 0
   shatterDamage: 2
   shatterRadius: 1.4
+  createsTremor: 0
+  tremorCrackDamage: 2
+  tremorCrackRadius: 1.4
+  createsAbrasion: 0
+  abrasionWeakenDuration: 2
+  createsCyclone: 0
+  cycloneFollowUpHitCount: 2
+  cycloneHitDelay: 0.08
+  cycloneCurveStrength: 18
   appliesRoot: 0
   rootDuration: 2
   rootSpeedMultiplier: 0.6
+  createsSeed: 0
+  seedRootDuration: 2.5
+  seedRootSpeedMultiplier: 0.3
+  seedSpreadRadius: 2.5
+  seedSpreadCount: 2
+  seedSpreadGenerations: 3
+  createsCombustion: 0
+  combustionBurnDamage: 1
+  combustionBurnTickInterval: 0.5
+  combustionBurnHitCount: 3
+  combustionExplosionDamage: 2
+  combustionExplosionRadius: 1.8
+  createsFireSpread: 0
+  fireSpreadRadius: 1.75
+  fireSpreadCooldown: 0.35
+  fireSpreadBonusBurnDamage: 1
+  fireSpreadBurnSpeedMultiplier: 1.25
+  fireSpreadBurnHitCountBonus: 1
   createsForestFire: 0
   forestFireBurnDamage: 1
   forestFireBurnTickInterval: 0.5
@@ -65,6 +94,18 @@ MonoBehaviour:
   flameTrailBurnDamage: 1
   flameTrailBurnTickInterval: 0.25
   flameTrailBurnHitCount: 4
+  createsFertileLand: 0
+  fertilePatchSprite: {fileID: 0}
+  fertilePatchColor: {r: 0.35, g: 0.85, b: 0.35, a: 0.95}
+  fertilePatchSizeMultiplier: 0.55
+  fertilePatchSpawnInterval: 0.3
+  fertilePatchRiseSpeed: 2.5
+  fertilePatchLifetime: 2.25
+  fertilePatchCrackShatterDamage: 2
+  fertilePatchCrackShatterRadius: 1.4
+  fertilePatchRootRadius: 2
+  fertilePatchRootDuration: 2
+  fertilePatchRootSpeedMultiplier: 0.6
   timedEffectInitialDelay: 0.5
   createsSteamBurst: 0
   steamBurstBallType: {fileID: 0}
@@ -77,6 +118,40 @@ MonoBehaviour:
   impactBurst: 0
   impactBurstDamage: 1
   impactBurstRadius: 1.6
+  createsCollapse: 0
+  collapseRadius: 1.8
+  collapseDuration: 3
+  createsLinearProjectile: 0
+  linearProjectileType: {fileID: 0}
+  linearProjectileIncludesTopWall: 0
+  createsBlackout: 0
+  blackoutDamage: 1
+  blackoutInterval: 1
+  createsFirstAid: 0
+  firstAidHealPerHit: 1
+  firstAidHealThreshold: 5
+  firstAidExplosionDamage: 3
+  firstAidExplosionRadius: 2
+  createsElectricCascade: 0
+  electricCascadeShockDamage: 1
+  electricCascadeConductiveDuration: 3
+  createsRollingThunder: 0
+  rollingThunderStartScaleMultiplier: 1
+  rollingThunderMaxScaleMultiplier: 2
+  rollingThunderGrowthAmount: 0.2
+  rollingThunderSpawnBallType: {fileID: 0}
+  rollingThunderMinLaunchAngle: 20
+  rollingThunderMaxLaunchAngle: 160
+  createsShockTherapy: 0
+  shockTherapyMinTargets: 1
+  shockTherapyMaxTargets: 3
+  shockTherapyDamage: 1
+  shockTherapyHealAmount: 1
+  createsPressurizedSplash: 0
+  pressurePerHit: 1
+  maxPressure: 4
+  splashDropletType: {fileID: 0}
+  splashDropletCount: 4
   isCompound: 0
   elements: 00000000
   strongAgainst: 

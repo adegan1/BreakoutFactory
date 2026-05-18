@@ -24,8 +24,8 @@ MonoBehaviour:
   movementSpeed: 6
   damage: 1
   bounces: -1
-  passThroughBricks: 0
-  passThroughBalls: 0
+  passThroughBricks: 1
+  passThroughBalls: 1
   directionRestraint: 0
   destroyOnWall: 0
   appliesBurn: 0
@@ -45,6 +45,15 @@ MonoBehaviour:
   earthCrack: 0
   shatterDamage: 2
   shatterRadius: 1.4
+  createsTremor: 0
+  tremorCrackDamage: 2
+  tremorCrackRadius: 1.4
+  createsAbrasion: 0
+  abrasionWeakenDuration: 2
+  createsCyclone: 0
+  cycloneFollowUpHitCount: 2
+  cycloneHitDelay: 0.08
+  cycloneCurveStrength: 18
   appliesRoot: 0
   rootDuration: 2
   rootSpeedMultiplier: 0.6
@@ -112,8 +121,9 @@ MonoBehaviour:
   createsCollapse: 0
   collapseRadius: 1.8
   collapseDuration: 3
-  createsOceanBreeze: 0
-  oceanBreezeWaveType: {fileID: 0}
+  createsLinearProjectile: 0
+  linearProjectileType: {fileID: 0}
+  linearProjectileIncludesTopWall: 0
   createsBlackout: 0
   blackoutDamage: 1
   blackoutInterval: 1
