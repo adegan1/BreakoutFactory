@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEngine;
 
 [CustomEditor(typeof(BallTypeData))]
 public class BallTypeDataEditor : BreakoutDataEditorBase
@@ -17,6 +18,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty bouncesProperty;
     private SerializedProperty passThroughBricksProperty;
     private SerializedProperty passThroughBallsProperty;
+    private SerializedProperty directionRestraintProperty;
+    private SerializedProperty destroyOnWallProperty;
     private SerializedProperty appliesBurnProperty;
     private SerializedProperty burnDamageProperty;
     private SerializedProperty burnTickIntervalProperty;
@@ -34,9 +37,24 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty earthCrackProperty;
     private SerializedProperty shatterDamageProperty;
     private SerializedProperty shatterRadiusProperty;
+    private SerializedProperty createsTremorProperty;
+    private SerializedProperty tremorCrackDamageProperty;
+    private SerializedProperty tremorCrackRadiusProperty;
+    private SerializedProperty createsAbrasionProperty;
+    private SerializedProperty abrasionWeakenDurationProperty;
+    private SerializedProperty createsCycloneProperty;
+    private SerializedProperty cycloneFollowUpHitCountProperty;
+    private SerializedProperty cycloneHitDelayProperty;
+    private SerializedProperty cycloneCurveStrengthProperty;
     private SerializedProperty appliesRootProperty;
     private SerializedProperty rootDurationProperty;
     private SerializedProperty rootSpeedMultiplierProperty;
+    private SerializedProperty createsSeedProperty;
+    private SerializedProperty seedRootDurationProperty;
+    private SerializedProperty seedRootSpeedMultiplierProperty;
+    private SerializedProperty seedSpreadRadiusProperty;
+    private SerializedProperty seedSpreadCountProperty;
+    private SerializedProperty seedSpreadGenerationsProperty;
     private SerializedProperty createsCombustionProperty;
     private SerializedProperty combustionBurnDamageProperty;
     private SerializedProperty combustionBurnTickIntervalProperty;
@@ -68,6 +86,18 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty flameTrailBurnDamageProperty;
     private SerializedProperty flameTrailBurnTickIntervalProperty;
     private SerializedProperty flameTrailBurnHitCountProperty;
+    private SerializedProperty createsFertileLandProperty;
+    private SerializedProperty fertilePatchSpriteProperty;
+    private SerializedProperty fertilePatchColorProperty;
+    private SerializedProperty fertilePatchSizeMultiplierProperty;
+    private SerializedProperty fertilePatchSpawnIntervalProperty;
+    private SerializedProperty fertilePatchRiseSpeedProperty;
+    private SerializedProperty fertilePatchLifetimeProperty;
+    private SerializedProperty fertilePatchCrackShatterDamageProperty;
+    private SerializedProperty fertilePatchCrackShatterRadiusProperty;
+    private SerializedProperty fertilePatchRootRadiusProperty;
+    private SerializedProperty fertilePatchRootDurationProperty;
+    private SerializedProperty fertilePatchRootSpeedMultiplierProperty;
     private SerializedProperty timedEffectInitialDelayProperty;
     private SerializedProperty createsSteamBurstProperty;
     private SerializedProperty steamBurstBallTypeProperty;
@@ -80,6 +110,40 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty impactBurstProperty;
     private SerializedProperty impactBurstDamageProperty;
     private SerializedProperty impactBurstRadiusProperty;
+    private SerializedProperty createsCollapseProperty;
+    private SerializedProperty collapseRadiusProperty;
+    private SerializedProperty collapseDurationProperty;
+    private SerializedProperty createsLinearProjectileProperty;
+    private SerializedProperty linearProjectileTypeProperty;
+    private SerializedProperty linearProjectileIncludesTopWallProperty;
+    private SerializedProperty createsBlackoutProperty;
+    private SerializedProperty blackoutDamageProperty;
+    private SerializedProperty blackoutIntervalProperty;
+    private SerializedProperty createsFirstAidProperty;
+    private SerializedProperty firstAidHealPerHitProperty;
+    private SerializedProperty firstAidHealThresholdProperty;
+    private SerializedProperty firstAidExplosionDamageProperty;
+    private SerializedProperty firstAidExplosionRadiusProperty;
+    private SerializedProperty createsElectricCascadeProperty;
+    private SerializedProperty electricCascadeShockDamageProperty;
+    private SerializedProperty electricCascadeConductiveDurationProperty;
+    private SerializedProperty createsRollingThunderProperty;
+    private SerializedProperty rollingThunderStartScaleMultiplierProperty;
+    private SerializedProperty rollingThunderMaxScaleMultiplierProperty;
+    private SerializedProperty rollingThunderGrowthAmountProperty;
+    private SerializedProperty rollingThunderSpawnBallTypeProperty;
+    private SerializedProperty rollingThunderMinLaunchAngleProperty;
+    private SerializedProperty rollingThunderMaxLaunchAngleProperty;
+    private SerializedProperty createsShockTherapyProperty;
+    private SerializedProperty shockTherapyMinTargetsProperty;
+    private SerializedProperty shockTherapyMaxTargetsProperty;
+    private SerializedProperty shockTherapyDamageProperty;
+    private SerializedProperty shockTherapyHealAmountProperty;
+    private SerializedProperty createsPressurizedSplashProperty;
+    private SerializedProperty pressurePerHitProperty;
+    private SerializedProperty maxPressureProperty;
+    private SerializedProperty splashDropletTypeProperty;
+    private SerializedProperty splashDropletCountProperty;
     private SerializedProperty isCompoundProperty;
     private SerializedProperty elementsProperty;
     private SerializedProperty strongAgainstProperty;
@@ -100,6 +164,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         bouncesProperty = FindProperty("bounces");
         passThroughBricksProperty = FindProperty("passThroughBricks");
         passThroughBallsProperty = FindProperty("passThroughBalls");
+        directionRestraintProperty = FindProperty("directionRestraint");
+        destroyOnWallProperty = FindProperty("destroyOnWall");
         appliesBurnProperty = FindProperty("appliesBurn");
         burnDamageProperty = FindProperty("burnDamage");
         burnTickIntervalProperty = FindProperty("burnTickInterval");
@@ -117,9 +183,24 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         earthCrackProperty = FindProperty("earthCrack");
         shatterDamageProperty = FindProperty("shatterDamage");
         shatterRadiusProperty = FindProperty("shatterRadius");
+        createsTremorProperty = FindProperty("createsTremor");
+        tremorCrackDamageProperty = FindProperty("tremorCrackDamage");
+        tremorCrackRadiusProperty = FindProperty("tremorCrackRadius");
+        createsAbrasionProperty = FindProperty("createsAbrasion");
+        abrasionWeakenDurationProperty = FindProperty("abrasionWeakenDuration");
+        createsCycloneProperty = FindProperty("createsCyclone");
+        cycloneFollowUpHitCountProperty = FindProperty("cycloneFollowUpHitCount");
+        cycloneHitDelayProperty = FindProperty("cycloneHitDelay");
+        cycloneCurveStrengthProperty = FindProperty("cycloneCurveStrength");
         appliesRootProperty = FindProperty("appliesRoot");
         rootDurationProperty = FindProperty("rootDuration");
         rootSpeedMultiplierProperty = FindProperty("rootSpeedMultiplier");
+        createsSeedProperty = FindProperty("createsSeed");
+        seedRootDurationProperty = FindProperty("seedRootDuration");
+        seedRootSpeedMultiplierProperty = FindProperty("seedRootSpeedMultiplier");
+        seedSpreadRadiusProperty = FindProperty("seedSpreadRadius");
+        seedSpreadCountProperty = FindProperty("seedSpreadCount");
+        seedSpreadGenerationsProperty = FindProperty("seedSpreadGenerations");
         createsCombustionProperty = FindProperty("createsCombustion");
         combustionBurnDamageProperty = FindProperty("combustionBurnDamage");
         combustionBurnTickIntervalProperty = FindProperty("combustionBurnTickInterval");
@@ -151,6 +232,18 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         flameTrailBurnDamageProperty = FindProperty("flameTrailBurnDamage");
         flameTrailBurnTickIntervalProperty = FindProperty("flameTrailBurnTickInterval");
         flameTrailBurnHitCountProperty = FindProperty("flameTrailBurnHitCount");
+        createsFertileLandProperty = FindProperty("createsFertileLand");
+        fertilePatchSpriteProperty = FindProperty("fertilePatchSprite");
+        fertilePatchColorProperty = FindProperty("fertilePatchColor");
+        fertilePatchSizeMultiplierProperty = FindProperty("fertilePatchSizeMultiplier");
+        fertilePatchSpawnIntervalProperty = FindProperty("fertilePatchSpawnInterval");
+        fertilePatchRiseSpeedProperty = FindProperty("fertilePatchRiseSpeed");
+        fertilePatchLifetimeProperty = FindProperty("fertilePatchLifetime");
+        fertilePatchCrackShatterDamageProperty = FindProperty("fertilePatchCrackShatterDamage");
+        fertilePatchCrackShatterRadiusProperty = FindProperty("fertilePatchCrackShatterRadius");
+        fertilePatchRootRadiusProperty = FindProperty("fertilePatchRootRadius");
+        fertilePatchRootDurationProperty = FindProperty("fertilePatchRootDuration");
+        fertilePatchRootSpeedMultiplierProperty = FindProperty("fertilePatchRootSpeedMultiplier");
         timedEffectInitialDelayProperty = FindProperty("timedEffectInitialDelay");
         createsSteamBurstProperty = FindProperty("createsSteamBurst");
         steamBurstBallTypeProperty = FindProperty("steamBurstBallType");
@@ -163,6 +256,40 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         impactBurstProperty = FindProperty("impactBurst");
         impactBurstDamageProperty = FindProperty("impactBurstDamage");
         impactBurstRadiusProperty = FindProperty("impactBurstRadius");
+        createsCollapseProperty = FindProperty("createsCollapse");
+        collapseRadiusProperty = FindProperty("collapseRadius");
+        collapseDurationProperty = FindProperty("collapseDuration");
+        createsLinearProjectileProperty = FindProperty("createsLinearProjectile");
+        linearProjectileTypeProperty = FindProperty("linearProjectileType");
+        linearProjectileIncludesTopWallProperty = FindProperty("linearProjectileIncludesTopWall");
+        createsBlackoutProperty = FindProperty("createsBlackout");
+        blackoutDamageProperty = FindProperty("blackoutDamage");
+        blackoutIntervalProperty = FindProperty("blackoutInterval");
+        createsFirstAidProperty = FindProperty("createsFirstAid");
+        firstAidHealPerHitProperty = FindProperty("firstAidHealPerHit");
+        firstAidHealThresholdProperty = FindProperty("firstAidHealThreshold");
+        firstAidExplosionDamageProperty = FindProperty("firstAidExplosionDamage");
+        firstAidExplosionRadiusProperty = FindProperty("firstAidExplosionRadius");
+        createsElectricCascadeProperty = FindProperty("createsElectricCascade");
+        electricCascadeShockDamageProperty = FindProperty("electricCascadeShockDamage");
+        electricCascadeConductiveDurationProperty = FindProperty("electricCascadeConductiveDuration");
+        createsRollingThunderProperty = FindProperty("createsRollingThunder");
+        rollingThunderStartScaleMultiplierProperty = FindProperty("rollingThunderStartScaleMultiplier");
+        rollingThunderMaxScaleMultiplierProperty = FindProperty("rollingThunderMaxScaleMultiplier");
+        rollingThunderGrowthAmountProperty = FindProperty("rollingThunderGrowthAmount");
+        rollingThunderSpawnBallTypeProperty = FindProperty("rollingThunderSpawnBallType");
+        rollingThunderMinLaunchAngleProperty = FindProperty("rollingThunderMinLaunchAngle");
+        rollingThunderMaxLaunchAngleProperty = FindProperty("rollingThunderMaxLaunchAngle");
+        createsShockTherapyProperty = FindProperty("createsShockTherapy");
+        shockTherapyMinTargetsProperty = FindProperty("shockTherapyMinTargets");
+        shockTherapyMaxTargetsProperty = FindProperty("shockTherapyMaxTargets");
+        shockTherapyDamageProperty = FindProperty("shockTherapyDamage");
+        shockTherapyHealAmountProperty = FindProperty("shockTherapyHealAmount");
+        createsPressurizedSplashProperty = FindProperty("createsPressurizedSplash");
+        pressurePerHitProperty = FindProperty("pressurePerHit");
+        maxPressureProperty = FindProperty("maxPressure");
+        splashDropletTypeProperty = FindProperty("splashDropletType");
+        splashDropletCountProperty = FindProperty("splashDropletCount");
         isCompoundProperty = FindProperty("isCompound");
         elementsProperty = FindProperty("elements");
         strongAgainstProperty = FindProperty("strongAgainst");
@@ -176,7 +303,7 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         DrawSection("Display", displayNameProperty, descriptionProperty, displayColorProperty, ballSpriteProperty, sizeProperty);
         DrawSection("Movement", movementSpeedProperty);
         DrawSection("Core Combat", damageProperty, bouncesProperty);
-        DrawSection("Brick Interaction", passThroughBricksProperty, passThroughBallsProperty, appliesBurnProperty);
+        DrawSection("Brick Interaction", passThroughBricksProperty, passThroughBallsProperty, directionRestraintProperty, destroyOnWallProperty, appliesBurnProperty);
         DrawConditionalGroup(appliesBurnProperty, burnDamageProperty, burnTickIntervalProperty, burnHitCountProperty);
         EditorGUILayout.PropertyField(lightningBurstProperty);
         DrawConditionalGroup(lightningBurstProperty, lightningBurstTargetCountProperty, lightningBurstDamageProperty, lightningBurstRadiusProperty);
@@ -190,8 +317,22 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             lightningSnakeBounceDelayProperty);
         EditorGUILayout.PropertyField(earthCrackProperty);
         DrawConditionalGroup(earthCrackProperty, shatterDamageProperty, shatterRadiusProperty);
+        EditorGUILayout.PropertyField(createsTremorProperty);
+        DrawConditionalGroup(createsTremorProperty, tremorCrackDamageProperty, tremorCrackRadiusProperty);
+        EditorGUILayout.PropertyField(createsAbrasionProperty);
+        DrawConditionalGroup(createsAbrasionProperty, abrasionWeakenDurationProperty);
+        EditorGUILayout.PropertyField(createsCycloneProperty);
+        DrawConditionalGroup(createsCycloneProperty, cycloneFollowUpHitCountProperty, cycloneHitDelayProperty, cycloneCurveStrengthProperty);
         EditorGUILayout.PropertyField(appliesRootProperty);
         DrawConditionalGroup(appliesRootProperty, rootDurationProperty, rootSpeedMultiplierProperty);
+        EditorGUILayout.PropertyField(createsSeedProperty);
+        DrawConditionalGroup(
+            createsSeedProperty,
+            seedRootDurationProperty,
+            seedRootSpeedMultiplierProperty,
+            seedSpreadRadiusProperty,
+            seedSpreadCountProperty,
+            seedSpreadGenerationsProperty);
         EditorGUILayout.PropertyField(createsCombustionProperty);
         DrawConditionalGroup(
             createsCombustionProperty,
@@ -230,6 +371,20 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             flameTrailBurnDamageProperty,
             flameTrailBurnTickIntervalProperty,
             flameTrailBurnHitCountProperty);
+        EditorGUILayout.PropertyField(createsFertileLandProperty);
+        DrawConditionalGroup(
+            createsFertileLandProperty,
+            fertilePatchSpriteProperty,
+            fertilePatchColorProperty,
+            fertilePatchSizeMultiplierProperty,
+            fertilePatchSpawnIntervalProperty,
+            fertilePatchRiseSpeedProperty,
+            fertilePatchLifetimeProperty,
+            fertilePatchCrackShatterDamageProperty,
+            fertilePatchCrackShatterRadiusProperty,
+            fertilePatchRootRadiusProperty,
+            fertilePatchRootDurationProperty,
+            fertilePatchRootSpeedMultiplierProperty);
         EditorGUILayout.PropertyField(timedEffectInitialDelayProperty);
         EditorGUILayout.PropertyField(createsSteamBurstProperty);
         DrawConditionalGroup(
@@ -243,6 +398,45 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             steamBurstSpeedLerpDurationProperty);
         EditorGUILayout.PropertyField(impactBurstProperty);
         DrawConditionalGroup(impactBurstProperty, impactBurstDamageProperty, impactBurstRadiusProperty);
+        EditorGUILayout.PropertyField(createsCollapseProperty);
+        DrawConditionalGroup(createsCollapseProperty, collapseRadiusProperty, collapseDurationProperty);
+        EditorGUILayout.PropertyField(createsLinearProjectileProperty, new GUIContent("Create Linear Projectile"));
+        DrawConditionalGroup(
+            createsLinearProjectileProperty,
+            linearProjectileTypeProperty,
+            linearProjectileIncludesTopWallProperty);
+        EditorGUILayout.PropertyField(createsBlackoutProperty);
+        DrawConditionalGroup(createsBlackoutProperty, blackoutDamageProperty, blackoutIntervalProperty);
+        EditorGUILayout.PropertyField(createsFirstAidProperty);
+        DrawConditionalGroup(createsFirstAidProperty, firstAidHealPerHitProperty, firstAidHealThresholdProperty, firstAidExplosionDamageProperty, firstAidExplosionRadiusProperty);
+        EditorGUILayout.PropertyField(createsElectricCascadeProperty);
+        DrawConditionalGroup(
+            createsElectricCascadeProperty,
+            electricCascadeShockDamageProperty,
+            electricCascadeConductiveDurationProperty);
+        EditorGUILayout.PropertyField(createsRollingThunderProperty);
+        DrawConditionalGroup(
+            createsRollingThunderProperty,
+            rollingThunderStartScaleMultiplierProperty,
+            rollingThunderMaxScaleMultiplierProperty,
+            rollingThunderGrowthAmountProperty,
+            rollingThunderSpawnBallTypeProperty,
+            rollingThunderMinLaunchAngleProperty,
+            rollingThunderMaxLaunchAngleProperty);
+        EditorGUILayout.PropertyField(createsShockTherapyProperty);
+        DrawConditionalGroup(
+            createsShockTherapyProperty,
+            shockTherapyMinTargetsProperty,
+            shockTherapyMaxTargetsProperty,
+            shockTherapyDamageProperty,
+            shockTherapyHealAmountProperty);
+        EditorGUILayout.PropertyField(createsPressurizedSplashProperty);
+        DrawConditionalGroup(
+            createsPressurizedSplashProperty,
+            pressurePerHitProperty,
+            maxPressureProperty,
+            splashDropletTypeProperty,
+            splashDropletCountProperty);
 
         DrawSection("Compound", isCompoundProperty);
 

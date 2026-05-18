@@ -18,7 +18,7 @@ MonoBehaviour:
   secondaryEffectProfile: 0
   displayName: 
   description: 
-  displayColor: {r: 0.045122836, g: 0.3677147, b: 0.735849, a: 0.7882353}
+  displayColor: {r: 0.5943396, g: 0.68664235, b: 0.7924528, a: 0.7882353}
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   size: 0.35
   movementSpeed: 4
@@ -26,6 +26,8 @@ MonoBehaviour:
   bounces: 1
   passThroughBricks: 1
   passThroughBalls: 1
+  directionRestraint: 0
+  destroyOnWall: 0
   appliesBurn: 0
   burnDamage: 1
   burnTickInterval: 0.5
@@ -46,6 +48,24 @@ MonoBehaviour:
   appliesRoot: 0
   rootDuration: 2
   rootSpeedMultiplier: 0.6
+  createsSeed: 0
+  seedRootDuration: 2.5
+  seedRootSpeedMultiplier: 0.3
+  seedSpreadRadius: 2.5
+  seedSpreadCount: 2
+  seedSpreadGenerations: 3
+  createsCombustion: 0
+  combustionBurnDamage: 1
+  combustionBurnTickInterval: 0.5
+  combustionBurnHitCount: 3
+  combustionExplosionDamage: 2
+  combustionExplosionRadius: 1.8
+  createsFireSpread: 0
+  fireSpreadRadius: 1.75
+  fireSpreadCooldown: 0.35
+  fireSpreadBonusBurnDamage: 1
+  fireSpreadBurnSpeedMultiplier: 1.25
+  fireSpreadBurnHitCountBonus: 1
   createsForestFire: 0
   forestFireBurnDamage: 1
   forestFireBurnTickInterval: 0.5
@@ -77,6 +97,24 @@ MonoBehaviour:
   impactBurst: 0
   impactBurstDamage: 1
   impactBurstRadius: 1.6
+  createsCollapse: 0
+  collapseRadius: 1.8
+  collapseDuration: 3
+  createsOceanBreeze: 0
+  oceanBreezeWaveType: {fileID: 0}
+  createsBlackout: 0
+  blackoutDamage: 1
+  blackoutInterval: 1
+  createsShockTherapy: 0
+  shockTherapyMinTargets: 1
+  shockTherapyMaxTargets: 3
+  shockTherapyDamage: 1
+  shockTherapyHealAmount: 1
+  createsPressurizedSplash: 0
+  pressurePerHit: 1
+  maxPressure: 4
+  splashDropletType: {fileID: 0}
+  splashDropletCount: 4
   isCompound: 0
   elements: 02000000
   strongAgainst: 0100000005000000

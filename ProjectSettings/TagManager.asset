@@ -8,6 +8,8 @@ TagManager:
   - Paddle
   - Ball
   - AntiStretchUI
+  - SideWall
+  - TopWall
   layers:
   - Default
   - TransparentFX

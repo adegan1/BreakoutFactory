@@ -4,6 +4,13 @@ using System.Collections.Generic;
 
 public class BrickController : MonoBehaviour
 {
+    private enum DamageSource
+    {
+        BallHit,
+        Effect,
+        ElectricCascade
+    }
+
     private struct LightningSnakeNode
     {
         public Vector3 OriginPosition;
@@ -26,6 +33,8 @@ public class BrickController : MonoBehaviour
     private const float DefaultColumnTolerance = 0.6f;
     private const float RowSpacingSafetyMultiplier = 1.1f;
     private const float DefaultRowSpacing = 1.2f;
+    private const float FollowDistanceThresholdMultiplier = 1.05f;
+    private const float MinimumFollowGap = 0.02f;
 
     [SerializeField] private BrickTypeData typeData;
 
@@ -50,15 +59,35 @@ public class BrickController : MonoBehaviour
     private Vector3 targetScale;
     private bool isGrowing;
     private bool isBurning;
+    private bool isWeakened;
+    private float weakenedTimeRemaining;
     private bool isCracked;
     private bool isRooted;
     private bool hasColumnSlow;
+    private bool hasSeedRoot;
+    private float seedRootTimeRemaining;
+    private float seedRootSpeedMult = 1f;
+    private int seedSpreadGenerationsRemaining;
+    private int seedSpreadCount;
+    private float seedSpreadRadius;
+    private float seedRootDuration;
+    private float seedRootBaseSpeedMult = 1f;
     private bool hasCombustion;
     private bool combustionExplosionTriggered;
     private int combustionExplosionDamage;
     private float combustionExplosionRadius;
     private float nextFireSpreadAllowedTime;
+    private bool hasPressurizedSplash;
+    private bool pressureBurstTriggered;
+    private int currentPressure;
+    private int pressureMaxThreshold;
+    private BallTypeData splashDropletType;
+    private int splashDropletCount;
+    private BallController lastHittingBall;
     private bool hasForestFire;
+    private bool hasConductive;
+    private int conductiveShockDamage;
+    private float conductiveTimeRemaining;
     private int forestFireSpreadGenerationsRemaining;
     private int crackShatterDamage = 1;
     private float crackShatterRadius = 1f;
@@ -84,7 +113,8 @@ public class BrickController : MonoBehaviour
     public float DownwardSpeed => downwardSpeed;
     public bool IsPinnedInPlace => inDangerSequence
         || (isRooted && rootSpeedMultiplier <= MinimumRootSpeedMultiplier)
-        || (hasColumnSlow && columnSlowSpeedMultiplier <= MinimumRootSpeedMultiplier);
+        || (hasColumnSlow && columnSlowSpeedMultiplier <= MinimumRootSpeedMultiplier)
+        || (hasSeedRoot && seedRootSpeedMult <= MinimumRootSpeedMultiplier);
     public bool IsEffectivelyStopped => IsPinnedInPlace || IsBlockedBelowByStoppedBrick();
 
     private void Awake()
@@ -103,8 +133,11 @@ public class BrickController : MonoBehaviour
         UpdateSpawnGrowth();
 
         UpdateBurning();
+        UpdateCollapse();
         UpdateRooting();
+        UpdateSeedRoot();
         UpdateColumnSlowing();
+        UpdateConductive();
 
         float currentDownwardSpeed = GetCurrentDownwardSpeed();
         if (!moveDownward || currentDownwardSpeed <= 0f)
@@ -207,12 +240,16 @@ public class BrickController : MonoBehaviour
         maxHitPoints = Mathf.Max(1, configuredHitPoints);
         currentHitPoints = maxHitPoints;
         ClearBurn();
+        ClearCollapse();
         ClearEarthCrack();
         ClearRoot();
         ClearColumnSlow();
         ClearCombustion();
         nextFireSpreadAllowedTime = 0f;
+        ClearPressurizedSplash();
+        ClearSeedRoot();
         ClearForestFire();
+        ClearConductive();
 
         if (spriteRenderer != null)
         {
@@ -259,17 +296,23 @@ public class BrickController : MonoBehaviour
             return;
         }
 
+        lastHittingBall = ball;
         BallTypeData ballTypeData = ball.TypeData;
         bool wasCrackedBeforeHit = isCracked;
 
         int damage = GetDamageFromBall(ball);
-        ApplyDamage(damage);
+        ApplyDamage(damage, DamageSource.BallHit);
+        ball.RegisterRollingThunderBrickHit();
 
         ball.TrySpawnWaterDropsFromBrickHit();
+        ball.NotifyFirstAidBrickHit();
 
         if (wasCrackedBeforeHit)
         {
-            TriggerStoredCrackShatter();
+            bool spreadCrackToShatterHits = ballTypeData != null && ballTypeData.CreatesTremor;
+            int propagatedCrackDamage = spreadCrackToShatterHits ? ballTypeData.TremorCrackDamage : 1;
+            float propagatedCrackRadius = spreadCrackToShatterHits ? ballTypeData.TremorCrackRadius : MinimumEffectRadius;
+            TriggerStoredCrackShatter(spreadCrackToShatterHits, propagatedCrackDamage, propagatedCrackRadius);
         }
 
         ApplyBallTypeEffects(ballTypeData);
@@ -289,20 +332,32 @@ public class BrickController : MonoBehaviour
 
     protected virtual void ApplyDamage(int amount)
     {
+        ApplyDamage(amount, DamageSource.Effect);
+    }
+
+    private void ApplyDamage(int amount, DamageSource source)
+    {
         int clampedAmount = Mathf.Max(0, amount);
         if (clampedAmount <= 0)
         {
             return;
         }
 
-        currentHitPoints -= clampedAmount;
+        int finalDamage = isWeakened ? clampedAmount * 2 : clampedAmount;
+        currentHitPoints -= finalDamage;
 
         UpdateHealthAlpha();
         TriggerDamageFlash();
 
+        if (hasConductive && source != DamageSource.ElectricCascade)
+        {
+            TriggerElectricCascade();
+        }
+
         if (currentHitPoints <= 0)
         {
             TryTriggerCombustionExplosionOnDestroyed();
+            TryTriggerPressureBurstOnDestroyed();
             TrySpreadForestFireOnDestroyed();
             OnBrickDestroyed();
             Destroy(gameObject);
@@ -311,7 +366,95 @@ public class BrickController : MonoBehaviour
 
     public void ApplyDirectEffectDamage(int amount)
     {
-        ApplyDamage(amount);
+        ApplyDamage(amount, DamageSource.Effect);
+    }
+
+    public void ApplyFertileLandPatch(int crackDamage, float crackRadius, float rootRadius, float rootDuration, float rootSpeedMultiplier)
+    {
+        if (currentHitPoints <= 0)
+        {
+            return;
+        }
+
+        SetCrackedState(crackDamage, crackRadius);
+        ApplyRootInRadius(rootRadius, rootDuration, rootSpeedMultiplier);
+    }
+
+    private void ApplyCollapse(BallTypeData ballTypeData)
+    {
+        if (ballTypeData == null)
+        {
+            return;
+        }
+
+        float weakenDuration = Mathf.Max(MinimumDurationSeconds, ballTypeData.CollapseDuration);
+        ApplyWeakened(weakenDuration);
+
+        float weakenRadius = Mathf.Max(MinimumEffectRadius, ballTypeData.CollapseRadius);
+        CollectNearbyBricks(weakenRadius, nearbyBricksBuffer);
+        for (int i = 0; i < nearbyBricksBuffer.Count; i++)
+        {
+            nearbyBricksBuffer[i].ApplyWeakened(weakenDuration);
+        }
+    }
+
+    private void ApplyWeakened(float duration)
+    {
+        isWeakened = true;
+        weakenedTimeRemaining = Mathf.Max(weakenedTimeRemaining, Mathf.Max(MinimumDurationSeconds, duration));
+    }
+
+    private void ApplyCyclone(BallTypeData ballTypeData)
+    {
+        if (ballTypeData == null || currentHitPoints <= 0)
+        {
+            return;
+        }
+
+        int followUpHitCount = Mathf.Max(1, ballTypeData.CycloneFollowUpHitCount);
+        float hitDelay = Mathf.Max(MinimumDurationSeconds, ballTypeData.CycloneHitDelay);
+        int hitDamage = Mathf.Max(1, ballTypeData.Damage);
+        StartCoroutine(ApplyCycloneFollowUpHits(followUpHitCount, hitDelay, hitDamage));
+    }
+
+    private IEnumerator ApplyCycloneFollowUpHits(int followUpHitCount, float hitDelay, int hitDamage)
+    {
+        for (int i = 0; i < followUpHitCount; i++)
+        {
+            if (currentHitPoints <= 0)
+            {
+                yield break;
+            }
+
+            yield return new WaitForSeconds(hitDelay);
+
+            if (currentHitPoints <= 0)
+            {
+                yield break;
+            }
+
+            ApplyDirectEffectDamage(hitDamage);
+        }
+    }
+
+    private void UpdateCollapse()
+    {
+        if (!isWeakened)
+        {
+            return;
+        }
+
+        weakenedTimeRemaining -= Time.deltaTime;
+        if (weakenedTimeRemaining <= 0f)
+        {
+            ClearCollapse();
+        }
+    }
+
+    private void ClearCollapse()
+    {
+        isWeakened = false;
+        weakenedTimeRemaining = 0f;
     }
 
     private void UpdateHealthAlpha()
@@ -505,6 +648,90 @@ public class BrickController : MonoBehaviour
         TriggerCombustionExplosion();
     }
 
+    private void ApplyPressurizedSplash(BallTypeData ballTypeData)
+    {
+        if (ballTypeData == null)
+        {
+            return;
+        }
+
+        if (!hasPressurizedSplash)
+        {
+            hasPressurizedSplash = true;
+            pressureMaxThreshold = Mathf.Max(1, ballTypeData.MaxPressure);
+            splashDropletType = ballTypeData.SplashDropletType;
+            splashDropletCount = Mathf.Max(1, ballTypeData.SplashDropletCount);
+        }
+
+        currentPressure += Mathf.Max(1, ballTypeData.PressurePerHit);
+
+        if (currentPressure >= pressureMaxThreshold && !pressureBurstTriggered)
+        {
+            TriggerPressureBurst();
+        }
+    }
+
+    private void TriggerPressureBurst()
+    {
+        if (pressureBurstTriggered)
+        {
+            return;
+        }
+
+        pressureBurstTriggered = true;
+
+        BallController spawner = lastHittingBall;
+        if (spawner == null)
+        {
+            return;
+        }
+
+        BallTypeData dropletType = splashDropletType;
+        if (dropletType == null)
+        {
+            return;
+        }
+
+        int count = Mathf.Max(1, splashDropletCount);
+        Vector3 origin = transform.position;
+        const float spawnOffset = 0.18f;
+
+        for (int i = 0; i < count; i++)
+        {
+            float angle = 360f / count * i;
+            Vector2 dir = new Vector2(
+                Mathf.Cos(angle * Mathf.Deg2Rad),
+                Mathf.Sin(angle * Mathf.Deg2Rad)).normalized;
+            Vector3 spawnPos = origin + (Vector3)(dir * spawnOffset);
+            spawner.SpawnDropletAt(dropletType, spawnPos, dir);
+        }
+
+        if (currentHitPoints > 0)
+        {
+            ApplyDamage(currentHitPoints);
+        }
+    }
+
+    private void TryTriggerPressureBurstOnDestroyed()
+    {
+        if (!hasPressurizedSplash || currentPressure <= 0 || pressureBurstTriggered)
+        {
+            return;
+        }
+
+        TriggerPressureBurst();
+    }
+
+    private void ClearPressurizedSplash()
+    {
+        hasPressurizedSplash = false;
+        pressureBurstTriggered = false;
+        currentPressure = 0;
+        pressureMaxThreshold = 0;
+        splashDropletType = null;
+        splashDropletCount = 0;
+    }
+
     private void ApplyFireSpread(BallTypeData ballTypeData)
     {
         if (ballTypeData == null)
@@ -602,6 +829,57 @@ public class BrickController : MonoBehaviour
         forestFireSpreadGenerationsRemaining = 0;
     }
 
+    private void ApplyConductive(BallTypeData ballTypeData)
+    {
+        if (ballTypeData == null)
+        {
+            return;
+        }
+
+        hasConductive = true;
+        conductiveShockDamage = Mathf.Max(conductiveShockDamage, Mathf.Max(1, ballTypeData.ElectricCascadeShockDamage));
+        conductiveTimeRemaining = Mathf.Max(conductiveTimeRemaining, Mathf.Max(MinimumDurationSeconds, ballTypeData.ElectricCascadeConductiveDuration));
+    }
+
+    private void ClearConductive()
+    {
+        hasConductive = false;
+        conductiveShockDamage = 0;
+        conductiveTimeRemaining = 0f;
+    }
+
+    private void UpdateConductive()
+    {
+        if (!hasConductive)
+        {
+            return;
+        }
+
+        conductiveTimeRemaining -= Time.deltaTime;
+        if (conductiveTimeRemaining <= 0f)
+        {
+            ClearConductive();
+        }
+    }
+
+    private void TriggerElectricCascade()
+    {
+        int shockDamage = Mathf.Max(1, conductiveShockDamage);
+        List<BrickController> cascadeTargets = new List<BrickController>();
+        CollectCrossLineBricks(this, cascadeTargets);
+
+        for (int i = 0; i < cascadeTargets.Count; i++)
+        {
+            BrickController target = cascadeTargets[i];
+            if (target == null)
+            {
+                continue;
+            }
+
+            target.ApplyDamage(shockDamage, DamageSource.ElectricCascade);
+        }
+    }
+
     private void TrySpreadForestFireOnDestroyed()
     {
         if (!hasForestFire || !isBurning || forestFireSpreadGenerationsRemaining <= 0)
@@ -632,24 +910,24 @@ public class BrickController : MonoBehaviour
         return burnDamage;
     }
 
-    private void ApplyEarthCrackHit(BallTypeData ballTypeData)
+    private void ApplyCrackHit(int crackDamage, float crackRadius)
     {
-        if (ballTypeData == null)
-        {
-            return;
-        }
-
         if (isCracked)
         {
             return;
         }
 
-        isCracked = true;
-        crackShatterDamage = Mathf.Max(1, ballTypeData.ShatterDamage);
-        crackShatterRadius = Mathf.Max(0.1f, ballTypeData.ShatterRadius);
+        SetCrackedState(crackDamage, crackRadius);
     }
 
-    private void TriggerStoredCrackShatter()
+    private void SetCrackedState(int shatterDamage, float shatterRadius)
+    {
+        isCracked = true;
+        crackShatterDamage = Mathf.Max(1, shatterDamage);
+        crackShatterRadius = Mathf.Max(MinimumEffectRadius, shatterRadius);
+    }
+
+    private void TriggerStoredCrackShatter(bool spreadCrackToShatterHits, int propagatedCrackDamage, float propagatedCrackRadius)
     {
         if (!isCracked)
         {
@@ -657,13 +935,15 @@ public class BrickController : MonoBehaviour
         }
 
         isCracked = false;
-        TriggerShatter(crackShatterDamage, crackShatterRadius);
+        TriggerShatter(crackShatterDamage, crackShatterRadius, spreadCrackToShatterHits, propagatedCrackDamage, propagatedCrackRadius);
     }
 
-    private void TriggerShatter(int damage, float radius)
+    private void TriggerShatter(int damage, float radius, bool spreadCrackToShatterHits, int propagatedCrackDamage, float propagatedCrackRadius)
     {
         int shatterDamage = Mathf.Max(1, damage);
         float shatterRadius = Mathf.Max(MinimumEffectRadius, radius);
+        int clampedPropagatedCrackDamage = Mathf.Max(1, propagatedCrackDamage);
+        float clampedPropagatedCrackRadius = Mathf.Max(MinimumEffectRadius, propagatedCrackRadius);
         CollectNearbyBricks(shatterRadius, nearbyBricksBuffer);
         if (nearbyBricksBuffer.Count == 0)
         {
@@ -674,6 +954,13 @@ public class BrickController : MonoBehaviour
         {
             BrickController nearbyBrick = nearbyBricksBuffer[i];
             nearbyBrick.ApplyDamage(shatterDamage);
+
+            if (!spreadCrackToShatterHits || nearbyBrick == null || nearbyBrick.currentHitPoints <= 0)
+            {
+                continue;
+            }
+
+            nearbyBrick.SetCrackedState(clampedPropagatedCrackDamage, clampedPropagatedCrackRadius);
         }
     }
 
@@ -741,6 +1028,32 @@ public class BrickController : MonoBehaviour
         rootSpeedMultiplier = ClampEffectSpeedMultiplier(speedMultiplier);
     }
 
+    private void ApplyRootInRadius(float radius, float duration, float speedMultiplier)
+    {
+        float clampedDuration = Mathf.Max(0f, duration);
+        if (clampedDuration <= 0f)
+        {
+            return;
+        }
+
+        float clampedSpeedMultiplier = ClampEffectSpeedMultiplier(speedMultiplier);
+        float clampedRadius = Mathf.Max(MinimumEffectRadius, radius);
+
+        ApplyRoot(clampedDuration, clampedSpeedMultiplier);
+        CollectNearbyBricks(clampedRadius, nearbyBricksBuffer);
+
+        for (int i = 0; i < nearbyBricksBuffer.Count; i++)
+        {
+            BrickController nearbyBrick = nearbyBricksBuffer[i];
+            if (nearbyBrick == null || nearbyBrick.currentHitPoints <= 0)
+            {
+                continue;
+            }
+
+            nearbyBrick.ApplyRoot(clampedDuration, clampedSpeedMultiplier);
+        }
+    }
+
     private void ApplyColumnSlow(float duration, float speedMultiplier)
     {
         hasColumnSlow = true;
@@ -759,6 +1072,30 @@ public class BrickController : MonoBehaviour
         if (rootTimeRemaining <= 0f)
         {
             ClearRoot();
+        }
+    }
+
+    private void UpdateSeedRoot()
+    {
+        if (!hasSeedRoot)
+        {
+            return;
+        }
+
+        seedRootTimeRemaining -= Time.deltaTime;
+        if (seedRootTimeRemaining <= 0f)
+        {
+            int generationsLeft = seedSpreadGenerationsRemaining;
+            int spreadCount = seedSpreadCount;
+            float spreadRadius = seedSpreadRadius;
+            float nextDuration = seedRootDuration;
+            float nextSpeedMult = seedRootBaseSpeedMult;
+            ClearSeedRoot();
+
+            if (generationsLeft > 0)
+            {
+                SpreadSeedRoot(generationsLeft, spreadCount, spreadRadius, nextDuration, nextSpeedMult);
+            }
         }
     }
 
@@ -798,7 +1135,15 @@ public class BrickController : MonoBehaviour
         if (IsBlockedBelowByStoppedBrick())
             return 0f;
 
-        return downwardSpeed * GetAppliedSpeedMultiplier();
+        float currentSpeed = downwardSpeed * GetAppliedSpeedMultiplier();
+        float followGapThreshold = Mathf.Max(MinimumFollowGap, GetRowSpacingEstimate() * FollowDistanceThresholdMultiplier);
+
+        if (TryGetClosestBrickBelow(followGapThreshold, out BrickController brickAhead, out float _))
+        {
+            currentSpeed = Mathf.Min(currentSpeed, brickAhead.GetCurrentDownwardSpeed());
+        }
+
+        return Mathf.Max(0f, currentSpeed);
     }
 
     private float GetColumnTolerance()
@@ -814,11 +1159,23 @@ public class BrickController : MonoBehaviour
 
     private bool IsBlockedBelowByStoppedBrick()
     {
+        if (!TryGetClosestBrickBelow(GetRowSpacingEstimate(), out BrickController brickAhead, out float _))
+            return false;
+
+        return brickAhead.IsEffectivelyStopped;
+    }
+
+    private bool TryGetClosestBrickBelow(float maxGap, out BrickController closestBrick, out float verticalGap)
+    {
+        closestBrick = null;
+        verticalGap = 0f;
+
         if (transform.parent == null)
             return false;
 
-        float maxGap = GetRowSpacingEstimate();
+        float clampedMaxGap = Mathf.Max(MinimumFollowGap, maxGap);
         float xTolerance = GetColumnTolerance();
+        float closestGap = float.PositiveInfinity;
 
         for (int i = 0; i < transform.parent.childCount; i++)
         {
@@ -827,17 +1184,27 @@ public class BrickController : MonoBehaviour
                 continue;
 
             float dy = transform.position.y - child.position.y;
-            if (dy <= 0f || dy > maxGap)
+            if (dy <= 0f || dy > clampedMaxGap)
                 continue;
 
             if (Mathf.Abs(child.position.x - transform.position.x) > xTolerance)
                 continue;
 
-            if (child.TryGetComponent<BrickController>(out BrickController brick) && brick.IsEffectivelyStopped)
-                return true;
+            if (!child.TryGetComponent<BrickController>(out BrickController brick) || brick.CurrentHitPoints <= 0)
+                continue;
+
+            if (dy >= closestGap)
+                continue;
+
+            closestGap = dy;
+            closestBrick = brick;
         }
 
-        return false;
+        if (closestBrick == null)
+            return false;
+
+        verticalGap = closestGap;
+        return true;
     }
 
     private float GetRowSpacingEstimate()
@@ -1015,7 +1382,22 @@ public class BrickController : MonoBehaviour
 
         if (ballTypeData.EarthCrack)
         {
-            ApplyEarthCrackHit(ballTypeData);
+            ApplyCrackHit(ballTypeData.ShatterDamage, ballTypeData.ShatterRadius);
+        }
+
+        if (ballTypeData.CreatesTremor)
+        {
+            ApplyCrackHit(ballTypeData.TremorCrackDamage, ballTypeData.TremorCrackRadius);
+        }
+
+        if (ballTypeData.CreatesAbrasion)
+        {
+            ApplyWeakened(ballTypeData.AbrasionWeakenDuration);
+        }
+
+        if (ballTypeData.CreatesCyclone)
+        {
+            ApplyCyclone(ballTypeData);
         }
 
         if (ballTypeData.AppliesRoot && currentHitPoints > 0)
@@ -1038,9 +1420,29 @@ public class BrickController : MonoBehaviour
             ApplyForestFire(ballTypeData);
         }
 
+        if (ballTypeData.CreatesElectricCascade)
+        {
+            ApplyConductive(ballTypeData);
+        }
+
         if (ballTypeData.ImpactBurst)
         {
             ApplyImpactBurst(ballTypeData);
+        }
+
+        if (ballTypeData.CreatesCollapse)
+        {
+            ApplyCollapse(ballTypeData);
+        }
+
+        if (ballTypeData.CreatesPressurizedSplash)
+        {
+            ApplyPressurizedSplash(ballTypeData);
+        }
+
+        if (ballTypeData.CreatesSeed)
+        {
+            ApplySeedRoot(ballTypeData, ballTypeData.SeedSpreadGenerations);
         }
     }
 
@@ -1164,6 +1566,53 @@ public class BrickController : MonoBehaviour
         }
     }
 
+    private void CollectCrossLineBricks(BrickController origin, List<BrickController> results)
+    {
+        results.Clear();
+        if (origin == null)
+        {
+            return;
+        }
+
+        Transform parent = origin.transform.parent;
+        if (parent == null)
+        {
+            return;
+        }
+
+        float sourceWidth = origin.brickCollider != null ? origin.brickCollider.bounds.size.x : 1f;
+        float sourceHeight = origin.brickCollider != null ? origin.brickCollider.bounds.size.y : 1f;
+        float rowTolerance = Mathf.Max(MinimumColumnTolerance, sourceHeight * 0.35f);
+        float columnTolerance = Mathf.Max(MinimumColumnTolerance, sourceWidth * 0.35f);
+        Vector3 originPosition = origin.transform.position;
+
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform child = parent.GetChild(i);
+            if (child == null || child == origin.transform)
+            {
+                continue;
+            }
+
+            if (!child.TryGetComponent<BrickController>(out BrickController alignedBrick) || alignedBrick.CurrentHitPoints <= 0)
+            {
+                continue;
+            }
+
+            float dx = Mathf.Abs(child.position.x - originPosition.x);
+            float dy = Mathf.Abs(child.position.y - originPosition.y);
+            bool sameRow = dy <= rowTolerance;
+            bool sameColumn = dx <= columnTolerance;
+
+            if (!sameRow && !sameColumn)
+            {
+                continue;
+            }
+
+            results.Add(alignedBrick);
+        }
+    }
+
     private int GetLightningTargetBonus()
     {
         if (typeData == null || !typeData.AmplifiesLightning)
@@ -1270,6 +1719,78 @@ public class BrickController : MonoBehaviour
             speedMultiplier = Mathf.Min(speedMultiplier, ClampEffectSpeedMultiplier(columnSlowSpeedMultiplier));
         }
 
+        if (hasSeedRoot)
+        {
+            speedMultiplier = Mathf.Min(speedMultiplier, ClampEffectSpeedMultiplier(seedRootSpeedMult));
+        }
+
         return speedMultiplier;
+    }
+
+    private void ApplySeedRoot(BallTypeData ballTypeData, int generationsRemaining)
+    {
+        if (ballTypeData == null || generationsRemaining < 0)
+        {
+            return;
+        }
+
+        hasSeedRoot = true;
+        seedRootTimeRemaining = Mathf.Max(MinimumDurationSeconds, ballTypeData.SeedRootDuration);
+        seedRootSpeedMult = ClampEffectSpeedMultiplier(ballTypeData.SeedRootSpeedMultiplier);
+        seedSpreadGenerationsRemaining = generationsRemaining;
+        seedSpreadCount = Mathf.Max(1, ballTypeData.SeedSpreadCount);
+        seedSpreadRadius = Mathf.Max(MinimumEffectRadius, ballTypeData.SeedSpreadRadius);
+        seedRootDuration = Mathf.Max(MinimumDurationSeconds, ballTypeData.SeedRootDuration);
+        seedRootBaseSpeedMult = ClampEffectSpeedMultiplier(ballTypeData.SeedRootSpeedMultiplier);
+    }
+
+    private void ApplySeedRootDirect(float duration, float speedMult, float spreadRadius, int spreadCount, int generationsRemaining)
+    {
+        hasSeedRoot = true;
+        seedRootTimeRemaining = duration;
+        seedRootSpeedMult = speedMult;
+        seedSpreadGenerationsRemaining = generationsRemaining;
+        seedSpreadCount = spreadCount;
+        seedSpreadRadius = spreadRadius;
+        seedRootDuration = duration;
+        seedRootBaseSpeedMult = speedMult;
+    }
+
+    private void SpreadSeedRoot(int generationsLeft, int spreadCount, float spreadRadius, float duration, float speedMult)
+    {
+        List<BrickController> candidates = new List<BrickController>();
+        CollectNearbyBricks(spreadRadius, candidates);
+
+        // Remove bricks already seed-rooted so spread always reaches new bricks.
+        for (int i = candidates.Count - 1; i >= 0; i--)
+        {
+            if (candidates[i].hasSeedRoot)
+            {
+                candidates.RemoveAt(i);
+            }
+        }
+
+        int toSpread = Mathf.Min(spreadCount, candidates.Count);
+        for (int i = 0; i < toSpread; i++)
+        {
+            int randomIndex = Random.Range(i, candidates.Count);
+            BrickController target = candidates[randomIndex];
+            candidates[randomIndex] = candidates[i];
+            candidates[i] = target;
+
+            target.ApplySeedRootDirect(duration, speedMult, spreadRadius, spreadCount, generationsLeft - 1);
+        }
+    }
+
+    private void ClearSeedRoot()
+    {
+        hasSeedRoot = false;
+        seedRootTimeRemaining = 0f;
+        seedRootSpeedMult = 1f;
+        seedSpreadGenerationsRemaining = 0;
+        seedSpreadCount = 0;
+        seedSpreadRadius = 0f;
+        seedRootDuration = 0f;
+        seedRootBaseSpeedMult = 1f;
     }
 }

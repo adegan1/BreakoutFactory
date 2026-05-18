@@ -34,12 +34,41 @@ MonoBehaviour:
   lightningBurstTargetCount: 2
   lightningBurstDamage: 1
   lightningBurstRadius: 2
+  createsLightningSnake: 0
+  lightningSnakeBounceCount: 4
+  lightningSnakeDamage: 1
+  lightningSnakeRadius: 2
+  lightningSnakeWaterSplitCount: 2
+  lightningSnakeBounceDelay: 0.06
   earthCrack: 0
   shatterDamage: 2
   shatterRadius: 1.4
   appliesRoot: 0
   rootDuration: 2
   rootSpeedMultiplier: 0.6
+  createsSeed: 0
+  seedRootDuration: 2.5
+  seedRootSpeedMultiplier: 0.3
+  seedSpreadRadius: 2.5
+  seedSpreadCount: 2
+  seedSpreadGenerations: 3
+  createsCombustion: 0
+  combustionBurnDamage: 1
+  combustionBurnTickInterval: 0.5
+  combustionBurnHitCount: 3
+  combustionExplosionDamage: 2
+  combustionExplosionRadius: 1.8
+  createsFireSpread: 0
+  fireSpreadRadius: 1.75
+  fireSpreadCooldown: 0.35
+  fireSpreadBonusBurnDamage: 1
+  fireSpreadBurnSpeedMultiplier: 1.25
+  fireSpreadBurnHitCountBonus: 1
+  createsForestFire: 0
+  forestFireBurnDamage: 1
+  forestFireBurnTickInterval: 0.5
+  forestFireBurnHitCount: 3
+  forestFireSpreadGenerations: 2
   createsWaterDrops: 0
   waterDropletType: {fileID: 0}
   waterDropCooldown: 0.08
@@ -54,9 +83,29 @@ MonoBehaviour:
   flameTrailBurnDamage: 1
   flameTrailBurnTickInterval: 0.5
   flameTrailBurnHitCount: 2
+  timedEffectInitialDelay: 0.15
+  createsSteamBurst: 0
+  steamBurstBallType: {fileID: 0}
+  steamBurstBallCount: 8
+  steamBurstMinInterval: 3
+  steamBurstMaxInterval: 6
+  steamBurstSpawnRadius: 0.18
+  steamBurstSpeedMultiplier: 1.35
+  steamBurstSpeedLerpDuration: 1.5
   impactBurst: 0
   impactBurstDamage: 1
   impactBurstRadius: 4.15
+  createsCollapse: 0
+  collapseRadius: 1.8
+  collapseDuration: 3
+  createsOceanBreeze: 0
+  oceanBreezeWaveBrickCount: 4
+  oceanBreezeWaveSpawnOffset: 0.18
+  createsPressurizedSplash: 1
+  pressurePerHit: 1
+  maxPressure: 5
+  splashDropletType: {fileID: 11400000, guid: 6dea672d679ec5b43af173269f135225, type: 2}
+  splashDropletCount: 4
   isCompound: 0
   elements: 00000000
   strongAgainst: 
