@@ -66,7 +66,10 @@ public class TooltipUI : MonoBehaviour
             return;
         }
 
-        instance.gameObject.SetActive(false);
+        if (instance.panelRoot != null)
+        {
+            instance.panelRoot.gameObject.SetActive(false);
+        }
     }
 
     private void ShowInternal(string title, string description)
@@ -83,11 +86,9 @@ public class TooltipUI : MonoBehaviour
             descriptionText.gameObject.SetActive(!string.IsNullOrEmpty(description));
         }
 
-        gameObject.SetActive(true);
-
-        // Force layout rebuild so the panel resizes before we clamp position.
         if (panelRoot != null)
         {
+            panelRoot.gameObject.SetActive(true);
             UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(panelRoot);
         }
 
@@ -96,7 +97,7 @@ public class TooltipUI : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (gameObject.activeSelf)
+        if (panelRoot != null && panelRoot.gameObject.activeSelf)
         {
             UpdatePosition();
         }

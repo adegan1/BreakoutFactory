@@ -180,3 +180,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BreakoutItemDrop
   spriteRenderer: {fileID: 2577914820872018110}
+  rotationSpeed: 15
+  bobAmplitude: 0.08
+  bobFrequency: 0.5
+  scalePulseAmplitude: 0.12

@@ -8,6 +8,12 @@ public class BreakoutItemDrop : MonoBehaviour
     [Header("Visuals")]
     [SerializeField] private SpriteRenderer spriteRenderer;
 
+    [Header("Drop Animation")]
+    [SerializeField] private float rotationSpeed = 360f; // degrees per second
+    [SerializeField] private float bobAmplitude = 0.3f; // how far up/down to bob
+    [SerializeField] private float bobFrequency = 2f; // how fast to bob
+    [SerializeField] private float scalePulseAmplitude = 0.1f; // scale pulse intensity
+
     private BreakoutGameController owningController;
     private BuildingDefinition buildingDefinition;
     private int quantity;
@@ -15,6 +21,9 @@ public class BreakoutItemDrop : MonoBehaviour
     private float bottomKillY;
     private bool isCollected;
     private bool isMovementLocked;
+    private Vector3 startPosition;
+    private float elapsedTime;
+    private Vector3 initialScale;
 
     public BuildingDefinition BuildingDefinition => buildingDefinition;
     public int Quantity => quantity;
@@ -38,6 +47,10 @@ public class BreakoutItemDrop : MonoBehaviour
 
         Collider2D dropCollider = GetComponent<Collider2D>();
         dropCollider.isTrigger = true;
+
+        startPosition = transform.position;
+        elapsedTime = 0f;
+        initialScale = transform.localScale;
     }
 
     private void Update()
@@ -47,7 +60,18 @@ public class BreakoutItemDrop : MonoBehaviour
             return;
         }
 
-        transform.position += Vector3.down * Mathf.Max(0f, fallSpeed) * Time.deltaTime;
+        elapsedTime += Time.deltaTime;
+
+        // Spin
+        transform.rotation *= Quaternion.Euler(0f, 0f, rotationSpeed * Time.deltaTime);
+
+        // Fall with bob and scale pulse
+        float fallDistance = Mathf.Max(0f, fallSpeed) * elapsedTime;
+        float bobOffset = Mathf.Sin(elapsedTime * bobFrequency * Mathf.PI * 2f) * bobAmplitude;
+        float scalePulse = (1f - scalePulseAmplitude) + Mathf.Sin(elapsedTime * bobFrequency * Mathf.PI * 2f - Mathf.PI / 2f) * scalePulseAmplitude;
+
+        transform.position = startPosition + new Vector3(0f, -fallDistance + bobOffset, 0f);
+        transform.localScale = initialScale * scalePulse;
 
         if (transform.position.y < bottomKillY)
         {
@@ -111,6 +135,7 @@ public class BreakoutItemDrop : MonoBehaviour
     public void StopMovement()
     {
         isMovementLocked = true;
+        transform.rotation = Quaternion.identity; // Reset rotation when paused
     }
 
     public void ApplyLevelCompletePauseVisual(float grayscaleBlend, float alphaMultiplier)
