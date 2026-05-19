@@ -4472,9 +4472,9 @@ MonoBehaviour:
   itemDropBottomKillY: -6
   weightedBuildingDrops:
   - buildingDefinition: {fileID: 11400000, guid: 9ee3ce427af21a547a30648e8e8e5a21, type: 2}
-    weight: 9
-    minQuantity: 3
-    maxQuantity: 12
+    weight: 10
+    minQuantity: 5
+    maxQuantity: 15
   - buildingDefinition: {fileID: 11400000, guid: d916ecbf3d00aa34085b40b06ea73067, type: 2}
     weight: 4
     minQuantity: 0
@@ -4858,8 +4858,8 @@ MonoBehaviour:
   - typeData: {fileID: 11400000, guid: 0f820a6fe33f08f43957becd1b6b398b, type: 2}
     weight: 1
   scaleRowsByCurrentLevel: 1
-  rowsMaxBonusMultiplier: 8
-  rowsGrowthRate: 0.12
+  rowsMaxBonusMultiplier: 6
+  rowsGrowthRate: 0.1
   scaleBrickHealthByCurrentLevel: 1
   brickHealthMaxBonusMultiplier: 10
   brickHealthGrowthRate: 0.2

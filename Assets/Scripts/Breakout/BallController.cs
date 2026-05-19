@@ -64,6 +64,7 @@ public class BallController : MonoBehaviour
     private Vector3 baseLocalScale;
     private Vector3 typeBaseScale;
     private bool launched;
+    private bool isForceStopped;
     private bool hasBeenLost;
     private bool passThroughBricks;
     private bool passThroughBalls;
@@ -100,6 +101,7 @@ public class BallController : MonoBehaviour
     public void StopMovement()
     {
         launched = false;
+        isForceStopped = true;
         if (rb != null)
         {
             rb.linearVelocity = Vector2.zero;
@@ -161,6 +163,11 @@ public class BallController : MonoBehaviour
             TrySpawnSteamBurstOverTime();
             TryApplyBlackout();
         }
+        if (isForceStopped)
+        {
+            return;
+        }
+
         Vector2 currentVelocity = rb.linearVelocity;
 
         if (currentVelocity.sqrMagnitude > VelocitySqrThreshold)
