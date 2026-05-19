@@ -970,9 +970,12 @@ public class FactoryBuildingPlacer : MonoBehaviour
             footprintCenter.z = tileManager.GridPlaneZ + hoverZOffset;
 
             previewHighlight.position = footprintCenter;
+            Vector2 previewScale = entry.Definition != null
+                ? entry.Definition.GetVisualScale(entry.FootprintSize, entry.RotationQuarterTurns)
+                : new Vector2(entry.FootprintSize.x, entry.FootprintSize.y);
             previewHighlight.localScale = new Vector3(
-                entry.FootprintSize.x * tileManager.TileSize,
-                entry.FootprintSize.y * tileManager.TileSize,
+                previewScale.x * tileManager.TileSize,
+                previewScale.y * tileManager.TileSize,
                 1f);
             previewHighlight.rotation = Quaternion.Euler(0f, 0f, entry.RotationQuarterTurns * 90f);
             previewHighlight.gameObject.SetActive(true);
@@ -1102,14 +1105,10 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (tileManager != null)
         {
-            Vector2Int occupiedFootprint = GetRotatedFootprintSize(definition.FootprintSize);
-            Vector2Int previewScaleFootprint = (quarterTurns & 1) == 0
-                ? occupiedFootprint
-                : new Vector2Int(occupiedFootprint.y, occupiedFootprint.x);
-
+            Vector2 previewScale = definition.GetVisualScale(definition.FootprintSize, quarterTurns);
             hoverHighlight.localScale = new Vector3(
-                previewScaleFootprint.x * tileManager.TileSize,
-                previewScaleFootprint.y * tileManager.TileSize,
+                previewScale.x * tileManager.TileSize,
+                previewScale.y * tileManager.TileSize,
                 1f);
         }
 
@@ -2048,7 +2047,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         if (buildingInstance != null)
         {
             buildingInstance.SetGridPosition(optimalTopLeft, footprintSize, rotationQuarterTurns);
-            buildingInstance.Initialize(selectedBuildingDefinition);
+            buildingInstance.Initialize(selectedBuildingDefinition, tileManager != null ? tileManager.TileSize : 1f);
         }
 
         ApplyStoredMachineResourceIfAvailable(spawned, selectedBuildingDefinition);
@@ -3546,7 +3545,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         if (buildingInstance != null)
         {
             buildingInstance.SetGridPosition(topLeftGridPosition, footprintSize, rotationQuarterTurns);
-            buildingInstance.Initialize(definition);
+            buildingInstance.Initialize(definition, tileManager != null ? tileManager.TileSize : 1f);
         }
 
         PlacedBuildingRecord record = new PlacedBuildingRecord(spawned, definition, topLeftGridPosition, footprintSize, rotationQuarterTurns);

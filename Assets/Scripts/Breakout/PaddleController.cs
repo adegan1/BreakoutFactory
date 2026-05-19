@@ -63,6 +63,11 @@ public class PaddleController : MonoBehaviour
     {
         TrySubscribeToPlayerStats();
 
+        if (Time.timeScale == 0f)
+        {
+            return;
+        }
+
         if (mouseControls)
         {
             MoveWithMouse();

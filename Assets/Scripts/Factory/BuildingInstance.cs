@@ -10,6 +10,7 @@ public class BuildingInstance : MonoBehaviour
     private Vector2Int gridPosition;
     private Vector2Int footprintSize;
     private int rotationQuarterTurns;
+    private float tileSize = 1f;
 
     public BuildingDefinition BuildingDefinition => buildingDefinition;
     public Vector2Int GridPosition => gridPosition;
@@ -40,9 +41,10 @@ public class BuildingInstance : MonoBehaviour
         }
     }
 
-    public void Initialize(BuildingDefinition definition)
+    public void Initialize(BuildingDefinition definition, float tileSizeValue = 1f)
     {
         buildingDefinition = definition;
+        tileSize = tileSizeValue;
         ApplyDefinitionVisuals();
     }
 
@@ -70,15 +72,7 @@ public class BuildingInstance : MonoBehaviour
         targetSpriteRenderer.sprite = buildingDefinition.BuildingSprite;
         targetSpriteRenderer.color = buildingDefinition.BuildingColor;
 
-        // Scale sprite to match occupied footprint in world space.
-        // For 90/270 degree turns, occupied width/height are swapped relative to local sprite axes.
-        if (footprintSize.x > 0 && footprintSize.y > 0)
-        {
-            Vector2Int scaleFootprint = (rotationQuarterTurns & 1) == 0
-                ? footprintSize
-                : new Vector2Int(footprintSize.y, footprintSize.x);
-
-            targetSpriteRenderer.transform.localScale = new Vector3(scaleFootprint.x, scaleFootprint.y, 1f);
-        }
+        Vector2 visualScale = buildingDefinition.GetVisualScale(footprintSize, rotationQuarterTurns);
+        targetSpriteRenderer.transform.localScale = new Vector3(visualScale.x * tileSize, visualScale.y * tileSize, 1f);
     }
 }

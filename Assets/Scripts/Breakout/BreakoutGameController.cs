@@ -156,6 +156,11 @@ public class BreakoutGameController : MonoBehaviour
 
     private void Update()
     {
+        if (Time.timeScale == 0f)
+        {
+            return;
+        }
+
         if (isLevelCompleteLocked)
         {
             return;
@@ -313,9 +318,53 @@ public class BreakoutGameController : MonoBehaviour
             return;
         }
 
+        if (!CanSpawnDropForDefinition(selectedDrop.BuildingDefinition, quantity))
+        {
+            return;
+        }
+
         BreakoutItemDrop droppedItem = Instantiate(itemDropPrefab, destroyedBrick.transform.position, Quaternion.identity);
         droppedItem.Initialize(this, selectedDrop.BuildingDefinition, quantity, itemDropFallSpeed, itemDropBottomKillY);
         dropsSpawnedThisLevel++;
+    }
+
+    private bool CanSpawnDropForDefinition(BuildingDefinition buildingDefinition, int dropQuantity)
+    {
+        if (buildingDefinition == null || dropQuantity <= 0 || InventoryManager.Instance == null)
+        {
+            return false;
+        }
+
+        int maxOwnedQuantity = buildingDefinition.MaxOwnedQuantityFromBreakoutDrops;
+        if (maxOwnedQuantity <= 0)
+        {
+            return true;
+        }
+
+        int currentOwnedQuantity = InventoryManager.Instance.GetBuildingQuantity(buildingDefinition);
+        int placedOwnedQuantity = CountPlacedBuildings(buildingDefinition);
+        return currentOwnedQuantity + placedOwnedQuantity + dropQuantity <= maxOwnedQuantity;
+    }
+
+    private static int CountPlacedBuildings(BuildingDefinition buildingDefinition)
+    {
+        if (buildingDefinition == null)
+        {
+            return 0;
+        }
+
+        BuildingInstance[] buildingInstances = FindObjectsByType<BuildingInstance>(FindObjectsSortMode.None);
+        int count = 0;
+        for (int i = 0; i < buildingInstances.Length; i++)
+        {
+            BuildingInstance buildingInstance = buildingInstances[i];
+            if (buildingInstance != null && buildingInstance.BuildingDefinition == buildingDefinition)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     private bool ShouldForceGuaranteedDropByProgress()

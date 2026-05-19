@@ -17,6 +17,9 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
     private SerializedProperty conveyorTurnLeftSpriteProperty;
     private SerializedProperty conveyorTurnRightSpriteProperty;
     private SerializedProperty scrapDropAmountProperty;
+    private SerializedProperty spriteScaleModeProperty;
+    private SerializedProperty customSpriteScaleProperty;
+    private SerializedProperty maxOwnedQuantityFromBreakoutDropsProperty;
 
     private void OnEnable()
     {
@@ -33,6 +36,9 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
         conveyorTurnLeftSpriteProperty = FindProperty("conveyorTurnLeftSprite");
         conveyorTurnRightSpriteProperty = FindProperty("conveyorTurnRightSprite");
         scrapDropAmountProperty = FindProperty("scrapDropAmount");
+        spriteScaleModeProperty = FindProperty("spriteScaleMode");
+        customSpriteScaleProperty = FindProperty("customSpriteScale");
+        maxOwnedQuantityFromBreakoutDropsProperty = FindProperty("maxOwnedQuantityFromBreakoutDrops");
     }
 
     public override void OnInspectorGUI()
@@ -53,7 +59,14 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
         {
             DrawSection("Conveyor Visuals", conveyorStraightSpriteProperty, conveyorTurnLeftSpriteProperty, conveyorTurnRightSpriteProperty);
         }
-        DrawSection("Drops", scrapDropAmountProperty);
+
+        DrawSection("Visuals", spriteScaleModeProperty);
+        if (spriteScaleModeProperty.enumValueIndex == (int)BuildingDefinition.SpriteScaleMode.Custom)
+        {
+            EditorGUILayout.PropertyField(customSpriteScaleProperty);
+        }
+
+        DrawSection("Drops", scrapDropAmountProperty, maxOwnedQuantityFromBreakoutDropsProperty);
 
         serializedObject.ApplyModifiedProperties();
     }

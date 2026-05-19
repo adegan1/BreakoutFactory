@@ -14,14 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
   displayName: Fusion Reactor
   description: Combines elemental resources to create new elements
-  buildingSprite: {fileID: 7482667652216324306, guid: aaa3a88405f852449a8bf191b46d71c0, type: 3}
+  buildingSprite: {fileID: -5030582437629207192, guid: c4b9b5e782b11a144b98deb13fec2605, type: 3}
   buildingColor: {r: 1, g: 0.6939391, b: 0.6462264, a: 1}
   footprintWidth: 2
   footprintHeight: 3
   behaviorPrefab: {fileID: 1276502763047268258, guid: a6fc1b56d619dee4cb67941612852517, type: 3}
   generatorSettings: {fileID: 0}
   isConveyor: 0
+  spriteScaleMode: 1
+  customSpriteScale: {x: 1, y: 1}
   conveyorStraightSprite: {fileID: 0}
   conveyorTurnLeftSprite: {fileID: 0}
   conveyorTurnRightSprite: {fileID: 0}
   scrapDropAmount: 7
+  maxOwnedQuantityFromBreakoutDrops: 14

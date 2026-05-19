@@ -333,6 +333,7 @@ public class BreakoutHudController : MonoBehaviour
         {
             Image spawnedIcon = Instantiate(prefab, root);
             spawnedIcon.gameObject.name = namePrefix + i;
+            spawnedIcon.preserveAspect = true;
             spawnedIcon.gameObject.SetActive(false);
             iconPool.Add(spawnedIcon);
 

@@ -23,7 +23,10 @@ MonoBehaviour:
   behaviorPrefab: {fileID: 1276502763047268258, guid: 74abf8241bbe3c740b263c2b8a4b8f29, type: 3}
   generatorSettings: {fileID: 0}
   isConveyor: 0
+  spriteScaleMode: 0
+  customSpriteScale: {x: 1, y: 1}
   conveyorStraightSprite: {fileID: 0}
   conveyorTurnLeftSprite: {fileID: 0}
   conveyorTurnRightSprite: {fileID: 0}
   scrapDropAmount: 5
+  maxOwnedQuantityFromBreakoutDrops: 7

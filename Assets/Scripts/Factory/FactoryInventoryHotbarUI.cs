@@ -319,6 +319,7 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
         {
             slot.IconImage.sprite = definition.BuildingSprite;
             slot.IconImage.color = definition.BuildingColor;
+            slot.IconImage.preserveAspect = true;
             slot.IconImage.enabled = true;
             slot.IconImage.gameObject.SetActive(true);
         }
