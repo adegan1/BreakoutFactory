@@ -2,11 +2,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// Add to any UI GameObject to make it show a tooltip on hover.
-/// Wire up via the Inspector (static content) or call SetContent() at runtime
-/// (e.g. from FactoryInventoryHotbarUI when refreshing slot data).
-/// </summary>
+
+// Add to any UI GameObject to make it show a tooltip on hover.
+// Wire up via the Inspector (static content) or call SetContent() at runtime
 [DisallowMultipleComponent]
 public class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
@@ -20,9 +18,7 @@ public class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     public string TooltipTitle => tooltipTitle;
     public string TooltipDescription => tooltipDescription;
 
-    /// <summary>
-    /// Override tooltip content at runtime (e.g. when slot data changes).
-    /// </summary>
+    // Override tooltip content at runtime (e.g. when slot data changes).
     public void SetContent(string title, string description)
     {
         tooltipTitle = title;

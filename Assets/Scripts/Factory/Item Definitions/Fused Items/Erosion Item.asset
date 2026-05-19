@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Erosion
   description: 
   icon: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  tint: {r: 1, g: 1, b: 1, a: 1}
+  tint: {r: 0.5, g: 0.32760194, b: 0.2570755, a: 1}
   baseValue: 1
   isFusion: 1
   isCompound: 0

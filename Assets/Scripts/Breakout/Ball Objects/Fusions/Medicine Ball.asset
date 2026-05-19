@@ -17,8 +17,11 @@ MonoBehaviour:
   primaryEffectProfile: 0
   secondaryEffectProfile: 0
   displayName: Medicine
-  description: 
-  displayColor: {r: 1, g: 1, b: 1, a: 1}
+  description: 'Has ability FIRST AID:
+
+    Hitting bricks heals the player. Every
+    5 health healed, Medicine Ball deals a burst of damage around it.'
+  displayColor: {r: 0.25870946, g: 0.6698113, b: 0.1990477, a: 1}
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   size: 1
   movementSpeed: 8
@@ -45,6 +48,15 @@ MonoBehaviour:
   earthCrack: 0
   shatterDamage: 2
   shatterRadius: 1.4
+  createsTremor: 0
+  tremorCrackDamage: 2
+  tremorCrackRadius: 1.4
+  createsAbrasion: 0
+  abrasionWeakenDuration: 2
+  createsCyclone: 0
+  cycloneFollowUpHitCount: 2
+  cycloneHitDelay: 0.08
+  cycloneCurveStrength: 18
   appliesRoot: 0
   rootDuration: 2
   rootSpeedMultiplier: 0.6
@@ -112,8 +124,9 @@ MonoBehaviour:
   createsCollapse: 0
   collapseRadius: 1.8
   collapseDuration: 3
-  createsOceanBreeze: 0
-  oceanBreezeWaveType: {fileID: 0}
+  createsLinearProjectile: 0
+  linearProjectileType: {fileID: 0}
+  linearProjectileIncludesTopWall: 0
   createsBlackout: 0
   blackoutDamage: 1
   blackoutInterval: 1
@@ -143,5 +156,5 @@ MonoBehaviour:
   splashDropletType: {fileID: 0}
   splashDropletCount: 4
   isCompound: 0
-  elements: 00000000
-  strongAgainst: 
+  elements: 04000000
+  strongAgainst: 0200000005000000

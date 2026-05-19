@@ -2,17 +2,15 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// Singleton tooltip panel. Place on a Canvas GameObject with a title TMP label,
-/// description TMP label, and a background panel. The panel follows the cursor.
-///
-/// Setup:
-///   1. Create a Canvas (Sort Order: high, e.g. 100) named "TooltipCanvas".
-///   2. Add a child Panel with a VerticalLayoutGroup + ContentSizeFitter (preferred size both axes).
-///   3. Add two TMP labels inside it: one for the title, one for the description.
-///   4. Add this component to the Panel and wire up the fields.
-///   5. Disable the Panel GameObject by default (it starts hidden).
-/// </summary>
+// Singleton tooltip panel. Place on a Canvas GameObject with a title TMP label,
+// description TMP label, and a background panel. The panel follows the cursor.
+//
+// Setup:
+//   1. Create a Canvas (Sort Order: high, e.g. 100) named "TooltipCanvas".
+//   2. Add a child Panel with a VerticalLayoutGroup + ContentSizeFitter (preferred size both axes).
+//   3. Add two TMP labels inside it: one for the title, one for the description.
+//   4. Add this component to the Panel and wire up the fields.
+//   5. Disable the Panel GameObject by default (it starts hidden).
 [DisallowMultipleComponent]
 public class TooltipUI : MonoBehaviour
 {

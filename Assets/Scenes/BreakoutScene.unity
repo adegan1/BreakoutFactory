@@ -2990,7 +2990,12 @@ MonoBehaviour:
   ballPrefab: {fileID: 9021448586808601386, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   paddleTransform: {fileID: 1324807477}
   ballsToDispense:
+  - {fileID: 11400000, guid: e780c2caddda2b848a62f68b87a675af, type: 2}
+  - {fileID: 11400000, guid: aaecdfbb30a38e047853c8ec17db8a0b, type: 2}
+  - {fileID: 11400000, guid: 63dc7b6bbfc455643aa9a92804f7031b, type: 2}
+  - {fileID: 11400000, guid: 8c57fa17eb40a8744800ef0ec453feb9, type: 2}
   - {fileID: 11400000, guid: 0a1f26180b924174e8c1857e7653495c, type: 2}
+  - {fileID: 11400000, guid: 663c1357c41f7ce40866a13a37832c86, type: 2}
   initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}
   enableBrickDrops: 1

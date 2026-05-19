@@ -17,8 +17,11 @@ MonoBehaviour:
   primaryEffectProfile: 0
   secondaryEffectProfile: 0
   displayName: Inferno
-  description: 
-  displayColor: {r: 1, g: 1, b: 1, a: 1}
+  description: 'Has ability FLAME TRAIL:
+
+    Spawns "Flames" over time. Flames slowly
+    move upward, burning bricks on hit.'
+  displayColor: {r: 0.7264151, g: 0.18558618, b: 0, a: 1}
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   size: 1
   movementSpeed: 8
@@ -153,5 +156,5 @@ MonoBehaviour:
   splashDropletType: {fileID: 0}
   splashDropletCount: 4
   isCompound: 0
-  elements: 00000000
-  strongAgainst: 
+  elements: 01000000
+  strongAgainst: 0500000006000000

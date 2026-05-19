@@ -17,8 +17,12 @@ MonoBehaviour:
   primaryEffectProfile: 0
   secondaryEffectProfile: 0
   displayName: Wildfire
-  description: 
-  displayColor: {r: 1, g: 1, b: 1, a: 1}
+  description: 'Has ability FOREST FIRE:
+
+    Burns bricks on hit. If burning bricks
+    are destroyed by Wildfire Ball, burn is spread to 2 random nearby bricks. Once
+    those are destroyed, they spread as well.'
+  displayColor: {r: 0.22365674, g: 0.4433962, b: 0.18614274, a: 1}
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   size: 1
   movementSpeed: 6
@@ -153,5 +157,5 @@ MonoBehaviour:
   splashDropletType: {fileID: 0}
   splashDropletCount: 4
   isCompound: 0
-  elements: 00000000
-  strongAgainst: 
+  elements: 0100000004000000
+  strongAgainst: 0400000005000000

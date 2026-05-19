@@ -17,8 +17,12 @@ MonoBehaviour:
   primaryEffectProfile: 0
   secondaryEffectProfile: 0
   displayName: Erosion
-  description: 
-  displayColor: {r: 1, g: 1, b: 1, a: 1}
+  description: 'Has ability COLLAPSE:
+
+    When a brick is hit, that brick and some
+    surrounding bricks become "Weakened". Weakened bricks take double damage from
+    all sources.'
+  displayColor: {r: 0.5849056, g: 0.41562068, b: 0.3448736, a: 1}
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   size: 1
   movementSpeed: 6
@@ -153,5 +157,5 @@ MonoBehaviour:
   splashDropletType: {fileID: 0}
   splashDropletCount: 4
   isCompound: 0
-  elements: 00000000
-  strongAgainst: 
+  elements: 0200000005000000
+  strongAgainst: 050000000100000003000000

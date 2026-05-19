@@ -153,5 +153,5 @@ MonoBehaviour:
   splashDropletType: {fileID: 0}
   splashDropletCount: 4
   isCompound: 0
-  elements: 00000000
-  strongAgainst: 
+  elements: 0400000006000000
+  strongAgainst: 0200000005000000
