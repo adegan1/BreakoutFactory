@@ -13,8 +13,10 @@ MonoBehaviour:
   m_Name: Compounder
   m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
   displayName: Compounder
-  description: Compounds elemental resources to mix their effects. Note - Compounds
-    cannot be compounded or fused
+  description: 'Compounds elemental resources to mix their effects.
+
+    Note - Compounds
+    cannot be compounded or fused'
   buildingSprite: {fileID: 7482667652216324306, guid: aaa3a88405f852449a8bf191b46d71c0, type: 3}
   buildingColor: {r: 0.93362963, g: 0.7122642, b: 1, a: 1}
   footprintWidth: 2

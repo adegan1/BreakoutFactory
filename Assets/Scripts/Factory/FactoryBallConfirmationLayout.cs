@@ -8,6 +8,7 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform iconLayoutRoot;
     [SerializeField] private Image iconPrefab;
+    [SerializeField] private GameObject unplacedMoldsText;
 
     [Header("Fallback")]
     [SerializeField] private BallTypeData defaultBallType;
@@ -48,6 +49,7 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
     {
         if (iconLayoutRoot == null || iconPrefab == null)
         {
+            UpdateUnplacedMoldsTextVisibility();
             return;
         }
 
@@ -78,6 +80,51 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         {
             ApplyIcon(iconPool[i], defaultBallType);
         }
+
+        UpdateUnplacedMoldsTextVisibility();
+    }
+
+    private void UpdateUnplacedMoldsTextVisibility()
+    {
+        if (unplacedMoldsText == null)
+        {
+            return;
+        }
+
+        bool hasUnplacedMolds = false;
+        if (InventoryManager.HasInstance)
+        {
+            IReadOnlyList<InventoryManager.InventoryEntry> buildingItems = InventoryManager.Instance.BuildingItems;
+            if (buildingItems != null)
+            {
+                for (int i = 0; i < buildingItems.Count; i++)
+                {
+                    InventoryManager.InventoryEntry entry = buildingItems[i];
+                    BuildingDefinition definition = entry != null ? entry.BuildingDefinition : null;
+                    if (entry != null && entry.Quantity > 0 && IsBallMoldDefinition(definition))
+                    {
+                        hasUnplacedMolds = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (unplacedMoldsText.activeSelf != hasUnplacedMolds)
+        {
+            unplacedMoldsText.SetActive(hasUnplacedMolds);
+        }
+    }
+
+    private static bool IsBallMoldDefinition(BuildingDefinition definition)
+    {
+        if (definition == null || definition.BehaviorPrefab == null)
+        {
+            return false;
+        }
+
+        return definition.BehaviorPrefab.GetComponent<BallMoldBuilding>() != null
+            || definition.BehaviorPrefab.GetComponentInChildren<BallMoldBuilding>(true) != null;
     }
 
     private void EnsureIconPool(int count)
@@ -101,6 +148,14 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         iconImage.sprite = ResolveSprite(ballType);
         iconImage.color = ResolveTint(ballType);
         iconImage.gameObject.SetActive(iconImage.sprite != null);
+
+        TooltipTrigger tooltip = iconImage.GetComponent<TooltipTrigger>();
+        if (tooltip != null)
+        {
+            tooltip.SetContent(
+                ballType != null ? ballType.DisplayName : string.Empty,
+                ballType != null ? ballType.Description : string.Empty);
+        }
     }
 
     private Sprite ResolveSprite(BallTypeData ballType)

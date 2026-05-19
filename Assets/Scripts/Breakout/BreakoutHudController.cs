@@ -234,6 +234,14 @@ public class BreakoutHudController : MonoBehaviour
             iconImage.sprite = ResolveBallSprite(ballType);
             iconImage.color = ResolveBallTint(ballType);
             iconImage.gameObject.SetActive(iconImage.sprite != null);
+
+            TooltipTrigger tooltip = iconImage.GetComponent<TooltipTrigger>();
+            if (tooltip != null)
+            {
+                tooltip.SetContent(
+                    ballType != null ? ballType.DisplayName : string.Empty,
+                    ballType != null ? ballType.Description : string.Empty);
+            }
         }
     }
 
@@ -348,6 +356,14 @@ public class BreakoutHudController : MonoBehaviour
             iconImage.sprite = ResolveMachineSprite(entry.Definition);
             iconImage.color = ResolveMachineTint(entry.Definition);
             iconImage.gameObject.SetActive(iconImage.sprite != null);
+
+            TooltipTrigger tooltip = iconImage.GetComponent<TooltipTrigger>();
+            if (tooltip != null)
+            {
+                tooltip.SetContent(
+                    entry.Definition != null ? entry.Definition.DisplayName : string.Empty,
+                    entry.Definition != null ? entry.Definition.Description : string.Empty);
+            }
 
             TextMeshProUGUI countLabel = labelPool[i];
             if (countLabel != null)

@@ -34,8 +34,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 21.1, y: -12.2}
-  m_SizeDelta: {x: 51.2307, y: 8.5156}
+  m_AnchoredPosition: {x: 16.4, y: -12.2}
+  m_SizeDelta: {x: 25, y: 8.5156}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1431523277424290230
 CanvasRenderer:
@@ -92,8 +92,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 10
+  m_fontSizeBase: 10
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -148,9 +148,8 @@ GameObject:
   - component: {fileID: 4778692528670191595}
   - component: {fileID: 1087698244692130990}
   - component: {fileID: 2428960868800022688}
-  - component: {fileID: 5571465233459468073}
   m_Layer: 5
-  m_Name: Machine Preview Icon
+  m_Name: Drops Preview
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -214,17 +213,3 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &5571465233459468073
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6932494365443730611}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9777a89c3d51df541ade607142f76f85, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TooltipTrigger
-  tooltipTitle: 
-  tooltipDescription: 

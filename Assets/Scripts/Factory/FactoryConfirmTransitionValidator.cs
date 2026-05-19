@@ -71,9 +71,16 @@ public class FactoryConfirmTransitionValidator : MonoBehaviour
             return queue;
         }
 
+        int moldCount = FindObjectsByType<BallMoldBuilding>(FindObjectsSortMode.None).Length;
+
         IReadOnlyList<BallTypeData> craftedBalls = InventoryManager.Instance.CraftedBalls;
         for (int i = 0; i < craftedBalls.Count; i++)
         {
+            if (queue.Count >= moldCount)
+            {
+                break;
+            }
+
             if (craftedBalls[i] != null)
             {
                 queue.Add(craftedBalls[i]);
@@ -85,7 +92,6 @@ public class FactoryConfirmTransitionValidator : MonoBehaviour
             return queue;
         }
 
-        int moldCount = FindObjectsByType<BallMoldBuilding>(FindObjectsSortMode.None).Length;
         while (queue.Count < moldCount)
         {
             queue.Add(defaultBallType);

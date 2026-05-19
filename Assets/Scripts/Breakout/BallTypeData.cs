@@ -375,7 +375,9 @@ public class BallTypeData : ScriptableObject
     public void InitializeAsCompound(BallTypeData a, BallTypeData b)
     {
         displayName = $"{a.DisplayName} + {b.DisplayName}";
-        description = $"A compound of {a.DisplayName} and {b.DisplayName}. Inherits the abilities of both.";
+        string descA = !string.IsNullOrWhiteSpace(a.Description) ? $"{a.DisplayName} - {a.Description}" : a.DisplayName;
+        string descB = !string.IsNullOrWhiteSpace(b.Description) ? $"{b.DisplayName} - {b.Description}" : b.DisplayName;
+        description = $"{descA}\n+\n{descB}";
         displayColor = Color.Lerp(a.DisplayColor, b.DisplayColor, 0.5f);
         ballSprite = a.BallSprite;
         size = (a.Size + b.Size) * 0.5f;
