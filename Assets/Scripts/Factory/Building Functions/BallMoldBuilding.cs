@@ -111,7 +111,16 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
     private void Update()
     {
+        ScanInputTileForItems();
         UpdateBallPreviewVisual();
+    }
+
+    private void ScanInputTileForItems()
+    {
+        if (TryGetInputGridPosition(out Vector2Int inputTile))
+        {
+            FactoryMachineUtility.TryScanAndAbsorbItemAtTile(this, inputTile, tileManager);
+        }
     }
 
     public bool CanAcceptItemAtTile(Vector2Int tile, ItemEntity item)

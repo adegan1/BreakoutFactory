@@ -106,6 +106,7 @@ public class CompoundBuilding : MonoBehaviour,
     private void Update()
     {
         TickLaunchMovement();
+        ScanInputTilesForItems();
 
         if (launchingItem != null)
         {
@@ -113,6 +114,13 @@ public class CompoundBuilding : MonoBehaviour,
         }
 
         TryCompound();
+    }
+
+    private void ScanInputTilesForItems()
+    {
+        GetInputTilesWorld(out Vector2Int tileA, out Vector2Int tileB);
+        FactoryMachineUtility.TryScanAndAbsorbItemAtTile(this, tileA, tileManager);
+        FactoryMachineUtility.TryScanAndAbsorbItemAtTile(this, tileB, tileManager);
     }
 
     // ── IItemInputReceiver ────────────────────────────────────────────────────

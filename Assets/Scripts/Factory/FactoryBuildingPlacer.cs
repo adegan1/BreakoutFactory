@@ -73,8 +73,10 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [SerializeField] private Color selectionBoxBorderColor = new Color(0.2f, 0.75f, 1f, 0.9f);
 
     [Header("Selection Highlight")]
-    [SerializeField] private Color selectedBuildingHighlightTint = new Color(0.4f, 0.85f, 1f, 1f);
-    [SerializeField, Range(0f, 1f)] private float selectedBuildingHighlightStrength = 0.18f;
+    [SerializeField] private Sprite selectionCornerSprite;
+    [SerializeField] private Color selectionCornerColor = new Color(0.95f, 0.85f, 0.15f, 0.9f);
+    [SerializeField] private int selectionOverlaySortingOrder = 20;
+    [SerializeField] private float selectionOverlayZOffset = -0.05f;
 
     [Header("Factory Speed")]
     [SerializeField, Min(0.1f)] private float normalFactorySpeed = 1f;
@@ -132,6 +134,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private readonly List<ItemEntity> reusableItemsOnInput = new();
     private readonly HashSet<int> selectedBuildingInstanceIds = new();
     private readonly List<GroupMoveEntry> selectedGroupMoveEntries = new();
+    private readonly Dictionary<int, GameObject> selectionOverlays = new();
+    private Transform selectionOverlayParent;
     private static readonly List<RaycastResult> reusableUiRaycastResults = new();
     private static readonly Vector2Int[] CardinalDirections =
     {
@@ -246,6 +250,9 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         HoveredMachineInstanceId = -1;
         SelectedMachineInstanceId = -1;
+
+        selectionOverlayParent = new GameObject("SelectionOverlays").transform;
+        selectionOverlayParent.SetParent(transform, worldPositionStays: false);
     }
 
     private void Start()
@@ -1237,28 +1244,63 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private void SetSelectionHighlight(GameObject targetObject, bool enabled)
     {
-        if (targetObject == null)
+        if (targetObject == null || tileManager == null)
         {
             return;
         }
 
-        TintHighlightController highlightController = targetObject.GetComponent<TintHighlightController>();
+        int instanceId = targetObject.GetInstanceID();
+
         if (!enabled)
         {
-            if (highlightController != null)
+            if (selectionOverlays.TryGetValue(instanceId, out GameObject existing))
             {
-                highlightController.SetHighlight(false, selectedBuildingHighlightTint, selectedBuildingHighlightStrength);
+                existing.SetActive(false);
             }
 
             return;
         }
 
-        if (highlightController == null)
+        if (!buildingsByInstanceId.TryGetValue(instanceId, out PlacedBuildingRecord record) || record == null)
         {
-            highlightController = targetObject.AddComponent<TintHighlightController>();
+            return;
         }
 
-        highlightController.SetHighlight(true, selectedBuildingHighlightTint, selectedBuildingHighlightStrength);
+        if (!selectionOverlays.TryGetValue(instanceId, out GameObject overlay) || overlay == null)
+        {
+            overlay = new GameObject("SelectionOverlay");
+            overlay.transform.SetParent(selectionOverlayParent, worldPositionStays: false);
+            SpriteRenderer sr = overlay.AddComponent<SpriteRenderer>();
+            sr.drawMode = SpriteDrawMode.Sliced;
+            sr.sortingOrder = selectionOverlaySortingOrder;
+            selectionOverlays[instanceId] = overlay;
+        }
+
+        Vector3 center = ComputeFootprintWorldCenter(record);
+        overlay.transform.position = center;
+        overlay.transform.localScale = Vector3.one;
+
+        if (selectionCornerSprite != null)
+        {
+            SpriteRenderer sr = overlay.GetComponent<SpriteRenderer>();
+            sr.sprite = selectionCornerSprite;
+            sr.color = selectionCornerColor;
+            sr.size = new Vector2(
+                record.FootprintSize.x * tileManager.TileSize,
+                record.FootprintSize.y * tileManager.TileSize);
+        }
+
+        overlay.SetActive(true);
+    }
+
+    private Vector3 ComputeFootprintWorldCenter(PlacedBuildingRecord record)
+    {
+        Vector3 topLeftCenter = tileManager.GridToWorld(record.TopLeftGridPosition);
+        float tileSize = tileManager.TileSize;
+        return topLeftCenter + new Vector3(
+            (record.FootprintSize.x - 1) * tileSize * 0.5f,
+            (record.FootprintSize.y - 1) * tileSize * 0.5f,
+            selectionOverlayZOffset);
     }
 
     private void BeginBoxSelection(Mouse mouse)
@@ -2238,6 +2280,12 @@ public class FactoryBuildingPlacer : MonoBehaviour
         Destroy(record.SpawnedObject);
         buildingsByInstanceId.Remove(instanceId);
         selectedBuildingInstanceIds.Remove(instanceId);
+
+        if (selectionOverlays.TryGetValue(instanceId, out GameObject overlay))
+        {
+            Destroy(overlay);
+            selectionOverlays.Remove(instanceId);
+        }
 
         for (int x = 0; x < record.FootprintSize.x; x++)
         {

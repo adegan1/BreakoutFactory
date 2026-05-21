@@ -323,6 +323,12 @@ public class ConveyorBuilding : MonoBehaviour
     {
         if (carriedItem != null)
         {
+            if (tileManager != null)
+            {
+                Vector2Int nearestTile = tileManager.WorldToGrid(carriedItem.transform.position);
+                carriedItem.transform.position = tileManager.GridToWorld(nearestTile);
+            }
+
             carriedItem.ClearReservedDestination(this);
             carriedItem.ReleaseClaim(this);
             carriedItem = null;

@@ -7675,8 +7675,10 @@ MonoBehaviour:
   antiStretchUiRescanIntervalSeconds: 0.5
   selectionBoxFillColor: {r: 1, g: 0.7972814, b: 0.19999999, a: 0.18}
   selectionBoxBorderColor: {r: 1, g: 0.6716937, b: 0.19999999, a: 0.9}
-  selectedBuildingHighlightTint: {r: 0.7735536, g: 1, b: 0.21226418, a: 1}
-  selectedBuildingHighlightStrength: 0.358
+  selectionCornerSprite: {fileID: 21300000, guid: 9270b45752bd86e448c316559be98a48, type: 3}
+  selectionCornerColor: {r: 0.9490196, g: 0.64270943, b: 0.14901961, a: 0.9}
+  selectionOverlaySortingOrder: 20
+  selectionOverlayZOffset: -0.05
   normalFactorySpeed: 1
   boostedFactorySpeed: 3
   enableShiftSpeedBoost: 1
@@ -13233,7 +13235,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Clear Factory
+  m_text: Reset Factory
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

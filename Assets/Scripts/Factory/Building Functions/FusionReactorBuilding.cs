@@ -94,6 +94,7 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
     private void Update()
     {
         TickLaunchMovement();
+        ScanInputTilesForItems();
 
         if (launchingItem != null)
         {
@@ -107,6 +108,13 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
         }
 
         TryFuse();
+    }
+
+    private void ScanInputTilesForItems()
+    {
+        GetInputTilesWorld(out Vector2Int tileA, out Vector2Int tileB);
+        FactoryMachineUtility.TryScanAndAbsorbItemAtTile(this, tileA, tileManager);
+        FactoryMachineUtility.TryScanAndAbsorbItemAtTile(this, tileB, tileManager);
     }
 
     // ── IItemInputReceiver ────────────────────────────────────────────────────

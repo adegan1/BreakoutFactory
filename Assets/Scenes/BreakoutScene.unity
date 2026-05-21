@@ -3996,9 +3996,11 @@ MonoBehaviour:
   defaultShowInfo: 0
   defaultShowControls: 1
   defaultFactorySpeedIsDouble: 0
+  defaultFactoryAutoPause: 1
   showInfo: 0
   showControls: 1
   factorySpeedIsDouble: 0
+  factoryAutoPause: 1
 --- !u!4 &1552879407
 Transform:
   m_ObjectHideFlags: 0
@@ -4459,8 +4461,8 @@ MonoBehaviour:
   ballPrefab: {fileID: 9021448586808601386, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   paddleTransform: {fileID: 1324807477}
   ballsToDispense:
-  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
-  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  - {fileID: 11400000, guid: 7ceb46ae75625e949b275a358aa0b47c, type: 2}
+  - {fileID: 11400000, guid: c3d198d98ee1cd847ac086e54e0226f4, type: 2}
   - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}
@@ -4859,13 +4861,13 @@ MonoBehaviour:
     weight: 1
   scaleRowsByCurrentLevel: 1
   rowsMaxBonusMultiplier: 6
-  rowsGrowthRate: 0.1
+  rowsGrowthRate: 0.07
   scaleBrickHealthByCurrentLevel: 1
   brickHealthMaxBonusMultiplier: 10
-  brickHealthGrowthRate: 0.2
+  brickHealthGrowthRate: 0.14
   scaleBrickSpeedByCurrentLevel: 1
   brickSpeedMaxBonusMultiplier: 4
-  brickSpeedGrowthRate: 0.08
+  brickSpeedGrowthRate: 0.03
 --- !u!4 &2017643839
 Transform:
   m_ObjectHideFlags: 0

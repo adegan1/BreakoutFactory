@@ -20,10 +20,10 @@ MonoBehaviour:
   description: 
   displayColor: {r: 0.36538804, g: 0.40675768, b: 0.4811321, a: 1}
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  size: 0.5
+  size: 0.4
   movementSpeed: 3
   damage: 1
-  bounces: 5
+  bounces: 7
   passThroughBricks: 1
   passThroughBalls: 1
   directionRestraint: 0

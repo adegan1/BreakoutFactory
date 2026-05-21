@@ -449,6 +449,12 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
 
         if (launchingItem != null)
         {
+            if (tileManager != null)
+            {
+                Vector2Int nearestTile = tileManager.WorldToGrid(launchingItem.transform.position);
+                launchingItem.transform.position = tileManager.GridToWorld(nearestTile);
+            }
+
             launchingItem.ClearReservedDestination(this);
             launchingItem.ReleaseClaim(this);
             launchingItem = null;

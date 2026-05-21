@@ -113,8 +113,8 @@ MonoBehaviour:
   createsSteamBurst: 1
   steamBurstBallType: {fileID: 11400000, guid: 8d7a7bd372b658f4ea5b09320d9018ec, type: 2}
   steamBurstBallCount: 8
-  steamBurstMinInterval: 4
-  steamBurstMaxInterval: 8
+  steamBurstMinInterval: 2
+  steamBurstMaxInterval: 5
   steamBurstSpawnRadius: 0.18
   steamBurstSpeedMultiplier: 1.35
   steamBurstSpeedLerpDuration: 1.5
