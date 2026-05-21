@@ -10304,7 +10304,7 @@ MonoBehaviour:
   dragPanMultiplier: 0.8
   zoomSensitivity: 8
   minOrthographicSize: 4
-  maxOrthographicSize: 30
+  maxOrthographicSize: 20
   clampToBounds: 1
   minBounds: {x: 5, y: 2.5}
   maxBounds: {x: 45, y: 47.5}

@@ -46,6 +46,13 @@ public class RetainedDataResetter : MonoBehaviour
             gameSettings.ResetToDefaults();
         }
 
+        CameraPanController.ClearSavedState();
+
+        if (factoryBuildingPlacer != null)
+        {
+            factoryBuildingPlacer.ReapplySavedSettings();
+        }
+
         Debug.Log("RetainedDataResetter: All retained data has been reset.", this);
     }
 

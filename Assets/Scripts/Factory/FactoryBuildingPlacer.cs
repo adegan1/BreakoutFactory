@@ -3006,6 +3006,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
     }
 
+    public void ReapplySavedSettings()
+    {
+        ApplySavedSettings();
+    }
+
     public void SetShowInfo(bool isVisible)
     {
         SetShowInfo(isVisible, true);

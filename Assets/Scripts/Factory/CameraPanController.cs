@@ -24,9 +24,44 @@ public class CameraPanController : MonoBehaviour
     private bool isDragging;
     private Vector2 previousDragScreenPoint;
 
+    private static bool hasSavedState;
+    private static Vector3 savedPosition;
+    private static float savedOrthographicSize;
+
     private void Awake()
     {
         controlledCamera = GetComponent<Camera>();
+
+        if (hasSavedState)
+        {
+            transform.position = savedPosition;
+            if (controlledCamera != null && controlledCamera.orthographic)
+            {
+                controlledCamera.orthographicSize = Mathf.Clamp(savedOrthographicSize, minOrthographicSize, maxOrthographicSize);
+            }
+        }
+    }
+
+    private void OnDisable()
+    {
+        SaveState();
+    }
+
+    private void SaveState()
+    {
+        savedPosition = transform.position;
+        if (controlledCamera != null && controlledCamera.orthographic)
+        {
+            savedOrthographicSize = controlledCamera.orthographicSize;
+        }
+        hasSavedState = true;
+    }
+
+    public static void ClearSavedState()
+    {
+        hasSavedState = false;
+        savedPosition = Vector3.zero;
+        savedOrthographicSize = 0f;
     }
 
     private void Update()
