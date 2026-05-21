@@ -4510,7 +4510,7 @@ MonoBehaviour:
     minQuantity: 0
     maxQuantity: 0
   - buildingDefinition: {fileID: 11400000, guid: 0a925421f591623439df52242c47b281, type: 2}
-    weight: 300
+    weight: 3
     minQuantity: 0
     maxQuantity: 0
   onOutOfBalls:

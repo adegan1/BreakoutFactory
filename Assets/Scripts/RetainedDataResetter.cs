@@ -8,6 +8,7 @@ public class RetainedDataResetter : MonoBehaviour
     [SerializeField] private FactoryBuildingPlacer factoryBuildingPlacer;
     [SerializeField] private LevelSettings levelSettings;
     [SerializeField] private PlayerStats playerStats;
+    [SerializeField] private GameSettings gameSettings;
 
     [Header("Factory Reset")]
     [SerializeField] private bool clearLooseFactoryItems = true;
@@ -38,6 +39,11 @@ public class RetainedDataResetter : MonoBehaviour
         if (playerStats != null)
         {
             playerStats.ResetToStartingValues();
+        }
+
+        if (gameSettings != null)
+        {
+            gameSettings.ResetToDefaults();
         }
 
         Debug.Log("RetainedDataResetter: All retained data has been reset.", this);
@@ -71,6 +77,13 @@ public class RetainedDataResetter : MonoBehaviour
             playerStats = PlayerStats.HasInstance
                 ? PlayerStats.Instance
                 : FindFirstObjectByType<PlayerStats>();
+        }
+
+        if (gameSettings == null)
+        {
+            gameSettings = GameSettings.HasInstance
+                ? GameSettings.Instance
+                : FindFirstObjectByType<GameSettings>();
         }
     }
 }

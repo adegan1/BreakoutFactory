@@ -91,6 +91,20 @@ public class GameSettings : MonoBehaviour
         PlayerPrefs.Save();
     }
 
+    public void ResetToDefaults()
+    {
+        showInfo = defaultShowInfo;
+        showControls = defaultShowControls;
+        factorySpeedIsDouble = defaultFactorySpeedIsDouble;
+        factoryAutoPause = defaultFactoryAutoPause;
+
+        PlayerPrefs.DeleteKey(ShowInfoKey);
+        PlayerPrefs.DeleteKey(ShowControlsKey);
+        PlayerPrefs.DeleteKey(FactorySpeedIsDoubleKey);
+        PlayerPrefs.DeleteKey(FactoryAutoPauseKey);
+        PlayerPrefs.Save();
+    }
+
     private void LoadFromPrefs()
     {
         showInfo = PlayerPrefs.GetInt(ShowInfoKey, defaultShowInfo ? 1 : 0) != 0;
