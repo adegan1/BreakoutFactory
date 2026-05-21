@@ -137,8 +137,8 @@ MonoBehaviour:
   firstAidExplosionDamage: 3
   firstAidExplosionRadius: 2
   createsElectricCascade: 1
-  electricCascadeShockDamage: 1
-  electricCascadeConductiveDuration: 6
+  electricCascadeShockDamage: 2
+  electricCascadeConductiveDuration: 6.5
   createsRollingThunder: 0
   rollingThunderStartScaleMultiplier: 1
   rollingThunderMaxScaleMultiplier: 2

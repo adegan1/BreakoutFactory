@@ -2237,7 +2237,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
                 continue;
             }
 
-            item.TryRefundToSourceGenerator(1);
+            item.TryRefundToSourceGenerator(Mathf.Max(1, item.Quantity));
             Destroy(item.gameObject);
             return true;
         }
@@ -2405,6 +2405,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     // Checks if a tile position is occupied by a non-conveyor building.
     // Used by generators to determine if they can output to this position.
+    // Returns false (not blocked) if the occupying building exposes the tile
+    // as an input — generators are allowed to feed directly into such tiles.
     public bool IsPositionBlockedByNonConveyorBuilding(Vector2Int gridPosition)
     {
         if (!spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord record) || record == null)
@@ -2412,7 +2414,46 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return false;
         }
 
-        return !IsConveyorDefinition(record.Definition);
+        if (IsConveyorDefinition(record.Definition))
+        {
+            return false;
+        }
+
+        if (IsTileAnInputForRecord(record, gridPosition))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool IsTileAnInputForRecord(PlacedBuildingRecord record, Vector2Int gridPosition)
+    {
+        if (record == null || record.Definition == null)
+        {
+            return false;
+        }
+
+        reusableInputTiles.Clear();
+        if (!TryGetInputTilesForDefinition(
+                record.Definition,
+                record.TopLeftGridPosition,
+                record.FootprintSize,
+                record.PlacedRotationQuarterTurns,
+                reusableInputTiles))
+        {
+            return false;
+        }
+
+        for (int i = 0; i < reusableInputTiles.Count; i++)
+        {
+            if (reusableInputTiles[i] == gridPosition)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private bool CanReplaceConveyorAt(Vector2Int optimalTopLeft, Vector2Int footprintSize, BuildingDefinition incomingDefinition)

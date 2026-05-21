@@ -548,7 +548,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &219664031
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1122,10 +1122,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 668186134}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 72.2091, y: -14.175}
+  m_SizeDelta: {x: 138.4182, y: 22.35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &545243283
 MonoBehaviour:
@@ -1690,7 +1690,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 72.20913, y: -28.349895}
-  m_SizeDelta: {x: 144.4182, y: 0}
+  m_SizeDelta: {x: 144.4182, y: 28.35}
   m_Pivot: {x: 0.5, y: -0.00000020861626}
 --- !u!114 &668186135
 MonoBehaviour:
@@ -2541,7 +2541,7 @@ MonoBehaviour:
   levelCompleteMachineIconsRoot: {fileID: 1524641060}
   levelCompleteMachineIconPrefab: {fileID: 2428960868800022688, guid: ae458d1b8c73a4c4983a4dd3c21f698d, type: 3}
   upcomingBallIconsRoot: {fileID: 1210710719}
-  upcomingBallIconPrefab: {fileID: 2428960868800022688, guid: 0821bbe687150d2478d3075538abbd48, type: 3}
+  upcomingBallIconPrefab: {fileID: 2428960868800022688, guid: 5cccf7f5166d57d4b9a1c518f1503769, type: 3}
   collectedMachineIconsRoot: {fileID: 1664293897}
   collectedMachineIconPrefab: {fileID: 2428960868800022688, guid: 99073023f4e23cd47a1fe576a93cb016, type: 3}
   fallbackBallSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
@@ -3388,10 +3388,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1723435748}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 135.23454, y: -11.94}
+  m_SizeDelta: {x: 264.4691, y: 17.88}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1470762020
 MonoBehaviour:
@@ -4113,7 +4113,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 72.209, y: -31.205063}
-  m_SizeDelta: {x: 270.4691, y: 0}
+  m_SizeDelta: {x: 270.4691, y: 23.88}
   m_Pivot: {x: 0.5, y: 0.99999976}
 --- !u!114 &1723435749
 MonoBehaviour:
@@ -4461,8 +4461,8 @@ MonoBehaviour:
   ballPrefab: {fileID: 9021448586808601386, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   paddleTransform: {fileID: 1324807477}
   ballsToDispense:
-  - {fileID: 11400000, guid: 7ceb46ae75625e949b275a358aa0b47c, type: 2}
-  - {fileID: 11400000, guid: c3d198d98ee1cd847ac086e54e0226f4, type: 2}
+  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}

@@ -29,9 +29,9 @@ MonoBehaviour:
   directionRestraint: 0
   destroyOnWall: 0
   appliesBurn: 1
-  burnDamage: 1
-  burnTickInterval: 1
-  burnHitCount: 5
+  burnDamage: 2
+  burnTickInterval: 1.5
+  burnHitCount: 4
   lightningBurst: 0
   lightningBurstTargetCount: 2
   lightningBurstDamage: 1

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -18,11 +19,19 @@ public class ItemEntity : MonoBehaviour
     private BuildingDefinition sourceBuildingDefinition;
     private int sourceMaxResourceAmount;
     private string sourceMachineStateId;
+    // Per-unit-of-original-input source generator IDs. For a basic generator-spawned
+    // stack of Quantity=N this contains N copies of the generator's stateId. For a
+    // compound/fusion output (Quantity=1) it contains every input's contributing id
+    // (flattened from all consumed inputs, including nested composites). Used so that
+    // refunding the entity returns every original resource to its source generator.
+    private readonly List<string> originSourceIds = new();
 
     public ItemDefinition ItemDefinition => itemDefinition;
     public int Quantity => quantity;
     public bool IsClaimed => movementOwner != null;
     public GeneratorBuilding SourceGenerator => sourceGenerator;
+    public string SourceMachineStateId => sourceMachineStateId;
+    public IReadOnlyList<string> OriginSourceIds => originSourceIds;
 
     private void Reset()
     {
@@ -70,6 +79,33 @@ public class ItemEntity : MonoBehaviour
         sourceBuildingDefinition = sourceBuilding;
         sourceMaxResourceAmount = Mathf.Max(0, maxResourceAmount);
         sourceMachineStateId = machineStateId;
+
+        // Initialize per-unit origin ids: one id per unit of quantity.
+        originSourceIds.Clear();
+        if (!string.IsNullOrEmpty(machineStateId))
+        {
+            for (int i = 0; i < quantity; i++)
+            {
+                originSourceIds.Add(machineStateId);
+            }
+        }
+    }
+
+    // Replace origin ids with an explicit list (used by compound/fusion outputs whose
+    // contributing source ids span multiple original inputs). Caller passes the full
+    // flattened list of generator stateIds that produced this item.
+    public void SetOriginSourceIds(IReadOnlyList<string> ids)
+    {
+        originSourceIds.Clear();
+        if (ids == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < ids.Count; i++)
+        {
+            originSourceIds.Add(ids[i]);
+        }
     }
 
     public bool TryRebindSourceGenerator(GeneratorBuilding generator, string machineStateId)
@@ -89,6 +125,38 @@ public class ItemEntity : MonoBehaviour
         if (refundAmount <= 0)
         {
             return false;
+        }
+
+        // Composite items (compound/fusion output) carry multiple origin ids per unit.
+        // Refund the whole list whenever the caller is taking the entire stack.
+        if (originSourceIds.Count > 0 && quantity > 0)
+        {
+            int idsToRefund = refundAmount >= quantity
+                ? originSourceIds.Count
+                : Mathf.Min(originSourceIds.Count, refundAmount * (originSourceIds.Count / quantity));
+            if (idsToRefund > 0)
+            {
+                bool refundedAny = false;
+                for (int i = 0; i < idsToRefund; i++)
+                {
+                    string id = originSourceIds[i];
+                    if (string.IsNullOrEmpty(id))
+                    {
+                        continue;
+                    }
+
+                    if (GeneratorBuilding.TryRefundByMachineStateId(id, 1))
+                    {
+                        refundedAny = true;
+                    }
+                }
+
+                if (refundedAny)
+                {
+                    originSourceIds.RemoveRange(0, idsToRefund);
+                    return true;
+                }
+            }
         }
 
         if (sourceGenerator != null && sourceGenerator.TryRefundGeneratedItem(this, refundAmount))

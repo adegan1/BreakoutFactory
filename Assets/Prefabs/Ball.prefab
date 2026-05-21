@@ -290,11 +290,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
   typeData: {fileID: 0}
-  speed: 6
+  speed: 5
   minimumVerticalDirection: 0.2
   ignoreOtherBallCollisions: 0
-  stuckRecoveryDelay: 0.2
-  minimumMovementPerFixedStep: 0.001
   unstuckNudgeDistance: 0.05
   axisStuckDelay: 5
   wallStickRecoveryDelay: 0.15
@@ -303,4 +301,7 @@ MonoBehaviour:
   minimumHorizontalDirection: 0.2
   logWallRecovery: 0
   paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
   bottomKillY: -6

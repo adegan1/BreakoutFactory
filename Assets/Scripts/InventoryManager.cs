@@ -525,6 +525,25 @@ public class InventoryManager : MonoBehaviour
         InventoryChanged?.Invoke();
     }
 
+    public bool TryRemoveCraftedBall(BallTypeData ballType)
+    {
+        if (ballType == null)
+        {
+            return false;
+        }
+
+        EnsureInitialized();
+        int idx = craftedBalls.IndexOf(ballType);
+        if (idx < 0)
+        {
+            return false;
+        }
+
+        craftedBalls.RemoveAt(idx);
+        InventoryChanged?.Invoke();
+        return true;
+    }
+
     public void AddCraftedBalls(IEnumerable<BallTypeData> ballTypes)
     {
         if (ballTypes == null)

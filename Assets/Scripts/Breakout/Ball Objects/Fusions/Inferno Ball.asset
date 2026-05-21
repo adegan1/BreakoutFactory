@@ -94,8 +94,8 @@ MonoBehaviour:
   flameTrailRiseSpeed: 1.5
   flameTrailLifetime: 10
   flameTrailImpactDamage: 1
-  flameTrailBurnDamage: 1
-  flameTrailBurnTickInterval: 0.25
+  flameTrailBurnDamage: 2
+  flameTrailBurnTickInterval: 0.5
   flameTrailBurnHitCount: 4
   createsFertileLand: 0
   fertilePatchSprite: {fileID: 0}

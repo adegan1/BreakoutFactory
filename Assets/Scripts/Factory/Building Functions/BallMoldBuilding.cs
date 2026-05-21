@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 [DisallowMultipleComponent]
-public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInputPreview
+public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInputPreview, IMachinePendingItemDropper
 {
     public enum InputSide
     {
@@ -57,6 +57,8 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     [Header("References")]
     [SerializeField] private BuildingInstance buildingInstance;
     [SerializeField] private TileManager tileManager;
+    [SerializeField] private ItemEntity itemEntityPrefab;
+    [SerializeField] private Transform spawnedItemParent;
 
     [Header("Input")]
     [SerializeField] private InputSide inputSide = InputSide.Left;
@@ -74,6 +76,9 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     [SerializeField] private List<StoredItemEntry> storedItems = new();
 
     private readonly Dictionary<ItemDefinition, int> inventoryByItem = new();
+    private readonly Dictionary<ItemDefinition, List<List<string>>> inventorySourceIds = new();
+    private readonly List<List<string>> completedBallSourceIdsPerBall = new();
+    private readonly List<BallTypeData> completedBallTypes = new();
     private ItemDefinition acceptedResourceDefinition;
     private BallTypeData lastCreatedBallType;
     private bool isMoldCompleted;
@@ -154,7 +159,14 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         }
 
         int amount = Mathf.Max(1, item.Quantity);
+        if (!inventorySourceIds.TryGetValue(item.ItemDefinition, out List<List<string>> slot))
+        {
+            slot = new List<List<string>>();
+            inventorySourceIds[item.ItemDefinition] = slot;
+        }
+        MachineSlotSourceTracker.Append(slot, item, amount);
         AddToInventory(item.ItemDefinition, amount);
+
         Destroy(item.gameObject);
         return true;
     }
@@ -264,9 +276,18 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         }
 
         int createdCount = storedAmount / maxResources;
+        inventorySourceIds.TryGetValue(acceptedResourceDefinition, out List<List<string>> sourceSlot);
         for (int i = 0; i < createdCount; i++)
         {
             InventoryManager.Instance.AddCraftedBall(createdBallType);
+
+            List<string> oneBallIds = new List<string>();
+            if (sourceSlot != null)
+            {
+                MachineSlotSourceTracker.TakeFromFront(sourceSlot, maxResources, oneBallIds);
+            }
+            completedBallSourceIdsPerBall.Add(oneBallIds);
+            completedBallTypes.Add(createdBallType);
         }
 
         if (createdCount > 0)
@@ -283,6 +304,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         else
         {
             inventoryByItem.Remove(acceptedResourceDefinition);
+            inventorySourceIds.Remove(acceptedResourceDefinition);
             acceptedResourceDefinition = null;
         }
     }
@@ -372,6 +394,9 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     private void RebuildRuntimeInventoryFromSerialized()
     {
         inventoryByItem.Clear();
+        inventorySourceIds.Clear();
+        completedBallSourceIdsPerBall.Clear();
+        completedBallTypes.Clear();
         acceptedResourceDefinition = null;
 
         for (int i = 0; i < storedItems.Count; i++)
@@ -606,6 +631,9 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         }
 
         inventoryByItem.Clear();
+        inventorySourceIds.Clear();
+        completedBallSourceIdsPerBall.Clear();
+        completedBallTypes.Clear();
         for (int i = 0; i < state.Entries.Count; i++)
         {
             ItemEntry entry = state.Entries[i];
@@ -625,6 +653,91 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         ResolveAcceptedResourceDefinition();
         SyncSerializedInventory();
         ApplyBallPreviewVisualImmediate();
+    }
+
+    public bool TryDropPendingItemToGround()
+    {
+        if (inventoryByItem.Count == 0 && completedBallSourceIdsPerBall.Count == 0)
+        {
+            return false;
+        }
+
+        ResolveDependenciesIfNeeded();
+        if (tileManager == null)
+        {
+            return false;
+        }
+
+        Vector3 dropPos;
+        if (TryGetInputGridPosition(out Vector2Int inputTile))
+        {
+            dropPos = tileManager.GridToWorld(inputTile);
+        }
+        else if (buildingInstance != null)
+        {
+            dropPos = tileManager.GridToWorld(buildingInstance.GridPosition);
+        }
+        else
+        {
+            dropPos = transform.position;
+        }
+
+        bool didAnything = false;
+        foreach (KeyValuePair<ItemDefinition, int> pair in inventoryByItem)
+        {
+            if (pair.Key == null || pair.Value <= 0)
+            {
+                continue;
+            }
+
+            if (!inventorySourceIds.TryGetValue(pair.Key, out List<List<string>> slot))
+            {
+                continue;
+            }
+
+            didAnything |= MachineSlotSourceTracker.RefundOrDropAll(
+                slot, pair.Key, dropPos, itemEntityPrefab, spawnedItemParent);
+        }
+
+        // Refund balls already crafted: return all constituent generator ids and
+        // remove the corresponding ball from the inventory.
+        for (int i = 0; i < completedBallSourceIdsPerBall.Count; i++)
+        {
+            List<string> ids = completedBallSourceIdsPerBall[i];
+            if (ids != null)
+            {
+                for (int j = 0; j < ids.Count; j++)
+                {
+                    string id = ids[j];
+                    if (!string.IsNullOrEmpty(id))
+                    {
+                        if (GeneratorBuilding.TryRefundByMachineStateId(id, 1))
+                        {
+                            didAnything = true;
+                        }
+                    }
+                }
+            }
+
+            BallTypeData ballType = i < completedBallTypes.Count ? completedBallTypes[i] : null;
+            if (ballType != null && InventoryManager.Instance != null)
+            {
+                if (InventoryManager.Instance.TryRemoveCraftedBall(ballType))
+                {
+                    didAnything = true;
+                }
+            }
+        }
+
+        inventoryByItem.Clear();
+        inventorySourceIds.Clear();
+        completedBallSourceIdsPerBall.Clear();
+        completedBallTypes.Clear();
+        acceptedResourceDefinition = null;
+        isMoldCompleted = false;
+        lastCreatedBallType = null;
+        SyncSerializedInventory();
+        return didAnything;
     }
 
     private void OnValidate()

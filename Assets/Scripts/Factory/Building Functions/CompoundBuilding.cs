@@ -75,9 +75,12 @@ public class CompoundBuilding : MonoBehaviour,
     private ItemDefinition slotBDefinition;
     private int slotAAmount;
     private int slotBAmount;
+    private readonly List<List<string>> slotASourceIds = new();
+    private readonly List<List<string>> slotBSourceIds = new();
     private bool hasItem;
     private ItemDefinition pendingOutputDefinition;
     private int pendingOutputQuantity;
+    private readonly List<string> pendingOutputOriginIds = new();
     private Color firstInputTint = Color.white;
     private bool hasFirstInputTint;
     private BallTypeData lastCompoundBall;
@@ -203,6 +206,7 @@ public class CompoundBuilding : MonoBehaviour,
             }
 
             FactoryMachineUtility.AcceptIntoSlot(item.ItemDefinition, amount, ref slotADefinition, ref slotAAmount);
+            MachineSlotSourceTracker.Append(slotASourceIds, item, amount);
             acceptedIntoA = true;
         }
         else if (tile == tileB)
@@ -214,6 +218,7 @@ public class CompoundBuilding : MonoBehaviour,
             }
 
             FactoryMachineUtility.AcceptIntoSlot(item.ItemDefinition, amount, ref slotBDefinition, ref slotBAmount);
+            MachineSlotSourceTracker.Append(slotBSourceIds, item, amount);
         }
         else
         {
@@ -232,6 +237,7 @@ public class CompoundBuilding : MonoBehaviour,
                 ref slotBDefinition,
                 ref slotBAmount);
 
+            MachineSlotSourceTracker.TrimFromEnd(acceptedIntoA ? slotASourceIds : slotBSourceIds, amount);
             return false;
         }
 
@@ -316,12 +322,15 @@ public class CompoundBuilding : MonoBehaviour,
         }
 
         slotAAmount -= 1;
+        pendingOutputOriginIds.Clear();
+        MachineSlotSourceTracker.TakeFromFront(slotASourceIds, 1, pendingOutputOriginIds);
         if (slotAAmount <= 0)
         {
             slotADefinition = null;
         }
 
         slotBAmount -= 1;
+        MachineSlotSourceTracker.TakeFromFront(slotBSourceIds, 1, pendingOutputOriginIds);
         if (slotBAmount <= 0)
         {
             slotBDefinition = null;
@@ -504,6 +513,7 @@ public class CompoundBuilding : MonoBehaviour,
 
         ItemEntity spawnedItem = Instantiate(itemEntityPrefab, spawnWorldPos, Quaternion.identity, spawnedItemParent);
         spawnedItem.Initialize(pendingOutputDefinition, pendingOutputQuantity);
+        spawnedItem.SetOriginSourceIds(pendingOutputOriginIds);
 
         if (!spawnedItem.TryClaim(this))
         {
@@ -517,33 +527,108 @@ public class CompoundBuilding : MonoBehaviour,
         }
 
         FactoryMachineUtility.ClearPendingOutput(ref hasItem, ref pendingOutputDefinition, ref pendingOutputQuantity);
+        pendingOutputOriginIds.Clear();
         return true;
     }
 
     public bool TryDropPendingItemToGround()
     {
-        if (!hasItem || pendingOutputDefinition == null || pendingOutputQuantity <= 0 || itemEntityPrefab == null)
-        {
-            return false;
-        }
-
         ResolveDependenciesIfNeeded();
         if (buildingInstance == null || tileManager == null)
         {
             return false;
         }
 
-        if (!TryGetOutputGridPosition(out Vector2Int outputTile) ||
-            !TryGetLaunchStartTile(outputTile, out Vector2Int launchStartTile))
+        bool droppedSomething = false;
+
+        // Refund the pending output's constituent inputs directly to their generators
+        // instead of dropping the compound item, so the player can rebuild the inputs.
+        if (hasItem && pendingOutputDefinition != null && pendingOutputQuantity > 0)
+        {
+            droppedSomething |= RefundOrDropCompositeOutput(
+                pendingOutputDefinition,
+                pendingOutputQuantity,
+                pendingOutputOriginIds);
+            FactoryMachineUtility.ClearPendingOutput(ref hasItem, ref pendingOutputDefinition, ref pendingOutputQuantity);
+            pendingOutputOriginIds.Clear();
+        }
+
+        droppedSomething |= DropStoredInputsToGround();
+        return droppedSomething;
+    }
+
+    private bool DropStoredInputsToGround()
+    {
+        GetInputTilesWorld(out Vector2Int tileA, out Vector2Int tileB);
+        bool refundedAny = false;
+
+        if (slotADefinition != null && slotAAmount > 0)
+        {
+            Vector3 dropPos = tileManager.GridToWorld(tileA) + itemSpawnOffset;
+            refundedAny |= MachineSlotSourceTracker.RefundOrDropAll(
+                slotASourceIds, slotADefinition, dropPos, itemEntityPrefab, spawnedItemParent);
+            slotADefinition = null;
+            slotAAmount = 0;
+        }
+
+        if (slotBDefinition != null && slotBAmount > 0)
+        {
+            Vector3 dropPos = tileManager.GridToWorld(tileB) + itemSpawnOffset;
+            refundedAny |= MachineSlotSourceTracker.RefundOrDropAll(
+                slotBSourceIds, slotBDefinition, dropPos, itemEntityPrefab, spawnedItemParent);
+            slotBDefinition = null;
+            slotBAmount = 0;
+        }
+
+        return refundedAny;
+    }
+
+    // Refund every constituent input of the pending output (one refund per source id)
+    // back to its originating generator. Falls back to dropping the compound item if
+    // any constituent generator no longer exists.
+    private bool RefundOrDropCompositeOutput(ItemDefinition definition, int quantity, List<string> originIds)
+    {
+        if (definition == null || quantity <= 0)
+        {
+            return false;
+        }
+
+        bool fullyRefunded = originIds != null && originIds.Count > 0;
+        if (fullyRefunded)
+        {
+            for (int i = 0; i < originIds.Count; i++)
+            {
+                string id = originIds[i];
+                if (string.IsNullOrEmpty(id) || !GeneratorBuilding.TryRefundByMachineStateId(id, 1))
+                {
+                    fullyRefunded = false;
+                }
+            }
+        }
+
+        if (fullyRefunded)
+        {
+            return true;
+        }
+
+        if (itemEntityPrefab == null || !TryGetOutputGridPosition(out Vector2Int outputTile))
+        {
+            return false;
+        }
+
+        if (!TryGetLaunchStartTile(outputTile, out Vector2Int launchStartTile))
         {
             return false;
         }
 
         Vector3 dropWorldPosition = tileManager.GridToWorld(launchStartTile) + itemSpawnOffset;
         ItemEntity droppedItem = Instantiate(itemEntityPrefab, dropWorldPosition, Quaternion.identity, spawnedItemParent);
-        droppedItem.Initialize(pendingOutputDefinition, pendingOutputQuantity);
+        droppedItem.Initialize(definition, quantity);
+        if (originIds != null && originIds.Count > 0)
+        {
+            droppedItem.SetOriginSourceIds(originIds);
+        }
 
-        FactoryMachineUtility.ClearPendingOutput(ref hasItem, ref pendingOutputDefinition, ref pendingOutputQuantity);
         return true;
     }
 

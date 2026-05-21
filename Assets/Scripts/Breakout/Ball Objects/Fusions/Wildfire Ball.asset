@@ -80,8 +80,8 @@ MonoBehaviour:
   fireSpreadBurnSpeedMultiplier: 1.25
   fireSpreadBurnHitCountBonus: 1
   createsForestFire: 1
-  forestFireBurnDamage: 1
-  forestFireBurnTickInterval: 0.3
+  forestFireBurnDamage: 2
+  forestFireBurnTickInterval: 0.4
   forestFireBurnHitCount: 5
   forestFireSpreadGenerations: 2
   createsWaterDrops: 0

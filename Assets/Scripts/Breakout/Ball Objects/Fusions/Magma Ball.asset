@@ -67,11 +67,11 @@ MonoBehaviour:
   seedSpreadCount: 2
   seedSpreadGenerations: 3
   createsCombustion: 1
-  combustionBurnDamage: 1
-  combustionBurnTickInterval: 0.7
+  combustionBurnDamage: 2
+  combustionBurnTickInterval: 0.5
   combustionBurnHitCount: 10
-  combustionExplosionDamage: 2
-  combustionExplosionRadius: 1.4
+  combustionExplosionDamage: 3
+  combustionExplosionRadius: 1.6
   createsFireSpread: 0
   fireSpreadRadius: 1.75
   fireSpreadCooldown: 0.35
