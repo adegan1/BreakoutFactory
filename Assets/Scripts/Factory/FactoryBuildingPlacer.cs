@@ -73,6 +73,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
     [SerializeField] private bool enableShiftSpeedBoost = true;
     [SerializeField] private Toggle normalSpeedToggle;
     [SerializeField] private Toggle doubleSpeedToggle;
+    [SerializeField] private Toggle pauseToggle;
 
     [Header("Panels")]
     [SerializeField] private GameObject controlsPanelRoot;
@@ -115,6 +116,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private float selectedFactorySpeed = 1f;
     private float defaultFixedDeltaTime = 0.02f;
     private bool isShiftSpeedOverrideActive;
+    private bool factoryIsPaused;
     private bool hasWarnedMissingAntiStretchUiTag;
     private float antiStretchUiNextRescanTime;
     private readonly List<Vector2Int> reusableInputTiles = new();
@@ -2757,6 +2759,12 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private void HandleFactorySpeedInput()
     {
+        if (factoryIsPaused)
+        {
+            ApplyFactorySpeed(selectedFactorySpeed);
+            return;
+        }
+
         Keyboard keyboard = Keyboard.current;
         if (!enableShiftSpeedBoost || keyboard == null)
         {
@@ -2834,8 +2842,36 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
     }
 
+    public void ToggleFactoryPause()
+    {
+        SetFactoryPaused(!factoryIsPaused);
+    }
+
+    public void SetFactoryPaused(bool paused)
+    {
+        if (factoryIsPaused == paused)
+        {
+            return;
+        }
+
+        factoryIsPaused = paused;
+        SyncPauseToggleVisual();
+        ApplyFactorySpeed(selectedFactorySpeed);
+    }
+
     private void ApplyFactorySpeed(float speed)
     {
+        if (factoryIsPaused)
+        {
+            if (Time.timeScale != 0f)
+            {
+                Time.timeScale = 0f;
+                Time.fixedDeltaTime = defaultFixedDeltaTime;
+            }
+
+            return;
+        }
+
         float clampedSpeed = Mathf.Max(0.1f, speed);
 
         float targetFixedDeltaTime = defaultFixedDeltaTime * clampedSpeed;
@@ -2855,6 +2891,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
         SetShowInfo(settings.ShowInfo, false);
         SetShowControls(settings.ShowControls, false);
         SetFactorySpeedSelection(settings.FactorySpeedIsDouble, false);
+
+        if (settings.FactoryAutoPause)
+        {
+            SetFactoryPaused(true);
+        }
     }
 
     public void SetShowInfo(bool isVisible)
@@ -2922,6 +2963,14 @@ public class FactoryBuildingPlacer : MonoBehaviour
         SetSpeedToggleVisual(isDoubleSelected);
     }
 
+    private void SyncPauseToggleVisual()
+    {
+        if (pauseToggle != null)
+        {
+            pauseToggle.SetIsOnWithoutNotify(factoryIsPaused);
+        }
+    }
+
     private void SetSpeedToggleVisual(bool isDoubleSelected)
     {
         if (normalSpeedToggle != null)
@@ -2957,6 +3006,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private Toggle GetActiveSpeedToggleForVisual()
     {
+        if (factoryIsPaused)
+        {
+            return pauseToggle != null ? pauseToggle : normalSpeedToggle;
+        }
+
         bool isDoubleSelected = isShiftSpeedOverrideActive
             || Mathf.Approximately(selectedFactorySpeed, Mathf.Max(0.1f, boostedFactorySpeed));
 
