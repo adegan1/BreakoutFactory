@@ -12,6 +12,15 @@ public class FactoryBuildingPlacer : MonoBehaviour
     public static int HoveredMachineInstanceId { get; private set; } = -1;
     public static int SelectedMachineInstanceId { get; private set; } = -1;
     private static readonly HashSet<int> selectedMachineProgressContextIds = new();
+    private static FactoryBuildingPlacer instance;
+
+    /// <summary>
+    /// Scaled delta time for factory production and movement logic.
+    /// Returns 0 when the factory is paused, otherwise Time.deltaTime * current speed multiplier.
+    /// </summary>
+    public static float FactoryDeltaTime => instance != null
+        ? (instance.factoryIsPaused ? 0f : Time.deltaTime * instance.activeFactorySpeed)
+        : Time.deltaTime;
 
     [SerializeField] private TileManager tileManager;
     [SerializeField] private Camera worldCamera;
@@ -114,7 +123,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private readonly Dictionary<int, Vector3> antiStretchUiBaseLocalScales = new();
     private int selectedRotationQuarterTurns;
     private float selectedFactorySpeed = 1f;
-    private float defaultFixedDeltaTime = 0.02f;
+    private float activeFactorySpeed = 1f;
     private bool isShiftSpeedOverrideActive;
     private bool factoryIsPaused;
     private bool hasWarnedMissingAntiStretchUiTag;
@@ -230,13 +239,21 @@ public class FactoryBuildingPlacer : MonoBehaviour
             outputIndicatorRenderer = outputIndicator.GetComponent<SpriteRenderer>();
         }
 
-        defaultFixedDeltaTime = Time.fixedDeltaTime;
+        instance = this;
         selectedFactorySpeed = Mathf.Max(0.1f, normalFactorySpeed);
         ApplyFactorySpeed(selectedFactorySpeed);
         ApplySavedSettings();
 
         HoveredMachineInstanceId = -1;
         SelectedMachineInstanceId = -1;
+    }
+
+    private void Start()
+    {
+        DetachToggleGroupFromSpeedToggles();
+        if (pauseToggle != null)
+            pauseToggle.onValueChanged.AddListener(SetFactoryPaused);
+        SyncPauseToggleVisual();
     }
 
     private void OnDisable()
@@ -246,7 +263,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         antiStretchUiBaseLocalScales.Clear();
         RefreshMoveModeBlockedButtons(forceEnabled: true);
         SetMovedGroupPreviewVisible(false);
-        RevertGlobalTimeToNormal();
+        if (instance == this) instance = null;
     }
 
     private void OnDestroy()
@@ -256,7 +273,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         antiStretchUiBaseLocalScales.Clear();
         RefreshMoveModeBlockedButtons(forceEnabled: true);
         DestroyMovedGroupPreviewHighlights();
-        RevertGlobalTimeToNormal();
+        if (instance == this) instance = null;
     }
 
     private void LateUpdate()
@@ -340,14 +357,26 @@ public class FactoryBuildingPlacer : MonoBehaviour
             }
             else
             {
-                bool didPlace = TryPlaceAtPointer();
-                if (didPlace)
+                if (hasPointerTile
+                    && spawnedByCell.TryGetValue(pointerGridPosition, out PlacedBuildingRecord clickedRecord)
+                    && clickedRecord?.SpawnedObject != null)
                 {
-                    SuppressHoverAtPointerTile();
+                    DeselectBuilding();
+                    selectedBuildingInstanceIds.Clear();
+                    selectedBuildingInstanceIds.Add(clickedRecord.SpawnedObject.GetInstanceID());
+                    TrySelectMachineAtPointer();
                 }
                 else
                 {
-                    TrySelectMachineAtPointer();
+                    bool didPlace = TryPlaceAtPointer();
+                    if (didPlace)
+                    {
+                        SuppressHoverAtPointerTile();
+                    }
+                    else
+                    {
+                        TrySelectMachineAtPointer();
+                    }
                 }
             }
         }
@@ -2759,13 +2788,18 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private void HandleFactorySpeedInput()
     {
+        Keyboard keyboard = Keyboard.current;
+
+        if (keyboard != null && keyboard.spaceKey.wasPressedThisFrame)
+        {
+            ToggleFactoryPause();
+        }
+
         if (factoryIsPaused)
         {
-            ApplyFactorySpeed(selectedFactorySpeed);
             return;
         }
 
-        Keyboard keyboard = Keyboard.current;
         if (!enableShiftSpeedBoost || keyboard == null)
         {
             if (isShiftSpeedOverrideActive)
@@ -2823,10 +2857,13 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     public void SetFactorySpeedTo1x(bool isOn)
     {
-        if (isOn)
+        if (!isOn)
         {
-            SetFactorySpeedTo1x();
+            SyncSpeedToggleVisualWithSelectedSpeed();
+            return;
         }
+        if (factoryIsPaused) SetFactoryPaused(false);
+        SetFactorySpeedTo1x();
     }
 
     public void SetFactorySpeedTo2x()
@@ -2836,10 +2873,13 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     public void SetFactorySpeedTo2x(bool isOn)
     {
-        if (isOn)
+        if (!isOn)
         {
-            SetFactorySpeedTo2x();
+            SyncSpeedToggleVisualWithSelectedSpeed();
+            return;
         }
+        if (factoryIsPaused) SetFactoryPaused(false);
+        SetFactorySpeedTo2x();
     }
 
     public void ToggleFactoryPause()
@@ -2861,28 +2901,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     private void ApplyFactorySpeed(float speed)
     {
-        if (factoryIsPaused)
-        {
-            if (Time.timeScale != 0f)
-            {
-                Time.timeScale = 0f;
-                Time.fixedDeltaTime = defaultFixedDeltaTime;
-            }
-
-            return;
-        }
-
-        float clampedSpeed = Mathf.Max(0.1f, speed);
-
-        float targetFixedDeltaTime = defaultFixedDeltaTime * clampedSpeed;
-        if (Mathf.Approximately(Time.timeScale, clampedSpeed)
-            && Mathf.Approximately(Time.fixedDeltaTime, targetFixedDeltaTime))
-        {
-            return;
-        }
-
-        Time.timeScale = clampedSpeed;
-        Time.fixedDeltaTime = targetFixedDeltaTime;
+        activeFactorySpeed = Mathf.Max(0.1f, speed);
     }
 
     private void ApplySavedSettings()
@@ -2951,23 +2970,32 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
     }
 
-    private void RevertGlobalTimeToNormal()
-    {
-        Time.timeScale = 1f;
-        Time.fixedDeltaTime = defaultFixedDeltaTime;
-    }
-
     private void SyncSpeedToggleVisualWithSelectedSpeed()
     {
         bool isDoubleSelected = Mathf.Approximately(selectedFactorySpeed, Mathf.Max(0.1f, boostedFactorySpeed));
         SetSpeedToggleVisual(isDoubleSelected);
     }
 
+    private void DetachToggleGroupFromSpeedToggles()
+    {
+        if (normalSpeedToggle != null) normalSpeedToggle.group = null;
+        if (doubleSpeedToggle != null) doubleSpeedToggle.group = null;
+        if (pauseToggle != null) pauseToggle.group = null;
+    }
+
     private void SyncPauseToggleVisual()
     {
         if (pauseToggle != null)
-        {
             pauseToggle.SetIsOnWithoutNotify(factoryIsPaused);
+
+        if (factoryIsPaused)
+        {
+            if (normalSpeedToggle != null) normalSpeedToggle.SetIsOnWithoutNotify(false);
+            if (doubleSpeedToggle != null) doubleSpeedToggle.SetIsOnWithoutNotify(false);
+        }
+        else
+        {
+            SyncSpeedToggleVisualWithSelectedSpeed();
         }
     }
 

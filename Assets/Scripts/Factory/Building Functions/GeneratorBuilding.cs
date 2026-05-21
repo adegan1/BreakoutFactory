@@ -84,7 +84,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
             return;
         }
 
-        spawnTimer += Time.deltaTime;
+        spawnTimer += FactoryBuildingPlacer.FactoryDeltaTime;
         float spawnInterval = settings.SpawnIntervalSeconds;
         if (spawnTimer < spawnInterval)
         {
@@ -256,7 +256,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
             return;
         }
 
-        launchMoveTimer += Time.deltaTime;
+        launchMoveTimer += FactoryBuildingPlacer.FactoryDeltaTime;
         float t = Mathf.Clamp01(launchMoveTimer / outputTravelDurationSeconds);
         launchingItem.transform.position = Vector3.Lerp(launchStartWorldPosition, launchTargetWorldPosition, t);
 

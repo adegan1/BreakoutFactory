@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 89c17bf856481784a9f458b60c4e9345
+guid: bf249c85b51c1b442962232e1e50e7ed
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2619217190700729648
-    second: Keyboard R_0
+      213: -4942917670415978991
+    second: letter-r_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,13 +126,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Keyboard R_0
+      name: letter-r_0
       rect:
         serializedVersion: 2
-        x: 20
-        y: 22
-        width: 461
-        height: 456
+        x: 78
+        y: 66
+        width: 356
+        height: 379
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0dabfae97dba6abd0800000000000000
-      internalID: -2619217190700729648
+      spriteID: 11eaad4419a376bb0800000000000000
+      internalID: -4942917670415978991
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Keyboard R_0: -2619217190700729648
+      letter-r_0: -4942917670415978991
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

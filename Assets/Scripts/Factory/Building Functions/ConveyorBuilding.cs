@@ -292,7 +292,7 @@ public class ConveyorBuilding : MonoBehaviour
             return;
         }
 
-        moveTimer += Time.deltaTime;
+        moveTimer += FactoryBuildingPlacer.FactoryDeltaTime;
         float t = Mathf.Clamp01(moveTimer / moveDurationSeconds);
         carriedItem.transform.position = Vector3.Lerp(moveStartWorldPosition, moveTargetWorldPosition, t);
 

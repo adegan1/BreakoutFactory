@@ -567,7 +567,7 @@ public class FusionReactorBuilding : MonoBehaviour, IItemInputReceiver, IBuildin
             return;
         }
 
-        launchMoveTimer += Time.deltaTime;
+        launchMoveTimer += FactoryBuildingPlacer.FactoryDeltaTime;
         float t = Mathf.Clamp01(launchMoveTimer / outputTravelDurationSeconds);
         launchingItem.transform.position = Vector3.Lerp(launchStartWorldPosition, launchTargetWorldPosition, t);
 
