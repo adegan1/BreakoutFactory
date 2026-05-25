@@ -54,6 +54,9 @@ public class BreakoutGameController : MonoBehaviour
     [Header("Life Lost UI")]
     [SerializeField] private GameObject lifeLostTextObject;
 
+    [Header("Item Shop")]
+    [SerializeField] private ItemShop itemShop;
+
     [Header("Level Complete Pause Visuals")]
     [SerializeField, Range(0f, 1f)] private float pauseGrayscaleBlend = 0.6f;
     [SerializeField, Range(0f, 1f)] private float pauseAlphaMultiplier = 0.7f;
@@ -482,6 +485,12 @@ public class BreakoutGameController : MonoBehaviour
             if (PlayerStats.HasInstance)
             {
                 PlayerStats.Instance.IncrementLevel();
+            }
+
+            if (itemShop != null)
+            {
+                itemShop.Open();
+                yield return new WaitUntil(() => !itemShop.IsOpen);
             }
 
             onAllBricksCleared?.Invoke();
