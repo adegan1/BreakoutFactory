@@ -129,11 +129,9 @@ public static class ItemEntitySceneQuery
         return false;
     }
 
-    /// <summary>
-    /// Clears the frame cache so the next query does a fresh scene scan.
-    /// Call this whenever an item is instantiated or a reservation is made
-    /// mid-frame so subsequent checks in the same frame see the new state.
-    /// </summary>
+    // Clears the frame cache so the next query does a fresh scene scan.
+    // Call this whenever an item is instantiated or a reservation is made
+    // mid-frame so subsequent checks in the same frame see the new state.
     public static void InvalidateCache()
     {
         cachedFrame = -1;

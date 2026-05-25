@@ -724,6 +724,39 @@ public class InventoryManager : MonoBehaviour
         return true;
     }
 
+    // Searches all stored stacks for a matching machineStateId without needing to know the
+    // building definition. Used when only the machine state id is available (e.g. items
+    // dropped from machine slots whose source generators have since been removed).
+    public bool TryRefundStoredMachineResourceById(string machineStateId, int amount)
+    {
+        EnsureInitialized();
+        if (string.IsNullOrEmpty(machineStateId) || amount <= 0)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < buildingStoredResourceStacks.Count; i++)
+        {
+            BuildingStoredResourceStackEntry entry = buildingStoredResourceStacks[i];
+            if (entry?.StoredStates == null)
+            {
+                continue;
+            }
+
+            for (int j = entry.StoredStates.Count - 1; j >= 0; j--)
+            {
+                StoredMachineResourceState state = entry.StoredStates[j];
+                if (state != null && state.MachineStateId == machineStateId)
+                {
+                    state.SetStoredAmount(Mathf.Max(0, state.StoredAmount) + amount);
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public void ClearStoredMachineResources()
     {
         EnsureInitialized();

@@ -78,11 +78,9 @@ public static class FactoryMachineUtility
         pendingOutputQuantity = 0;
     }
 
-    /// <summary>
-    /// Scans for any unclaimed ItemEntity sitting on the given tile and offers it to the receiver.
-    /// Intended to absorb items that were snapped to a tile center after their conveyor was removed.
-    /// Returns true if an item was absorbed.
-    /// </summary>
+    // Scans for any unclaimed ItemEntity sitting on the given tile and offers it to the receiver.
+    // Intended to absorb items that were snapped to a tile center after their conveyor was removed.
+    // Returns true if an item was absorbed.
     public static bool TryScanAndAbsorbItemAtTile(IItemInputReceiver receiver, Vector2Int tile, TileManager tileManager)
     {
         if (tileManager == null)

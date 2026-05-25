@@ -112,6 +112,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private Vector2Int lastConveyorDragTile;
     private bool isRightClickDragRemoving;
     private bool isDragRemovingItems;
+    private bool dragRemoveModeDecided;
     private Vector2Int lastRightClickDragTile;
     private bool isMovingSelectedGroup;
     private Vector2Int selectedGroupPointerOffset;
@@ -399,18 +400,19 @@ public class FactoryBuildingPlacer : MonoBehaviour
         {
             isRightClickDragRemoving = false;
             isDragRemovingItems = false;
+            dragRemoveModeDecided = false;
         }
         else
         {
             if (mouse.rightButton.wasPressedThisFrame && !pointerOverUi)
             {
-                // Determine drag mode before removing so we know what was hit.
-                bool hitItem = hasPointerTile
-                    && !spawnedByCell.ContainsKey(pointerGridPosition)
-                    && HasLooseItemAtPointer();
+                // Decide mode based on what was actually under the pointer.
+                bool hitBuilding = hasPointerTile && spawnedByCell.ContainsKey(pointerGridPosition);
+                bool hitItem = hasPointerTile && !hitBuilding && HasLooseItemAtPointer();
 
                 isRightClickDragRemoving = true;
                 isDragRemovingItems = hitItem;
+                dragRemoveModeDecided = hitBuilding || hitItem;
                 lastRightClickDragTile = pointerGridPosition;
                 TryRemoveAtPointer();
             }
@@ -423,7 +425,21 @@ public class FactoryBuildingPlacer : MonoBehaviour
                 if (hasPointerTile && pointerGridPosition != lastRightClickDragTile)
                 {
                     lastRightClickDragTile = pointerGridPosition;
-                    if (isDragRemovingItems)
+                    if (!dragRemoveModeDecided)
+                    {
+                        // Nothing removed yet — try item first, then building; first success locks the mode.
+                        if (TryRemoveLooseItemAtPointerDrag())
+                        {
+                            isDragRemovingItems = true;
+                            dragRemoveModeDecided = true;
+                        }
+                        else if (TryRemoveDragAtPointer())
+                        {
+                            isDragRemovingItems = false;
+                            dragRemoveModeDecided = true;
+                        }
+                    }
+                    else if (isDragRemovingItems)
                     {
                         TryRemoveLooseItemAtPointerDrag();
                     }
@@ -438,6 +454,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             {
                 isRightClickDragRemoving = false;
                 isDragRemovingItems = false;
+                dragRemoveModeDecided = false;
             }
         }
 
@@ -2205,17 +2222,18 @@ public class FactoryBuildingPlacer : MonoBehaviour
     }
 
     // Simplified remove used while right-click dragging — skips deselect side effects.
-    private void TryRemoveDragAtPointer()
+    // Returns true if a building was removed.
+    private bool TryRemoveDragAtPointer()
     {
         if (!CanInteractAtPointer())
         {
-            return;
+            return false;
         }
 
         Vector2Int gridPosition = pointerGridPosition;
         if (!spawnedByCell.TryGetValue(gridPosition, out PlacedBuildingRecord record) || record?.SpawnedObject == null)
         {
-            return;
+            return false;
         }
 
         Vector2Int topLeft = record.TopLeftGridPosition;
@@ -2223,24 +2241,26 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (!RemovePlacedBuilding(record, refundBuildingToInventoryOnRemove))
         {
-            return;
+            return false;
         }
 
         RefreshConveyorVisualsAround(topLeft, footprintSize);
+        return true;
     }
 
     // Removes a loose (unclaimed, not-on-machine) item at the pointer tile during an item-drag session.
-    private void TryRemoveLooseItemAtPointerDrag()
+    // Returns true if an item was removed.
+    private bool TryRemoveLooseItemAtPointerDrag()
     {
         if (tileManager == null || !hasPointerTile)
         {
-            return;
+            return false;
         }
 
         // Never remove items sitting on top of a building tile.
         if (spawnedByCell.ContainsKey(pointerGridPosition))
         {
-            return;
+            return false;
         }
 
         ItemEntity[] items = ItemEntitySceneQuery.GetItems();
@@ -2260,8 +2280,10 @@ public class FactoryBuildingPlacer : MonoBehaviour
             item.TryRefundToSourceGenerator(Mathf.Max(1, item.Quantity));
             Destroy(item.gameObject);
             ItemEntitySceneQuery.InvalidateCache();
-            return;
+            return true;
         }
+
+        return false;
     }
 
     // Returns true if there is a loose (not-on-machine) item at the current pointer tile.

@@ -149,6 +149,11 @@ public class ItemEntity : MonoBehaviour
                     {
                         refundedAny = true;
                     }
+                    else if (InventoryManager.HasInstance
+                        && InventoryManager.Instance.TryRefundStoredMachineResourceById(id, 1))
+                    {
+                        refundedAny = true;
+                    }
                 }
 
                 if (refundedAny)
