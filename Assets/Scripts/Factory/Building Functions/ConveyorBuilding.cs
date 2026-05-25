@@ -20,6 +20,7 @@ public class ConveyorBuilding : MonoBehaviour
     private float moveTimer;
     private Vector3 moveStartWorldPosition;
     private Vector3 moveTargetWorldPosition;
+    private bool suppressItemSnapOnDisable;
 
     private void Reset()
     {
@@ -319,11 +320,21 @@ public class ConveyorBuilding : MonoBehaviour
         moveTimer = 0f;
     }
 
+    /// <summary>
+    /// Call before destroying this conveyor when it is being replaced by a newly placed belt.
+    /// Prevents the in-transit item from snapping to the nearest tile center, since a new
+    /// conveyor will take over on the same tile immediately.
+    /// </summary>
+    public void SuppressItemSnapOnDisable()
+    {
+        suppressItemSnapOnDisable = true;
+    }
+
     private void OnDisable()
     {
         if (carriedItem != null)
         {
-            if (tileManager != null)
+            if (!suppressItemSnapOnDisable && tileManager != null)
             {
                 Vector2Int nearestTile = tileManager.WorldToGrid(carriedItem.transform.position);
                 carriedItem.transform.position = tileManager.GridToWorld(nearestTile);

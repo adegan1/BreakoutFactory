@@ -14,10 +14,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private static readonly HashSet<int> selectedMachineProgressContextIds = new();
     private static FactoryBuildingPlacer instance;
 
-    /// <summary>
-    /// Scaled delta time for factory production and movement logic.
-    /// Returns 0 when the factory is paused, otherwise Time.deltaTime * current speed multiplier.
-    /// </summary>
+    // Scaled delta time for factory production and movement logic.
+    // Returns 0 when the factory is paused, otherwise Time.deltaTime * current speed multiplier.
     public static float FactoryDeltaTime => instance != null
         ? (instance.factoryIsPaused ? 0f : Time.deltaTime * instance.activeFactorySpeed)
         : Time.deltaTime;
@@ -113,6 +111,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
     private bool hasConveyorDragTile;
     private Vector2Int lastConveyorDragTile;
     private bool isRightClickDragRemoving;
+    private bool isDragRemovingItems;
     private Vector2Int lastRightClickDragTile;
     private bool isMovingSelectedGroup;
     private Vector2Int selectedGroupPointerOffset;
@@ -399,12 +398,19 @@ public class FactoryBuildingPlacer : MonoBehaviour
         if (isMovingSelectedGroup || isBoxSelecting)
         {
             isRightClickDragRemoving = false;
+            isDragRemovingItems = false;
         }
         else
         {
             if (mouse.rightButton.wasPressedThisFrame && !pointerOverUi)
             {
+                // Determine drag mode before removing so we know what was hit.
+                bool hitItem = hasPointerTile
+                    && !spawnedByCell.ContainsKey(pointerGridPosition)
+                    && HasLooseItemAtPointer();
+
                 isRightClickDragRemoving = true;
+                isDragRemovingItems = hitItem;
                 lastRightClickDragTile = pointerGridPosition;
                 TryRemoveAtPointer();
             }
@@ -417,13 +423,21 @@ public class FactoryBuildingPlacer : MonoBehaviour
                 if (hasPointerTile && pointerGridPosition != lastRightClickDragTile)
                 {
                     lastRightClickDragTile = pointerGridPosition;
-                    TryRemoveDragAtPointer();
+                    if (isDragRemovingItems)
+                    {
+                        TryRemoveLooseItemAtPointerDrag();
+                    }
+                    else
+                    {
+                        TryRemoveDragAtPointer();
+                    }
                 }
             }
 
             if (mouse.rightButton.wasReleasedThisFrame)
             {
                 isRightClickDragRemoving = false;
+                isDragRemovingItems = false;
             }
         }
 
@@ -2096,7 +2110,18 @@ public class FactoryBuildingPlacer : MonoBehaviour
         {
             if (!CanReplaceConveyorAt(optimalTopLeft, footprintSize, selectedBuildingDefinition)
                 || !spawnedByCell.TryGetValue(optimalTopLeft, out PlacedBuildingRecord existingConveyor)
-                || !RemovePlacedBuilding(existingConveyor, true))
+                || existingConveyor?.SpawnedObject == null)
+            {
+                inventoryManager.AddBuilding(selectedBuildingDefinition, 1);
+                return false;
+            }
+
+            // Suppress the item-snap so a mid-transit item doesn't jitter when the
+            // old belt is replaced; the new belt will take over on the same tile.
+            ConveyorBuilding existingConveyorBuilding = existingConveyor.SpawnedObject.GetComponent<ConveyorBuilding>();
+            existingConveyorBuilding?.SuppressItemSnapOnDisable();
+
+            if (!RemovePlacedBuilding(existingConveyor, true))
             {
                 inventoryManager.AddBuilding(selectedBuildingDefinition, 1);
                 return false;
@@ -2202,6 +2227,72 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         RefreshConveyorVisualsAround(topLeft, footprintSize);
+    }
+
+    // Removes a loose (unclaimed, not-on-machine) item at the pointer tile during an item-drag session.
+    private void TryRemoveLooseItemAtPointerDrag()
+    {
+        if (tileManager == null || !hasPointerTile)
+        {
+            return;
+        }
+
+        // Never remove items sitting on top of a building tile.
+        if (spawnedByCell.ContainsKey(pointerGridPosition))
+        {
+            return;
+        }
+
+        ItemEntity[] items = ItemEntitySceneQuery.GetItems();
+        for (int i = 0; i < items.Length; i++)
+        {
+            ItemEntity item = items[i];
+            if (item == null)
+            {
+                continue;
+            }
+
+            if (tileManager.WorldToGrid(item.transform.position) != pointerGridPosition)
+            {
+                continue;
+            }
+
+            item.TryRefundToSourceGenerator(Mathf.Max(1, item.Quantity));
+            Destroy(item.gameObject);
+            ItemEntitySceneQuery.InvalidateCache();
+            return;
+        }
+    }
+
+    // Returns true if there is a loose (not-on-machine) item at the current pointer tile.
+    private bool HasLooseItemAtPointer()
+    {
+        if (tileManager == null)
+        {
+            return false;
+        }
+
+        ItemEntity[] items = ItemEntitySceneQuery.GetItems();
+        for (int i = 0; i < items.Length; i++)
+        {
+            ItemEntity item = items[i];
+            if (item == null)
+            {
+                continue;
+            }
+
+            if (tileManager.WorldToGrid(item.transform.position) != pointerGridPosition)
+            {
+                continue;
+            }
+
+            if (item.ContainsWorldPoint(pointerWorldPoint))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private bool TryRemoveLooseItemUnderPointer()
