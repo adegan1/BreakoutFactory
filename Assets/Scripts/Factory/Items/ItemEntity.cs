@@ -255,6 +255,11 @@ public class ItemEntity : MonoBehaviour
         reservedDestinationOwner = owner;
         reservedDestinationTile = tile;
         hasReservedDestination = true;
+
+        // Invalidate the scene-query cache so any same-frame output check
+        // by another building will see this reservation immediately.
+        ItemEntitySceneQuery.InvalidateCache();
+
         return true;
     }
 
