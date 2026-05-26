@@ -148,7 +148,7 @@ public class BreakoutInventoryPanel : MonoBehaviour
         // Unsubscribe to avoid a Refresh() call per removal; we'll do one manual refresh.
         UnsubscribeFromInventory();
 
-        int totalScrap = 0;
+        float totalScrap = 0f;
         for (int i = 0; i < toSell.Count; i++)
         {
             if (toSell[i].def != null)
@@ -162,9 +162,9 @@ public class BreakoutInventoryPanel : MonoBehaviour
             InventoryManager.Instance.RemoveBuilding(toSell[i].def, toSell[i].qty);
         }
 
-        if (totalScrap > 0)
+        if (totalScrap > 0f)
         {
-            PlayerStats.Instance.AddScrap(totalScrap);
+            PlayerStats.Instance.AddScrap(Mathf.CeilToInt(totalScrap));
         }
 
         Refresh();
@@ -230,7 +230,7 @@ public class BreakoutInventoryPanel : MonoBehaviour
     {
         if (scrapValueText != null)
         {
-            scrapValueText.text = PlayerStats.HasInstance ? PlayerStats.Instance.Scrap.ToString() : "0";
+            scrapValueText.text = PlayerStats.HasInstance ? "x" + PlayerStats.Instance.Scrap.ToString() : "x0";
         }
     }
 
@@ -238,7 +238,7 @@ public class BreakoutInventoryPanel : MonoBehaviour
     {
         if (selectedValueText == null) return;
 
-        int total = 0;
+        float total = 0f;
         for (int i = 0; i < spawnedSlots.Count; i++)
         {
             if (spawnedSlots[i] != null)
@@ -246,7 +246,7 @@ public class BreakoutInventoryPanel : MonoBehaviour
                 total += spawnedSlots[i].GetSellScrapValue();
             }
         }
-        selectedValueText.text = total.ToString();
+        selectedValueText.text = "x" + Mathf.CeilToInt(total).ToString();
     }
 
     private void ClearSlots()

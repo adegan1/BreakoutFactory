@@ -1,15 +1,21 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ItemShopCard : MonoBehaviour
 {
+    [SerializeField] private GameObject cardContent;
     [SerializeField] private Image iconImage;
     [SerializeField] private Button buyButton;
     [SerializeField] private TooltipTrigger tooltipTrigger;
+    [SerializeField] private TextMeshProUGUI priceText;
+    [SerializeField] private TextMeshProUGUI quantityText;
 
     private BuildingDefinition definition;
-    private Action<BuildingDefinition> onBuy;
+    private int price;
+    private int quantity;
+    private Action<BuildingDefinition, int, int> onBuy;
 
     private void Awake()
     {
@@ -27,9 +33,11 @@ public class ItemShopCard : MonoBehaviour
         }
     }
 
-    public void Initialize(BuildingDefinition def, Action<BuildingDefinition> buyCallback)
+    public void Initialize(BuildingDefinition def, int itemPrice, int itemQuantity, Action<BuildingDefinition, int, int> buyCallback)
     {
         definition = def;
+        price = itemPrice;
+        quantity = itemQuantity;
         onBuy = buyCallback;
 
         if (iconImage != null)
@@ -43,6 +51,21 @@ public class ItemShopCard : MonoBehaviour
             iconImage.enabled = sprite != null;
         }
 
+        if (priceText != null)
+        {
+            priceText.text = "x" + itemPrice.ToString();
+        }
+
+        if (quantityText != null)
+        {
+            bool showQty = itemQuantity > 1;
+            quantityText.gameObject.SetActive(showQty);
+            if (showQty)
+            {
+                quantityText.text = "x" + itemQuantity.ToString();
+            }
+        }
+
         if (tooltipTrigger != null)
         {
             tooltipTrigger.SetContent(
@@ -51,9 +74,17 @@ public class ItemShopCard : MonoBehaviour
         }
     }
 
+    public void Hide()
+    {
+        if (cardContent != null)
+        {
+            cardContent.SetActive(false);
+        }
+    }
+
     private void OnBuyClicked()
     {
-        onBuy?.Invoke(definition);
+        onBuy?.Invoke(definition, price, quantity);
     }
 }
 

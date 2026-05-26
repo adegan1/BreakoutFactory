@@ -26,7 +26,7 @@ public class BreakoutInventorySlot : MonoBehaviour
     public BuildingDefinition Definition => definition;
 
     public int GetSellQuantity() => (sellToggle != null && sellToggle.isOn) ? sellQuantity : 0;
-    public int GetSellScrapValue() => (sellToggle != null && sellToggle.isOn) ? sellQuantity * (definition != null ? definition.ScrapDropAmount : 0) : 0;
+    public float GetSellScrapValue() => (sellToggle != null && sellToggle.isOn) ? sellQuantity * (definition != null ? definition.ScrapDropAmount : 0f) : 0f;
 
     public void SetOnValueChanged(Action callback)
     {

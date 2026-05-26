@@ -36,8 +36,10 @@ public class BuildingDefinition : ScriptableObject
     [SerializeField] private Sprite conveyorTurnRightSprite;
 
     // Drops
-    [SerializeField, Min(0)] private int scrapDropAmount = 0;
+    [SerializeField, Min(0)] private float scrapDropAmount = 0f;
     [SerializeField, Min(0)] private int maxOwnedQuantityFromBreakoutDrops;
+    [SerializeField, Min(1)] private int minShopBuyAmount = 1;
+    [SerializeField, Min(1)] private int maxShopBuyAmount = 1;
 
     public string DisplayName => displayName;
     public string Description => description;
@@ -51,8 +53,10 @@ public class BuildingDefinition : ScriptableObject
     public Sprite ConveyorStraightSprite => conveyorStraightSprite;
     public Sprite ConveyorTurnLeftSprite => conveyorTurnLeftSprite;
     public Sprite ConveyorTurnRightSprite => conveyorTurnRightSprite;
-    public int ScrapDropAmount => scrapDropAmount;
+    public float ScrapDropAmount => scrapDropAmount;
     public int MaxOwnedQuantityFromBreakoutDrops => maxOwnedQuantityFromBreakoutDrops;
+    public int MinShopBuyAmount => minShopBuyAmount;
+    public int MaxShopBuyAmount => Mathf.Max(maxShopBuyAmount, minShopBuyAmount);
     public SpriteScaleMode VisualScaleMode => spriteScaleMode;
     public Vector2 CustomSpriteScale => customSpriteScale;
 

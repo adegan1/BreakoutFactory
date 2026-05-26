@@ -28,5 +28,5 @@ MonoBehaviour:
   conveyorStraightSprite: {fileID: 0}
   conveyorTurnLeftSprite: {fileID: 0}
   conveyorTurnRightSprite: {fileID: 0}
-  scrapDropAmount: 5
+  scrapDropAmount: 8
   maxOwnedQuantityFromBreakoutDrops: 7

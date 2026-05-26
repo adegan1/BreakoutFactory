@@ -20,6 +20,8 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
     private SerializedProperty spriteScaleModeProperty;
     private SerializedProperty customSpriteScaleProperty;
     private SerializedProperty maxOwnedQuantityFromBreakoutDropsProperty;
+    private SerializedProperty minShopBuyAmountProperty;
+    private SerializedProperty maxShopBuyAmountProperty;
 
     private void OnEnable()
     {
@@ -39,6 +41,8 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
         spriteScaleModeProperty = FindProperty("spriteScaleMode");
         customSpriteScaleProperty = FindProperty("customSpriteScale");
         maxOwnedQuantityFromBreakoutDropsProperty = FindProperty("maxOwnedQuantityFromBreakoutDrops");
+        minShopBuyAmountProperty = FindProperty("minShopBuyAmount");
+        maxShopBuyAmountProperty = FindProperty("maxShopBuyAmount");
     }
 
     public override void OnInspectorGUI()
@@ -66,7 +70,7 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
             EditorGUILayout.PropertyField(customSpriteScaleProperty);
         }
 
-        DrawSection("Drops", scrapDropAmountProperty, maxOwnedQuantityFromBreakoutDropsProperty);
+        DrawSection("Drops", scrapDropAmountProperty, maxOwnedQuantityFromBreakoutDropsProperty, minShopBuyAmountProperty, maxShopBuyAmountProperty);
 
         serializedObject.ApplyModifiedProperties();
     }

@@ -75,6 +75,7 @@ public class BreakoutGameController : MonoBehaviour
     private bool levelEndTriggered;
     private bool outOfHealthEndQueued;
     private bool isLevelCompleteLocked;
+    private bool continueFromLevelCompleteRequested;
     private Coroutine allBricksClearedRoutine;
     private Coroutine brickSlowStopRoutine;
     private Coroutine forceStopBallsRoutine;
@@ -87,8 +88,15 @@ public class BreakoutGameController : MonoBehaviour
     public event Action MachinesCollectedChanged;
     public event Action AllBricksCleared;
     public event Action<LevelEndReason> LevelEnded;
+    public event Action ContinuingFromLevelComplete;
 
     public LevelEndReason LastLevelEndReason { get; private set; }
+
+    public void ContinueFromLevelComplete()
+    {
+        continueFromLevelCompleteRequested = true;
+        ContinuingFromLevelComplete?.Invoke();
+    }
 
     private void OnEnable()
     {
@@ -487,6 +495,13 @@ public class BreakoutGameController : MonoBehaviour
                 PlayerStats.Instance.IncrementLevel();
             }
 
+            // Show the level complete popup first.
+            LevelEnded?.Invoke(reason);
+
+            // Wait for the continue button to be pressed.
+            continueFromLevelCompleteRequested = false;
+            yield return new WaitUntil(() => continueFromLevelCompleteRequested);
+
             if (itemShop != null)
             {
                 itemShop.Open();
@@ -495,6 +510,8 @@ public class BreakoutGameController : MonoBehaviour
 
             onAllBricksCleared?.Invoke();
             AllBricksCleared?.Invoke();
+            allBricksClearedRoutine = null;
+            yield break;
         }
 
         LevelEnded?.Invoke(reason);

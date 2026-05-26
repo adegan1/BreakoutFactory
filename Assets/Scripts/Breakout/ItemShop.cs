@@ -20,12 +20,14 @@ public class ItemShop : MonoBehaviour
     [SerializeField, Min(1)] private int selectionCount = 3;
     [SerializeField, Range(0f, 1f)] private float duplicateChance = 0f;
     [SerializeField] private List<ShopEntry> shopEntries = new List<ShopEntry>();
+    [SerializeField, Min(0f)] private float priceMarkupPercent = 50f;
 
     [Header("UI References")]
     [SerializeField] private GameObject shopPanel;
     [SerializeField] private Transform cardContainer;
     [SerializeField] private ItemShopCard cardPrefab;
     [SerializeField] private TextMeshProUGUI scrapValueText;
+    [SerializeField] private GameObject insufficientScrapMessage;
 
     [Header("Events")]
     [SerializeField] private UnityEvent onShopClosed;
@@ -57,6 +59,7 @@ public class ItemShop : MonoBehaviour
 
         isOpen = true;
         BuildCards(offers);
+        HideInsufficientScrapMessage();
 
         if (shopPanel != null)
         {
@@ -79,6 +82,7 @@ public class ItemShop : MonoBehaviour
     {
         isOpen = false;
         ClearCards();
+        HideInsufficientScrapMessage();
 
         if (PlayerStats.HasInstance)
         {
@@ -99,14 +103,35 @@ public class ItemShop : MonoBehaviour
         ShopClosed?.Invoke();
     }
 
-    private void HandleCardBought(BuildingDefinition definition)
+    private void HandleCardBought(ItemShopCard card, BuildingDefinition definition, int price, int quantity)
     {
-        if (definition != null && InventoryManager.HasInstance)
+        if (definition == null) return;
+
+        if (price > 0)
         {
-            InventoryManager.Instance.AddBuilding(definition, 1);
+            if (!PlayerStats.HasInstance || PlayerStats.Instance.Scrap < price)
+            {
+                ShowInsufficientScrapMessage();
+                return;
+            }
+
+            PlayerStats.Instance.RemoveScrap(price);
         }
 
-        Close();
+        if (InventoryManager.HasInstance)
+        {
+            InventoryManager.Instance.AddBuilding(definition, quantity);
+        }
+
+        HideInsufficientScrapMessage();
+
+        spawnedCards.Remove(card);
+        card?.Hide();
+
+        if (spawnedCards.Count == 0)
+        {
+            Close();
+        }
     }
 
     private List<BuildingDefinition> PickOffers()
@@ -174,8 +199,12 @@ public class ItemShop : MonoBehaviour
 
         for (int i = 0; i < offers.Count; i++)
         {
+            BuildingDefinition def = offers[i];
+            int qty = def != null ? UnityEngine.Random.Range(def.MinShopBuyAmount, def.MaxShopBuyAmount + 1) : 1;
+            int price = def != null ? Mathf.CeilToInt(qty * def.ScrapDropAmount * (1f + priceMarkupPercent / 100f)) : 0;
             ItemShopCard card = Instantiate(cardPrefab, cardContainer);
-            card.Initialize(offers[i], HandleCardBought);
+            ItemShopCard capturedCard = card;
+            card.Initialize(def, price, qty, (d, p, q) => HandleCardBought(capturedCard, d, p, q));
             spawnedCards.Add(card);
         }
     }
@@ -197,10 +226,26 @@ public class ItemShop : MonoBehaviour
     {
         if (scrapValueText != null)
         {
-            scrapValueText.text = PlayerStats.HasInstance ? PlayerStats.Instance.Scrap.ToString() : "0";
+            scrapValueText.text = PlayerStats.HasInstance ? "x" + PlayerStats.Instance.Scrap.ToString() : "x0";
         }
     }
 
     private void HandleScrapChanged(int _) => UpdateScrapText();
+
+    private void HideInsufficientScrapMessage()
+    {
+        if (insufficientScrapMessage != null)
+        {
+            insufficientScrapMessage.SetActive(false);
+        }
+    }
+
+    private void ShowInsufficientScrapMessage()
+    {
+        if (insufficientScrapMessage != null)
+        {
+            insufficientScrapMessage.SetActive(true);
+        }
+    }
 }
 

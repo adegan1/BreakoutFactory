@@ -73,6 +73,7 @@ public class BreakoutHudController : MonoBehaviour
             gameController.BallsQueueChanged += HandleQueueChanged;
             gameController.MachinesCollectedChanged += HandleMachinesCollectedChanged;
             gameController.LevelEnded += HandleLevelEnded;
+            gameController.ContinuingFromLevelComplete += HandleContinuingFromLevelComplete;
         }
 
         if (PlayerStats.HasInstance)
@@ -92,6 +93,7 @@ public class BreakoutHudController : MonoBehaviour
             gameController.BallsQueueChanged -= HandleQueueChanged;
             gameController.MachinesCollectedChanged -= HandleMachinesCollectedChanged;
             gameController.LevelEnded -= HandleLevelEnded;
+            gameController.ContinuingFromLevelComplete -= HandleContinuingFromLevelComplete;
         }
 
         if (PlayerStats.HasInstance)
@@ -130,6 +132,14 @@ public class BreakoutHudController : MonoBehaviour
 
         UpdateLevelEndTitle(reason);
         UpdateLevelCompleteMachineIcons();
+    }
+
+    private void HandleContinuingFromLevelComplete()
+    {
+        if (levelCompletePopup != null)
+        {
+            levelCompletePopup.SetActive(false);
+        }
     }
 
     private void HandleHealthChanged(int current, int max)
