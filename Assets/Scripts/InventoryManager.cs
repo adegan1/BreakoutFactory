@@ -106,15 +106,10 @@ public class InventoryManager : MonoBehaviour
     [Header("Crafted Balls")]
     [SerializeField] private List<BallTypeData> craftedBalls = new();
 
-    [Header("Progress")]
-    [SerializeField, Min(0)] private int startingScrap;
-    [SerializeField, Min(0)] private int startingScore;
-    [SerializeField, Min(0)] private int scrap;
-    [SerializeField, Min(0)] private int score;
-
     private readonly Dictionary<BuildingDefinition, InventoryEntry> buildingsByDefinition = new();
     private readonly Dictionary<ItemDefinition, ItemInventoryEntry> itemsByDefinition = new();
     private readonly Dictionary<BuildingDefinition, BuildingStoredResourceStackEntry> storedResourceStacksByDefinition = new();
+    private readonly Dictionary<BuildingDefinition, int> placedBuildingCounts = new();
     private bool isInitialized;
     private bool hasImportedSceneStartingData;
 
@@ -122,6 +117,8 @@ public class InventoryManager : MonoBehaviour
     public static bool HasInstance => instance != null;
 
     public event Action InventoryChanged;
+
+    public IReadOnlyDictionary<BuildingDefinition, int> PlacedBuildingCounts => placedBuildingCounts;
 
     public IReadOnlyList<InventoryEntry> BuildingItems
     {
@@ -147,24 +144,6 @@ public class InventoryManager : MonoBehaviour
         {
             EnsureInitialized();
             return itemInventory;
-        }
-    }
-
-    public int Scrap
-    {
-        get
-        {
-            EnsureInitialized();
-            return scrap;
-        }
-    }
-
-    public int Score
-    {
-        get
-        {
-            EnsureInitialized();
-            return score;
         }
     }
 
@@ -216,16 +195,6 @@ public class InventoryManager : MonoBehaviour
         MergeStartingBuildings(source.startingBuildings);
         MergeStartingItems(source.startingItems);
 
-        if (scrap <= 0 && source.startingScrap > 0)
-        {
-            scrap = source.startingScrap;
-        }
-
-        if (score <= 0 && source.startingScore > 0)
-        {
-            score = source.startingScore;
-        }
-
         hasImportedSceneStartingData = true;
         InventoryChanged?.Invoke();
     }
@@ -239,9 +208,7 @@ public class InventoryManager : MonoBehaviour
 
         bool hasStartingBuildings = source.startingBuildings != null && source.startingBuildings.Count > 0;
         bool hasStartingItems = source.startingItems != null && source.startingItems.Count > 0;
-        bool hasStartingScrap = source.startingScrap > 0;
-        bool hasStartingScore = source.startingScore > 0;
-        return hasStartingBuildings || hasStartingItems || hasStartingScrap || hasStartingScore;
+        return hasStartingBuildings || hasStartingItems;
     }
 
     private void CaptureStartingDataFromSource(InventoryManager source)
@@ -275,9 +242,6 @@ public class InventoryManager : MonoBehaviour
                 startingItems.Add(new ItemInventoryEntry(entry.ItemDefinition, entry.Quantity));
             }
         }
-
-        startingScrap = Mathf.Max(0, source.startingScrap);
-        startingScore = Mathf.Max(0, source.startingScore);
     }
 
     private void MergeStartingBuildings(List<InventoryEntry> sourceEntries)
@@ -364,58 +328,27 @@ public class InventoryManager : MonoBehaviour
 
     public void AddScrap(int amount)
     {
-        if (amount <= 0)
-        {
-            return;
-        }
-
-        EnsureInitialized();
-        scrap += amount;
-        InventoryChanged?.Invoke();
+        PlayerStats.Instance.AddScrap(amount);
     }
 
     public bool RemoveScrap(int amount)
     {
-        if (amount <= 0)
-        {
-            return true;
-        }
-
-        EnsureInitialized();
-        if (scrap < amount)
-        {
-            return false;
-        }
-
-        scrap -= amount;
-        InventoryChanged?.Invoke();
-        return true;
+        return PlayerStats.Instance.RemoveScrap(amount);
     }
 
     public void SetScrap(int amount)
     {
-        EnsureInitialized();
-        scrap = Mathf.Max(0, amount);
-        InventoryChanged?.Invoke();
+        PlayerStats.Instance.SetScrap(amount);
     }
 
     public void AddScore(int amount)
     {
-        if (amount <= 0)
-        {
-            return;
-        }
-
-        EnsureInitialized();
-        score += amount;
-        InventoryChanged?.Invoke();
+        PlayerStats.Instance.AddScore(amount);
     }
 
     public void SetScore(int amount)
     {
-        EnsureInitialized();
-        score = Mathf.Max(0, amount);
-        InventoryChanged?.Invoke();
+        PlayerStats.Instance.SetScore(amount);
     }
 
     public void ClearInventory()
@@ -425,8 +358,7 @@ public class InventoryManager : MonoBehaviour
         bool hasAnyBuildings = buildingInventory.Count > 0;
         bool hasAnyItems = itemInventory.Count > 0;
         bool hasAnyBalls = craftedBalls.Count > 0;
-        bool hasProgress = scrap > 0 || score > 0;
-        if (!hasAnyBuildings && !hasAnyItems && !hasAnyBalls && !hasProgress)
+        if (!hasAnyBuildings && !hasAnyItems && !hasAnyBalls)
         {
             return;
         }
@@ -440,8 +372,6 @@ public class InventoryManager : MonoBehaviour
         itemInventory.Clear();
         itemsByDefinition.Clear();
         craftedBalls.Clear();
-        scrap = 0;
-        score = 0;
         InventoryChanged?.Invoke();
     }
 
@@ -638,6 +568,22 @@ public class InventoryManager : MonoBehaviour
         SetBuildingQuantityInternal(buildingDefinition, currentQuantity + quantity, true);
     }
 
+    public void RegisterPlacedBuilding(BuildingDefinition buildingDefinition)
+    {
+        if (buildingDefinition == null) return;
+        placedBuildingCounts.TryGetValue(buildingDefinition, out int count);
+        placedBuildingCounts[buildingDefinition] = count + 1;
+    }
+
+    public void UnregisterPlacedBuilding(BuildingDefinition buildingDefinition)
+    {
+        if (buildingDefinition == null) return;
+        if (placedBuildingCounts.TryGetValue(buildingDefinition, out int count) && count > 0)
+        {
+            placedBuildingCounts[buildingDefinition] = count - 1;
+        }
+    }
+
     public void PushStoredMachineResource(BuildingDefinition buildingDefinition, string machineStateId, int resourceAmount)
     {
         EnsureInitialized();
@@ -805,6 +751,21 @@ public class InventoryManager : MonoBehaviour
         SetBuildingQuantityInternal(buildingDefinition, quantity, true);
     }
 
+    public void CompactHotbarSlots()
+    {
+        EnsureInitialized();
+        EnsureHotbarSlotList();
+
+        buildingHotbarSlots.RemoveAll(def => def == null);
+
+        while (buildingHotbarSlots.Count < BuildingHotbarSlotCount)
+        {
+            buildingHotbarSlots.Add(null);
+        }
+
+        InventoryChanged?.Invoke();
+    }
+
     public void ResetToStartingData()
     {
         EnsureInitialized();
@@ -822,9 +783,6 @@ public class InventoryManager : MonoBehaviour
 
         MergeStartingBuildings(startingBuildings);
         MergeStartingItems(startingItems);
-
-        scrap = Mathf.Max(0, startingScrap);
-        score = Mathf.Max(0, startingScore);
 
         InventoryChanged?.Invoke();
     }
@@ -871,11 +829,7 @@ public class InventoryManager : MonoBehaviour
             : new List<ItemInventoryEntry>(startingItems);
 
         bool hasInitialRuntimeOrStartingData = sourceBuildings.Count > 0
-            || sourceItems.Count > 0
-            || scrap > 0
-            || score > 0
-            || startingScrap > 0
-            || startingScore > 0;
+            || sourceItems.Count > 0;
 
         buildingInventory.Clear();
         buildingsByDefinition.Clear();
@@ -908,9 +862,6 @@ public class InventoryManager : MonoBehaviour
             int combinedQuantity = currentQuantity + entry.Quantity;
             SetItemQuantityInternal(entry.ItemDefinition, combinedQuantity, false);
         }
-
-        scrap = Mathf.Max(0, scrap > 0 ? scrap : startingScrap);
-        score = Mathf.Max(0, score > 0 ? score : startingScore);
 
         // If this persistent instance already initialized from runtime or scene-configured
         // starting data, later scene InventoryManager copies should not merge a second set.

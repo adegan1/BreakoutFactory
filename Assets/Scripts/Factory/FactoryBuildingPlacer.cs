@@ -2187,6 +2187,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         {
         }
 
+        inventoryManager?.RegisterPlacedBuilding(selectedBuildingDefinition);
         return true;
     }
 
@@ -2413,6 +2414,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             inventoryManager.AddBuilding(record.Definition, 1);
         }
 
+        inventoryManager?.UnregisterPlacedBuilding(record.Definition);
         return true;
     }
 
@@ -3746,6 +3748,17 @@ public class FactoryBuildingPlacer : MonoBehaviour
             }
         }
 
+        if (inventoryManager != null)
+        {
+            foreach (PlacedBuildingRecord record in uniqueRecords)
+            {
+                if (record != null && record.Definition != null)
+                {
+                    inventoryManager.UnregisterPlacedBuilding(record.Definition);
+                }
+            }
+        }
+
         if (tileManager != null)
         {
             tileManager.InitializeGrid();
@@ -3848,6 +3861,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             }
         }
 
+        inventoryManager?.RegisterPlacedBuilding(definition);
         return true;
     }
 

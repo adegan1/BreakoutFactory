@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -24,6 +25,7 @@ public class ItemShop : MonoBehaviour
     [SerializeField] private GameObject shopPanel;
     [SerializeField] private Transform cardContainer;
     [SerializeField] private ItemShopCard cardPrefab;
+    [SerializeField] private TextMeshProUGUI scrapValueText;
 
     [Header("Events")]
     [SerializeField] private UnityEvent onShopClosed;
@@ -60,6 +62,12 @@ public class ItemShop : MonoBehaviour
         {
             shopPanel.SetActive(true);
         }
+
+        UpdateScrapText();
+        if (PlayerStats.HasInstance)
+        {
+            PlayerStats.Instance.ScrapChanged += HandleScrapChanged;
+        }
     }
 
     public void Skip()
@@ -71,6 +79,11 @@ public class ItemShop : MonoBehaviour
     {
         isOpen = false;
         ClearCards();
+
+        if (PlayerStats.HasInstance)
+        {
+            PlayerStats.Instance.ScrapChanged -= HandleScrapChanged;
+        }
 
         if (shopPanel != null)
         {
@@ -179,5 +192,15 @@ public class ItemShop : MonoBehaviour
 
         spawnedCards.Clear();
     }
+
+    private void UpdateScrapText()
+    {
+        if (scrapValueText != null)
+        {
+            scrapValueText.text = PlayerStats.HasInstance ? PlayerStats.Instance.Scrap.ToString() : "0";
+        }
+    }
+
+    private void HandleScrapChanged(int _) => UpdateScrapText();
 }
 

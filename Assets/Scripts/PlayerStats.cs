@@ -11,12 +11,16 @@ public class PlayerStats : MonoBehaviour
     [SerializeField, Min(1)] private int startingLives = 3;
     [SerializeField, Min(1)] private int startingMaxHealth = 3;
     [SerializeField, Min(1)] private int startingLevel = 1;
+    [SerializeField, Min(0)] private int startingScrap;
+    [SerializeField, Min(0)] private int startingScore;
 
     [Header("Runtime (Read Only)")]
     [SerializeField, Min(0)] private int lives;
     [SerializeField, Min(0)] private int health;
     [SerializeField, Min(1)] private int maxHealth;
     [SerializeField, Min(1)] private int currentLevel = 1;
+    [SerializeField, Min(0)] private int scrap;
+    [SerializeField, Min(0)] private int score;
 
     [Header("Game Over")]
     [SerializeField] private bool loadSceneOnGameOver = true;
@@ -31,11 +35,15 @@ public class PlayerStats : MonoBehaviour
     public int Health => health;
     public int MaxHealth => maxHealth;
     public int CurrentLevel => currentLevel;
+    public int Scrap => scrap;
+    public int Score => score;
     public bool IsAlive => lives > 0 && health > 0;
 
     public event Action<int> LivesChanged;
     public event Action<int, int> HealthChanged;  // (current, max)
     public event Action<int> CurrentLevelChanged;
+    public event Action<int> ScrapChanged;
+    public event Action<int> ScoreChanged;
     public event Action LifeLost;
     public event Action GameOver;
 
@@ -59,9 +67,13 @@ public class PlayerStats : MonoBehaviour
         lives = Mathf.Max(1, startingLives);
         currentLevel = Mathf.Max(1, startingLevel);
         health = maxHealth;
+        scrap = Mathf.Max(0, startingScrap);
+        score = Mathf.Max(0, startingScore);
         NotifyLivesChanged();
         NotifyHealthChanged();
         NotifyCurrentLevelChanged();
+        ScrapChanged?.Invoke(scrap);
+        ScoreChanged?.Invoke(score);
     }
 
     public void SetCurrentLevel(int level)
@@ -133,6 +145,57 @@ public class PlayerStats : MonoBehaviour
         }
 
         NotifyHealthChanged();
+    }
+
+    public void AddScrap(int amount)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        scrap += amount;
+        ScrapChanged?.Invoke(scrap);
+    }
+
+    public bool RemoveScrap(int amount)
+    {
+        if (amount <= 0)
+        {
+            return true;
+        }
+
+        if (scrap < amount)
+        {
+            return false;
+        }
+
+        scrap -= amount;
+        ScrapChanged?.Invoke(scrap);
+        return true;
+    }
+
+    public void SetScrap(int amount)
+    {
+        scrap = Mathf.Max(0, amount);
+        ScrapChanged?.Invoke(scrap);
+    }
+
+    public void AddScore(int amount)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        score += amount;
+        ScoreChanged?.Invoke(score);
+    }
+
+    public void SetScore(int amount)
+    {
+        score = Mathf.Max(0, amount);
+        ScoreChanged?.Invoke(score);
     }
 
     public void AddLives(int amount)

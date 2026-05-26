@@ -151,6 +151,7 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
         if (InventoryManager.HasInstance)
         {
             InventoryManager.Instance.InventoryChanged -= HandleInventoryChanged;
+            InventoryManager.Instance.CompactHotbarSlots();
             InventoryManager.Instance.InventoryChanged += HandleInventoryChanged;
         }
 
