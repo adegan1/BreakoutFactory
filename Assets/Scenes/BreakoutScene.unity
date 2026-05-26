@@ -1575,7 +1575,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -8.2}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &219664030
@@ -3735,6 +3735,7 @@ GameObject:
   - component: {fileID: 666350812}
   - component: {fileID: 666350811}
   - component: {fileID: 666350810}
+  - component: {fileID: 666350813}
   m_Layer: 5
   m_Name: Open Shop Button
   m_TagString: Untagged
@@ -3856,6 +3857,35 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 666350808}
   m_CullTransparentMesh: 1
+--- !u!114 &666350813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 666350808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventTrigger
+  m_Delegates:
+  - eventID: 4
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1923540820}
+          m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+          m_MethodName: SetActive
+          m_Mode: 6
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &668186133
 GameObject:
   m_ObjectHideFlags: 0
@@ -5876,6 +5906,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BreakoutHudController
   gameController: {fileID: 1781705085}
   scoreText: {fileID: 1549141286}
+  scrapText: {fileID: 36094701}
   healthFillImage: {fileID: 653222111}
   livesText: {fileID: 1371758897}
   levelCompletePopup: {fileID: 1923540820}
@@ -6439,8 +6470,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -361.8, y: -103}
-  m_SizeDelta: {x: 59.143, y: 225.1087}
+  m_AnchoredPosition: {x: -361.8, y: -63.585377}
+  m_SizeDelta: {x: 59.143, y: 303.938}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1210710720
 MonoBehaviour:
@@ -6457,7 +6488,7 @@ MonoBehaviour:
   m_Padding:
     m_Left: 0
     m_Right: 0
-    m_Top: 0
+    m_Top: 1
     m_Bottom: 0
   m_ChildAlignment: 6
   m_Spacing: 3
@@ -6740,7 +6771,7 @@ MonoBehaviour:
   cardContainer: {fileID: 2127121236}
   cardPrefab: {fileID: 419102232475064984, guid: cfe2f0b5ed1d7e5468d8638e64d90102, type: 3}
   scrapValueText: {fileID: 513584052}
-  insufficientScrapMessage: {fileID: 0}
+  insufficientScrapMessage: {fileID: 6512109}
   onShopClosed:
     m_PersistentCalls:
       m_Calls: []
@@ -9708,6 +9739,10 @@ MonoBehaviour:
     weight: 3
     minQuantity: 0
     maxQuantity: 0
+  scrapDropChance: 0.075
+  minScrapDropAmount: 1
+  maxScrapDropAmount: 4
+  scrapDropPrefab: {fileID: 3200500697679839297, guid: ef4c45604c98add45b6268a891e593b7, type: 3}
   onOutOfBalls:
     m_PersistentCalls:
       m_Calls: []
@@ -10550,7 +10585,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ddf8f2a4ea1090468937792b28d1ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelSettings
-  nextLevelRowsToSpawn: 1
+  nextLevelRowsToSpawn: 4
   nextLevelBrickMoveSpeed: 0.075
   nextLevelBrickHealth: 1
   nextLevelBrickOdds:

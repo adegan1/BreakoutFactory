@@ -46,6 +46,12 @@ public class BreakoutGameController : MonoBehaviour
     [SerializeField] private float itemDropBottomKillY = -6f;
     [SerializeField] private List<BuildingDropTableEntry> weightedBuildingDrops = new List<BuildingDropTableEntry>();
 
+    [Header("Scrap Drops")]
+    [SerializeField, Range(0f, 1f)] private float scrapDropChance = 0.1f;
+    [SerializeField, Min(1)] private int minScrapDropAmount = 1;
+    [SerializeField, Min(1)] private int maxScrapDropAmount = 3;
+    [SerializeField] private BreakoutScrapDrop scrapDropPrefab;
+
     [Header("Events")]
     [SerializeField] private UnityEvent onOutOfBalls;
     [SerializeField] private UnityEvent onAllBricksCleared;
@@ -288,7 +294,11 @@ public class BreakoutGameController : MonoBehaviour
             NotifyScoreChanged();
         }
 
-        TrySpawnItemDropFromBrick(destroyedBrick);
+        TrySpawnItemDropFromBrick(destroyedBrick, out bool buildingDropped);
+        if (!buildingDropped)
+        {
+            TrySpawnScrapDropFromBrick(destroyedBrick);
+        }
         TryInvokeAllBricksCleared();
     }
 
@@ -304,8 +314,10 @@ public class BreakoutGameController : MonoBehaviour
         TryInvokeAllBricksCleared();
     }
 
-    private void TrySpawnItemDropFromBrick(BrickController destroyedBrick)
+    private void TrySpawnItemDropFromBrick(BrickController destroyedBrick, out bool dropped)
     {
+        dropped = false;
+
         if (!enableBrickDrops || destroyedBrick == null || itemDropPrefab == null)
         {
             return;
@@ -337,6 +349,29 @@ public class BreakoutGameController : MonoBehaviour
         BreakoutItemDrop droppedItem = Instantiate(itemDropPrefab, destroyedBrick.transform.position, Quaternion.identity);
         droppedItem.Initialize(this, selectedDrop.BuildingDefinition, quantity, itemDropFallSpeed, itemDropBottomKillY);
         dropsSpawnedThisLevel++;
+        dropped = true;
+    }
+
+    private void TrySpawnScrapDropFromBrick(BrickController destroyedBrick)
+    {
+        if (destroyedBrick == null || scrapDropPrefab == null)
+        {
+            return;
+        }
+
+        if (scrapDropChance <= 0f || UnityEngine.Random.value > scrapDropChance)
+        {
+            return;
+        }
+
+        int amount = UnityEngine.Random.Range(minScrapDropAmount, maxScrapDropAmount + 1);
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        BreakoutScrapDrop drop = Instantiate(scrapDropPrefab, destroyedBrick.transform.position, Quaternion.identity);
+        drop.Initialize(this, amount, itemDropFallSpeed, itemDropBottomKillY);
     }
 
     private bool CanSpawnDropForDefinition(BuildingDefinition buildingDefinition, int dropQuantity)
@@ -560,6 +595,18 @@ public class BreakoutGameController : MonoBehaviour
 
             drop.CollectImmediately();
         }
+
+        BreakoutScrapDrop[] scrapDrops = FindObjectsByType<BreakoutScrapDrop>(FindObjectsSortMode.None);
+        for (int i = 0; i < scrapDrops.Length; i++)
+        {
+            BreakoutScrapDrop drop = scrapDrops[i];
+            if (drop == null)
+            {
+                continue;
+            }
+
+            drop.CollectImmediately();
+        }
     }
 
     private void EnterLevelCompleteLock()
@@ -710,6 +757,19 @@ public class BreakoutGameController : MonoBehaviour
         for (int i = 0; i < drops.Length; i++)
         {
             BreakoutItemDrop drop = drops[i];
+            if (drop == null)
+            {
+                continue;
+            }
+
+            drop.StopMovement();
+            drop.ApplyLevelCompletePauseVisual(pauseGrayscaleBlend, pauseAlphaMultiplier);
+        }
+
+        BreakoutScrapDrop[] scrapDrops = FindObjectsByType<BreakoutScrapDrop>(FindObjectsSortMode.None);
+        for (int i = 0; i < scrapDrops.Length; i++)
+        {
+            BreakoutScrapDrop drop = scrapDrops[i];
             if (drop == null)
             {
                 continue;

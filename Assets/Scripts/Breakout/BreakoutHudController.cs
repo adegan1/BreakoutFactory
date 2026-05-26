@@ -14,6 +14,7 @@ public class BreakoutHudController : MonoBehaviour
     [Header("References")]
     [SerializeField] private BreakoutGameController gameController;
     [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private TextMeshProUGUI scrapText;
     [SerializeField] private Image healthFillImage;
     [SerializeField] private TextMeshProUGUI livesText;
     [SerializeField] private GameObject levelCompletePopup;
@@ -80,6 +81,7 @@ public class BreakoutHudController : MonoBehaviour
         {
             PlayerStats.Instance.HealthChanged += HandleHealthChanged;
             PlayerStats.Instance.LivesChanged += HandleLivesChanged;
+            PlayerStats.Instance.ScrapChanged += HandleScrapChanged;
         }
 
         RefreshAll();
@@ -100,6 +102,7 @@ public class BreakoutHudController : MonoBehaviour
         {
             PlayerStats.Instance.HealthChanged -= HandleHealthChanged;
             PlayerStats.Instance.LivesChanged -= HandleLivesChanged;
+            PlayerStats.Instance.ScrapChanged -= HandleScrapChanged;
         }
     }
 
@@ -152,6 +155,11 @@ public class BreakoutHudController : MonoBehaviour
         UpdateLivesText(current);
     }
 
+    private void HandleScrapChanged(int current)
+    {
+        UpdateScrapText(current);
+    }
+
     private void RefreshAll()
     {
         UpdateScoreText(gameController != null ? gameController.Score : 0);
@@ -162,6 +170,7 @@ public class BreakoutHudController : MonoBehaviour
         {
             UpdateHealthSlider(PlayerStats.Instance.Health, PlayerStats.Instance.MaxHealth);
             UpdateLivesText(PlayerStats.Instance.Lives);
+            UpdateScrapText(PlayerStats.Instance.Scrap);
         }
     }
 
@@ -173,6 +182,16 @@ public class BreakoutHudController : MonoBehaviour
         }
 
         scoreText.text = scoreLabel + ": " + currentScore;
+    }
+
+    private void UpdateScrapText(int currentScrap)
+    {
+        if (scrapText == null)
+        {
+            return;
+        }
+
+        scrapText.text = "x" + currentScrap;
     }
 
     private void UpdateHealthSlider(int current, int max)

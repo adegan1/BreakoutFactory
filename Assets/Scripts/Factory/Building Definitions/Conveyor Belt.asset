@@ -26,7 +26,7 @@ MonoBehaviour:
   conveyorStraightSprite: {fileID: 21300000, guid: 6324a18f0dc4608448bfe767f4e0fa56, type: 3}
   conveyorTurnLeftSprite: {fileID: 21300000, guid: 9303860836e54a44bb93ae41b04af99d, type: 3}
   conveyorTurnRightSprite: {fileID: 21300000, guid: 37fed4ea19834f14c91d05a9c8b8838a, type: 3}
-  scrapDropAmount: 1
+  scrapDropAmount: 0.5
   maxOwnedQuantityFromBreakoutDrops: 0
   minShopBuyAmount: 4
   maxShopBuyAmount: 15
