@@ -739,6 +739,32 @@ public class InventoryManager : MonoBehaviour
         return true;
     }
 
+    // Same as RemoveBuilding but preserves stored machine resource states so that
+    // ApplyStoredMachineResourceIfAvailable can consume them after the building is spawned.
+    // Use this when removing a building from inventory specifically for placement on the grid.
+    public bool RemoveBuildingForPlacement(BuildingDefinition buildingDefinition, int quantity = 1)
+    {
+        if (quantity <= 0)
+        {
+            return true;
+        }
+
+        EnsureInitialized();
+        if (buildingDefinition == null)
+        {
+            return false;
+        }
+
+        TryGetBuildingQuantityInternal(buildingDefinition, out int currentQuantity);
+        if (currentQuantity < quantity)
+        {
+            return false;
+        }
+
+        SetBuildingQuantityInternal(buildingDefinition, currentQuantity - quantity, true, preserveStoredStates: true);
+        return true;
+    }
+
     public void SetBuildingQuantity(BuildingDefinition buildingDefinition, int quantity)
     {
         EnsureInitialized();
@@ -885,7 +911,7 @@ public class InventoryManager : MonoBehaviour
         return false;
     }
 
-    private void SetBuildingQuantityInternal(BuildingDefinition buildingDefinition, int quantity, bool notifyListeners)
+    private void SetBuildingQuantityInternal(BuildingDefinition buildingDefinition, int quantity, bool notifyListeners, bool preserveStoredStates = false)
     {
         if (buildingDefinition == null)
         {
@@ -901,7 +927,10 @@ public class InventoryManager : MonoBehaviour
                 buildingsByDefinition.Remove(buildingDefinition);
                 buildingInventory.Remove(existingEntry);
                 ClearBuildingFromHotbarSlots(buildingDefinition);
-                RemoveStoredResourceStack(buildingDefinition);
+                if (!preserveStoredStates)
+                {
+                    RemoveStoredResourceStack(buildingDefinition);
+                }
 
                 if (notifyListeners)
                 {

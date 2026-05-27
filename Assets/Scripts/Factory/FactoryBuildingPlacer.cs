@@ -347,7 +347,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
                 BeginConveyorDragPlacement();
                 TryPlaceConveyorAlongDragPath();
             }
-            else if (!hasSelectedBuilding)
+            else if (!hasSelectedBuilding || SelectedBuildingDefinition == null)
             {
                 if (isCtrlHeld)
                 {
@@ -2109,7 +2109,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return false;
         }
 
-        if (inventoryManager == null || !inventoryManager.RemoveBuilding(selectedBuildingDefinition, 1))
+        if (inventoryManager == null || !inventoryManager.RemoveBuildingForPlacement(selectedBuildingDefinition, 1))
         {
             return false;
         }

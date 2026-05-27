@@ -11075,10 +11075,14 @@ MonoBehaviour:
   startingLives: 3
   startingMaxHealth: 100
   startingLevel: 1
+  startingScrap: 0
+  startingScore: 0
   lives: 0
   health: 0
   maxHealth: 0
   currentLevel: 1
+  scrap: 0
+  score: 0
   loadSceneOnGameOver: 1
   gameOverSceneName: GameoverScene
 --- !u!4 &1467489173
@@ -15123,21 +15127,17 @@ MonoBehaviour:
   - buildingDefinition: {fileID: 11400000, guid: a163862e1e67beb41880159dba5f80d9, type: 2}
     quantity: 3
   - buildingDefinition: {fileID: 11400000, guid: fa46ecb9e6ac6c24d8d11ce263dcb1a5, type: 2}
-    quantity: 3
+    quantity: 1
   - buildingDefinition: {fileID: 11400000, guid: 85db426e8d942384285a483aff32176a, type: 2}
-    quantity: 3
+    quantity: 1
   - buildingDefinition: {fileID: 11400000, guid: 0a925421f591623439df52242c47b281, type: 2}
-    quantity: 3
+    quantity: 1
   buildingInventory: []
   buildingHotbarSlots: []
   buildingStoredResourceStacks: []
   startingItems: []
   itemInventory: []
   craftedBalls: []
-  startingScrap: 0
-  startingScore: 0
-  scrap: 0
-  score: 0
 --- !u!1 &2023612168
 GameObject:
   m_ObjectHideFlags: 0

@@ -9739,9 +9739,9 @@ MonoBehaviour:
     weight: 3
     minQuantity: 0
     maxQuantity: 0
-  scrapDropChance: 0.075
-  minScrapDropAmount: 1
-  maxScrapDropAmount: 4
+  scrapDropChance: 0.085
+  minScrapDropAmount: 2
+  maxScrapDropAmount: 5
   scrapDropPrefab: {fileID: 3200500697679839297, guid: ef4c45604c98add45b6268a891e593b7, type: 3}
   onOutOfBalls:
     m_PersistentCalls:
