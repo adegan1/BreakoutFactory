@@ -56,11 +56,20 @@ public class BallController : MonoBehaviour
     [Header("Loss Rules")]
     [SerializeField] private float bottomKillY = -6f;
 
+    [Header("3D Visual")]
+    [SerializeField, Min(0.01f)] private float ballVisualRadius = 0.5f;
+    [SerializeField, Min(0f)] private float ballRollSpeedMultiplier = 1f;
+
+    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+
     private Rigidbody2D rb;
     private Collider2D ballCollider;
-    private SpriteRenderer spriteRenderer;
+    private MeshRenderer ballMeshRenderer;
+    private Transform ballVisualTransform;
     private TrailRenderer trailRenderer;
-    private Sprite defaultSprite;
+    private Material defaultMaterial;
+    private MaterialPropertyBlock propertyBlock;
+    private Color currentBallColor = Color.white;
     private Vector3 baseLocalScale;
     private Vector3 typeBaseScale;
     private bool launched;
@@ -110,12 +119,12 @@ public class BallController : MonoBehaviour
 
     public void ApplyLevelCompletePauseVisual(float grayscaleBlend, float alphaMultiplier)
     {
-        if (spriteRenderer != null)
+        if (ballMeshRenderer != null)
         {
-            Color baseColor = spriteRenderer.color;
-            float gray = baseColor.grayscale;
-            Color pausedColor = new Color(gray, gray, gray, baseColor.a * Mathf.Clamp01(alphaMultiplier));
-            spriteRenderer.color = Color.Lerp(baseColor, pausedColor, Mathf.Clamp01(grayscaleBlend));
+            float gray = currentBallColor.grayscale;
+            Color pausedColor = new Color(gray, gray, gray, currentBallColor.a * Mathf.Clamp01(alphaMultiplier));
+            propertyBlock.SetColor(BaseColorId, Color.Lerp(currentBallColor, pausedColor, Mathf.Clamp01(grayscaleBlend)));
+            ballMeshRenderer.SetPropertyBlock(propertyBlock);
         }
 
         if (trailRenderer != null)
@@ -128,9 +137,14 @@ public class BallController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         ballCollider = GetComponent<Collider2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        ballMeshRenderer = GetComponentInChildren<MeshRenderer>();
         trailRenderer = GetComponent<TrailRenderer>();
-        defaultSprite = spriteRenderer != null ? spriteRenderer.sprite : null;
+        if (ballMeshRenderer != null)
+        {
+            defaultMaterial = ballMeshRenderer.sharedMaterial;
+            ballVisualTransform = ballMeshRenderer.transform;
+        }
+        propertyBlock = new MaterialPropertyBlock();
         baseLocalScale = transform.localScale;
     }
 
@@ -184,6 +198,7 @@ public class BallController : MonoBehaviour
         ApplyCycloneCurvature();
 
         ApplyVelocity();
+        UpdateRollingRotation();
     }
 
     public void Launch(Vector2 direction)
@@ -397,6 +412,27 @@ public class BallController : MonoBehaviour
     private float GetCurrentSpeed()
     {
         return Mathf.Max(0f, speed) * Mathf.Max(1f, speedBoostMultiplier);
+    }
+
+    private void UpdateRollingRotation()
+    {
+        if (ballVisualTransform == null)
+        {
+            return;
+        }
+
+        Vector2 velocity = rb.linearVelocity;
+        if (velocity.sqrMagnitude < VelocitySqrThreshold)
+        {
+            return;
+        }
+
+        Vector2 dir = velocity.normalized;
+        float effectiveRadius = Mathf.Max(0.01f, ballVisualRadius * transform.localScale.x);
+        Vector3 rollingAxis = new Vector3(dir.y, -dir.x, 0f);
+        float typeSpeed = typeData != null ? typeData.MovementSpeed : 1f;
+        float degreesPerSecond = (velocity.magnitude / effectiveRadius) * Mathf.Rad2Deg * ballRollSpeedMultiplier * typeSpeed;
+        ballVisualTransform.Rotate(rollingAxis, degreesPerSecond * Time.deltaTime, Space.World);
     }
 
     private void UpdateSpeedBoost()
@@ -641,9 +677,12 @@ public class BallController : MonoBehaviour
             typeBaseScale = baseLocalScale;
             transform.localScale = typeBaseScale;
 
-            if (spriteRenderer != null)
+            if (ballMeshRenderer != null)
             {
-                spriteRenderer.sprite = defaultSprite;
+                ballMeshRenderer.material = defaultMaterial;
+                currentBallColor = Color.white;
+                propertyBlock.Clear();
+                ballMeshRenderer.SetPropertyBlock(propertyBlock);
             }
 
             brickTriggersInside.Clear();
@@ -675,10 +714,15 @@ public class BallController : MonoBehaviour
 
         brickTriggersInside.Clear();
 
-        if (spriteRenderer != null)
+        if (ballMeshRenderer != null)
         {
-            spriteRenderer.sprite = typeData.BallSprite != null ? typeData.BallSprite : defaultSprite;
-            spriteRenderer.color = typeData.DisplayColor;
+            if (typeData.BallMaterial != null)
+            {
+                ballMeshRenderer.material = typeData.BallMaterial;
+            }
+            currentBallColor = typeData.DisplayColor;
+            propertyBlock.SetColor(BaseColorId, currentBallColor);
+            ballMeshRenderer.SetPropertyBlock(propertyBlock);
         }
 
         if (trailRenderer != null)

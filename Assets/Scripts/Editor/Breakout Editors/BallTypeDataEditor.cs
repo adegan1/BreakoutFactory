@@ -12,6 +12,7 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty descriptionProperty;
     private SerializedProperty displayColorProperty;
     private SerializedProperty ballSpriteProperty;
+    private SerializedProperty ballMaterialProperty;
     private SerializedProperty sizeProperty;
     private SerializedProperty movementSpeedProperty;
     private SerializedProperty damageProperty;
@@ -158,6 +159,7 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         descriptionProperty = FindProperty("description");
         displayColorProperty = FindProperty("displayColor");
         ballSpriteProperty = FindProperty("ballSprite");
+        ballMaterialProperty = FindProperty("ballMaterial");
         sizeProperty = FindProperty("size");
         movementSpeedProperty = FindProperty("movementSpeed");
         damageProperty = FindProperty("damage");
@@ -300,7 +302,7 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         serializedObject.Update();
 
         DrawSection("Recipe", primarySourceElementProperty, secondarySourceElementProperty, primaryEffectProfileProperty, secondaryEffectProfileProperty);
-        DrawSection("Display", displayNameProperty, descriptionProperty, displayColorProperty, ballSpriteProperty, sizeProperty);
+        DrawSection("Display", displayNameProperty, descriptionProperty, displayColorProperty, ballSpriteProperty, ballMaterialProperty, sizeProperty);
         DrawSection("Movement", movementSpeedProperty, directionRestraintProperty);
         DrawSection("Core Combat", damageProperty, bouncesProperty, timedEffectInitialDelayProperty);
         DrawSection("Brick Interaction", passThroughBricksProperty, passThroughBallsProperty, destroyOnWallProperty, appliesBurnProperty);

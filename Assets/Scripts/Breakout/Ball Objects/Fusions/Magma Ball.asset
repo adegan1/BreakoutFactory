@@ -23,6 +23,7 @@ MonoBehaviour:
     burn ends, it explodes, destroying it and damaging nearby bricks.'
   displayColor: {r: 0.8018868, g: 0.43642905, b: 0, a: 1}
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
+  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
   size: 1
   movementSpeed: 6
   damage: 1

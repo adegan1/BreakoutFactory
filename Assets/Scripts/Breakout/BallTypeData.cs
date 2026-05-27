@@ -58,6 +58,7 @@ public class BallTypeData : ScriptableObject
     [SerializeField, TextArea(2, 4)] private string description;
     [SerializeField] private Color displayColor = Color.white;
     [SerializeField] private Sprite ballSprite;
+    [SerializeField] private Material ballMaterial;
     [SerializeField, Range(0.25f, 3f)] private float size = 1f;
 
     // Movement
@@ -216,6 +217,7 @@ public class BallTypeData : ScriptableObject
     public string Description => description;
     public Color DisplayColor => displayColor;
     public Sprite BallSprite => ballSprite;
+    public Material BallMaterial => ballMaterial;
     public float Size => size;
     public float MovementSpeed => movementSpeed;
     public int Damage => damage;
@@ -380,6 +382,7 @@ public class BallTypeData : ScriptableObject
         description = $"{descA}\n+\n{descB}";
         displayColor = Color.Lerp(a.DisplayColor, b.DisplayColor, 0.5f);
         ballSprite = a.BallSprite;
+        ballMaterial = a.BallMaterial;
         size = (a.Size + b.Size) * 0.5f;
         movementSpeed = (a.MovementSpeed + b.MovementSpeed) * 0.5f;
         damage = Mathf.Max(a.Damage, b.Damage);
