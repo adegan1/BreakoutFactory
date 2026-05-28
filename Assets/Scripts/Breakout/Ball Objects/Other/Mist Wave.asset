@@ -18,8 +18,9 @@ MonoBehaviour:
   secondaryEffectProfile: 0
   displayName: 
   description: 
-  displayColor: {r: 0.5424528, g: 0.91135484, b: 1, a: 1}
+  displayColor: {r: 0.5424528, g: 0.91135484, b: 1, a: 0.90588236}
   ballSprite: {fileID: 7482667652216324306, guid: aaa3a88405f852449a8bf191b46d71c0, type: 3}
+  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
   size: 0.6
   movementSpeed: 6
   damage: 1
