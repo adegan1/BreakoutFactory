@@ -18,13 +18,19 @@ MonoBehaviour:
   secondaryEffectProfile: 0
   displayName: Water
   description: Releases several "Water Droplets" on brick hits.
-  displayColor: {r: 1, g: 1, b: 1, a: 0.57254905}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 0.3820755, g: 0.6694444, b: 1, a: 1}
+  - {r: 0.4009434, g: 0.87361395, b: 1, a: 1}
+  - {r: 0.11792451, g: 0.776152, b: 1, a: 1}
+  trailColorCycleRate: 4
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   ballMaterial: {fileID: 2100000, guid: c8b5fe0d3cac08b46910a95714b83b65, type: 2}
   animateTexture: 1
   animFrameColumns: 3
   animFrameRows: 1
-  animFrameRate: 16
+  animFrameRate: 6
   size: 1
   movementSpeed: 8
   damage: 1

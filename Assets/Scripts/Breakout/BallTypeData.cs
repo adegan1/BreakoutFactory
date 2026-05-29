@@ -47,6 +47,8 @@ public class BallTypeData : ScriptableObject
         VerticalOnly
     }
 
+    public enum TrailColorMode { Manual, ManualCycle }
+
     // Recipe
     [SerializeField] private BallElement primarySourceElement = BallElement.Basic;
     [SerializeField] private BallElement secondarySourceElement = BallElement.Basic;
@@ -57,12 +59,15 @@ public class BallTypeData : ScriptableObject
     [SerializeField] private string displayName;
     [SerializeField, TextArea(2, 4)] private string description;
     [SerializeField] private Color trailColor = Color.white;
+    [SerializeField] private Color[] trailColors = new Color[] { Color.white, Color.cyan };
+    [SerializeField, Min(0.1f)] private float trailColorCycleRate = 16f;
+    [SerializeField] private TrailColorMode trailColorMode = TrailColorMode.Manual;
     [SerializeField] private Sprite ballSprite;
     [SerializeField] private Material ballMaterial;
     [SerializeField] private bool animateTexture = false;
     [SerializeField, Min(1)] private int animFrameColumns = 4;
     [SerializeField, Min(1)] private int animFrameRows = 1;
-    [SerializeField, Min(1f)] private float animFrameRate = 12f;
+    [SerializeField, Min(1f)] private float animFrameRate = 16f;
     [SerializeField, Range(0.25f, 3f)] private float size = 1f;
 
     // Movement
@@ -219,7 +224,12 @@ public class BallTypeData : ScriptableObject
     public ComboEffectProfile SecondaryEffectProfile => secondaryEffectProfile;
     public string DisplayName => displayName;
     public string Description => description;
-    public Color TrailColor => trailColor;
+    public Color TrailColor => trailColorMode == TrailColorMode.ManualCycle && trailColors != null && trailColors.Length > 0
+        ? trailColors[0]
+        : trailColor;
+    public Color[] TrailColors => trailColors;
+    public float TrailColorCycleRate => trailColorCycleRate;
+    public TrailColorMode TrailColorSampling => trailColorMode;
     public Sprite BallSprite => ballSprite;
     public Material BallMaterial => ballMaterial;
     public bool AnimateTexture => animateTexture;
@@ -389,6 +399,9 @@ public class BallTypeData : ScriptableObject
         string descB = !string.IsNullOrWhiteSpace(b.Description) ? $"{b.DisplayName} - {b.Description}" : b.DisplayName;
         description = $"{descA}\n+\n{descB}";
         trailColor = Color.Lerp(a.TrailColor, b.TrailColor, 0.5f);
+        trailColors = a.TrailColors != null ? (Color[])a.TrailColors.Clone() : new Color[] { Color.white };
+        trailColorCycleRate = a.TrailColorCycleRate;
+        trailColorMode = a.TrailColorSampling;
         ballSprite = a.BallSprite;
         ballMaterial = a.BallMaterial;
         animateTexture = a.AnimateTexture;

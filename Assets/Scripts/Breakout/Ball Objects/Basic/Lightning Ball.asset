@@ -19,13 +19,18 @@ MonoBehaviour:
   displayName: Lightning
   description: Causes "Chain Lightning" on brick hit. Chain lightning damages random
     bricks around the initial brick.
-  displayColor: {r: 1, g: 1, b: 1, a: 0.9490196}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 1, g: 0.973436, b: 0.495283, a: 1}
+  - {r: 1, g: 0.98027205, b: 0.9009434, a: 1}
+  trailColorCycleRate: 10
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   ballMaterial: {fileID: 2100000, guid: 5031fd92b9e9fb24c84259dc1b5e68be, type: 2}
   animateTexture: 1
   animFrameColumns: 3
   animFrameRows: 1
-  animFrameRate: 16
+  animFrameRate: 6
   size: 1
   movementSpeed: 10
   damage: 1

@@ -73,6 +73,7 @@ public class BallController : MonoBehaviour
     private Color currentBallColor = Color.white;
     private int animCurrentFrame;
     private float animFrameTimer;
+    private float trailColorCycleTimer;
     private Vector3 baseLocalScale;
     private Vector3 typeBaseScale;
     private bool launched;
@@ -203,6 +204,7 @@ public class BallController : MonoBehaviour
         ApplyVelocity();
         UpdateRollingRotation();
         UpdateTextureAnimation();
+        UpdateTrailColorCycle();
     }
 
     public void Launch(Vector2 direction)
@@ -439,6 +441,17 @@ public class BallController : MonoBehaviour
         ballVisualTransform.Rotate(rollingAxis, degreesPerSecond * Time.deltaTime, Space.World);
     }
 
+    private void ApplyTrailColor(Color color)
+    {
+        if (trailRenderer == null) return;
+        Gradient gradient = new Gradient();
+        gradient.SetKeys(
+            new GradientColorKey[] { new GradientColorKey(color, 0f), new GradientColorKey(color, 1f) },
+            new GradientAlphaKey[] { new GradientAlphaKey(0.5f, 0f), new GradientAlphaKey(0f, 1f) }
+        );
+        trailRenderer.colorGradient = gradient;
+    }
+
     private void UpdateTextureAnimation()
     {
         if (ballMeshRenderer == null || typeData == null || !typeData.AnimateTexture)
@@ -467,6 +480,17 @@ public class BallController : MonoBehaviour
 
         propertyBlock.SetVector(BaseMapSTId, new Vector4(tileX, tileY, offsetX, offsetY));
         ballMeshRenderer.SetPropertyBlock(propertyBlock);
+    }
+
+    private void UpdateTrailColorCycle()
+    {
+        if (typeData == null || typeData.TrailColorSampling != BallTypeData.TrailColorMode.ManualCycle) return;
+        Color[] colors = typeData.TrailColors;
+        if (colors == null || colors.Length < 2) return;
+        trailColorCycleTimer = (trailColorCycleTimer + Time.deltaTime * typeData.TrailColorCycleRate) % colors.Length;
+        int fromIndex = Mathf.FloorToInt(trailColorCycleTimer);
+        int toIndex = (fromIndex + 1) % colors.Length;
+        ApplyTrailColor(Color.Lerp(colors[fromIndex], colors[toIndex], trailColorCycleTimer - fromIndex));
     }
 
     private void UpdateSpeedBoost()
@@ -721,6 +745,7 @@ public class BallController : MonoBehaviour
 
             animCurrentFrame = 0;
             animFrameTimer = 0f;
+            trailColorCycleTimer = 0f;
             brickTriggersInside.Clear();
             movementRestraint = movementRestraintOverride;
             destroyOnWallHit = false;
@@ -744,6 +769,7 @@ public class BallController : MonoBehaviour
         firstAidHealingAccumulated = 0;
         animCurrentFrame = 0;
         animFrameTimer = 0f;
+        trailColorCycleTimer = 0f;
 
         if (ballCollider != null)
         {
@@ -758,22 +784,20 @@ public class BallController : MonoBehaviour
             {
                 ballMeshRenderer.material = typeData.BallMaterial;
             }
-            currentBallColor = Color.white;
-            propertyBlock.SetColor(BaseColorId, Color.white);
+            Material activeMaterial = typeData.BallMaterial != null ? typeData.BallMaterial : defaultMaterial;
+            float alpha = activeMaterial != null && activeMaterial.HasProperty(BaseColorId)
+                ? activeMaterial.GetColor(BaseColorId).a : 1f;
+            currentBallColor = new Color(1f, 1f, 1f, alpha);
+            propertyBlock.SetColor(BaseColorId, currentBallColor);
             propertyBlock.SetVector(BaseMapSTId, new Vector4(1f, 1f, 0f, 0f));
             ballMeshRenderer.SetPropertyBlock(propertyBlock);
         }
 
-        if (trailRenderer != null)
-        {
-            Color ballColor = typeData.TrailColor;
-            Gradient gradient = new Gradient();
-            gradient.SetKeys(
-                new GradientColorKey[] { new GradientColorKey(ballColor, 0f), new GradientColorKey(ballColor, 1f) },
-                new GradientAlphaKey[] { new GradientAlphaKey(0.5f, 0f), new GradientAlphaKey(0f, 1f) }
-            );
-            trailRenderer.colorGradient = gradient;
-        }
+        Color resolvedTrailColor = (typeData.TrailColorSampling == BallTypeData.TrailColorMode.ManualCycle
+            && typeData.TrailColors != null && typeData.TrailColors.Length > 0)
+            ? typeData.TrailColors[0]
+            : typeData.TrailColor;
+        ApplyTrailColor(resolvedTrailColor);
 
         float sizeMultiplier = Mathf.Clamp(typeData.Size, 0.25f, 3f);
         typeBaseScale = baseLocalScale * sizeMultiplier;

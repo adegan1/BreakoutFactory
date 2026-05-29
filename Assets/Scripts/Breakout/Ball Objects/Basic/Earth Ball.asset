@@ -19,7 +19,12 @@ MonoBehaviour:
   displayName: Earth
   description: Cracks bricks on hit. Cracked bricks shatter when hit by any source
     of damage, damaging bricks around them.
-  displayColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColor: {r: 0.5377358, g: 0.335619, b: 0.19023673, a: 1}
+  trailColors:
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 0, g: 1, b: 1, a: 1}
+  trailColorCycleRate: 4
+  trailColorMode: 0
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   ballMaterial: {fileID: 2100000, guid: be33efc830751734aaf0084894e6e0c1, type: 2}
   animateTexture: 0

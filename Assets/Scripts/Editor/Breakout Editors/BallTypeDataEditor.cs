@@ -11,6 +11,9 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty displayNameProperty;
     private SerializedProperty descriptionProperty;
     private SerializedProperty trailColorProperty;
+    private SerializedProperty trailColorsProperty;
+    private SerializedProperty trailColorCycleRateProperty;
+    private SerializedProperty trailColorModeProperty;
     private SerializedProperty ballSpriteProperty;
     private SerializedProperty ballMaterialProperty;
     private SerializedProperty animateTextureProperty;
@@ -162,6 +165,9 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         displayNameProperty = FindProperty("displayName");
         descriptionProperty = FindProperty("description");
         trailColorProperty = FindProperty("trailColor");
+        trailColorsProperty = FindProperty("trailColors");
+        trailColorCycleRateProperty = FindProperty("trailColorCycleRate");
+        trailColorModeProperty = FindProperty("trailColorMode");
         ballSpriteProperty = FindProperty("ballSprite");
         ballMaterialProperty = FindProperty("ballMaterial");
         animateTextureProperty = FindProperty("animateTexture");
@@ -310,8 +316,21 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         serializedObject.Update();
 
         DrawSection("Recipe", primarySourceElementProperty, secondarySourceElementProperty, primaryEffectProfileProperty, secondaryEffectProfileProperty);
-        DrawSection("Display", displayNameProperty, descriptionProperty, trailColorProperty, ballSpriteProperty, ballMaterialProperty, sizeProperty, animateTextureProperty);
+        DrawSection("Display", displayNameProperty, descriptionProperty, trailColorModeProperty, ballSpriteProperty, ballMaterialProperty, sizeProperty, animateTextureProperty);
         DrawConditionalGroup(animateTextureProperty, animFrameColumnsProperty, animFrameRowsProperty, animFrameRateProperty);
+        if (trailColorModeProperty.enumValueIndex == 0)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(trailColorProperty);
+            EditorGUI.indentLevel--;
+        }
+        else if (trailColorModeProperty.enumValueIndex == 1)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(trailColorsProperty, new GUIContent("Trail Colors"), true);
+            EditorGUILayout.PropertyField(trailColorCycleRateProperty);
+            EditorGUI.indentLevel--;
+        }
         DrawSection("Movement", movementSpeedProperty, directionRestraintProperty);
         DrawSection("Core Combat", damageProperty, bouncesProperty, timedEffectInitialDelayProperty);
         DrawSection("Brick Interaction", passThroughBricksProperty, passThroughBallsProperty, destroyOnWallProperty, appliesBurnProperty);
