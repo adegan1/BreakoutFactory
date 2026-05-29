@@ -347,10 +347,7 @@ public class BallController : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (brickTriggersInside.Contains(other))
-        {
-            brickTriggersInside.Remove(other);
-        }
+        brickTriggersInside.Remove(other);
     }
 
     private void LoseBall()
@@ -953,9 +950,7 @@ public class BallController : MonoBehaviour
             return false;
         }
 
-        bool shouldIgnoreBallCollisions = ignoreOtherBallCollisions || passThroughBalls;
-        bool eitherBallPassesThroughBalls = shouldIgnoreBallCollisions || otherBall.PassThroughBallsEnabled;
-        if (!eitherBallPassesThroughBalls)
+        if (!ignoreOtherBallCollisions && !passThroughBalls && !otherBall.PassThroughBallsEnabled)
         {
             return false;
         }
@@ -1396,9 +1391,7 @@ public class BallController : MonoBehaviour
 
         if (maxAngle < minAngle)
         {
-            float temp = minAngle;
-            minAngle = maxAngle;
-            maxAngle = temp;
+            (minAngle, maxAngle) = (maxAngle, minAngle);
         }
 
         float angleRadians = Random.Range(minAngle, maxAngle) * Mathf.Deg2Rad;

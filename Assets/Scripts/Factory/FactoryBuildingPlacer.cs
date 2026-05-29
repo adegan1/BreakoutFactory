@@ -807,7 +807,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         if (outwardDirection == Vector2Int.left)
         {
-            inputTile = topLeftGridPosition + new Vector2Int(0, 0);
+            inputTile = topLeftGridPosition;
             return true;
         }
 

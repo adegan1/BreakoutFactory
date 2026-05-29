@@ -42,7 +42,7 @@ public class ItemShopCard : MonoBehaviour
 
         if (iconImage != null)
         {
-            Sprite sprite = def != null ? def.BuildingSprite : null;
+            Sprite sprite = def?.BuildingSprite;
             iconImage.type = Image.Type.Simple;
             iconImage.preserveAspect = true;
             iconImage.useSpriteMesh = true;

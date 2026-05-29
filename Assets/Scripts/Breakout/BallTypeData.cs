@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Serialization;
+using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "New Ball Type", menuName = "Breakout/Ball Type Data")]
 public class BallTypeData : ScriptableObject
@@ -845,7 +846,7 @@ public class BallTypeData : ScriptableObject
         isCompound = true;
 
         // Elements: union of both
-        var elementSet = new System.Collections.Generic.HashSet<BallElement>();
+        var elementSet = new HashSet<BallElement>();
         if (a.Elements != null)
             foreach (var e in a.Elements) elementSet.Add(e);
         if (b.Elements != null)
@@ -854,7 +855,7 @@ public class BallTypeData : ScriptableObject
         elementSet.CopyTo(elements);
 
         // StrongAgainst: union of both
-        var strongSet = new System.Collections.Generic.HashSet<BallElement>();
+        var strongSet = new HashSet<BallElement>();
         if (a.StrongAgainst != null)
             foreach (var e in a.StrongAgainst) strongSet.Add(e);
         if (b.StrongAgainst != null)

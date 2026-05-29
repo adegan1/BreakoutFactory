@@ -140,24 +140,20 @@ public class ItemShop : MonoBehaviour
 
         // Build a mutable pool of valid entries.
         List<ShopEntry> pool = new List<ShopEntry>();
+        float totalWeight = 0f;
         for (int i = 0; i < shopEntries.Count; i++)
         {
             ShopEntry entry = shopEntries[i];
             if (entry != null && entry.BuildingDefinition != null && entry.Weight > 0f)
             {
                 pool.Add(entry);
+                totalWeight += entry.Weight;
             }
         }
 
         int picks = Mathf.Min(selectionCount, pool.Count);
         for (int pick = 0; pick < picks; pick++)
         {
-            float totalWeight = 0f;
-            for (int i = 0; i < pool.Count; i++)
-            {
-                totalWeight += pool[i].Weight;
-            }
-
             if (totalWeight <= 0f)
             {
                 break;
@@ -172,12 +168,14 @@ public class ItemShop : MonoBehaviour
                 {
                     result.Add(pool[i].BuildingDefinition);
                     ShopEntry picked = pool[i];
+                    totalWeight -= picked.Weight;
                     pool.RemoveAt(i);
 
                     // Optionally re-add so this definition can appear again.
                     if (duplicateChance > 0f && UnityEngine.Random.value < duplicateChance)
                     {
                         pool.Add(picked);
+                        totalWeight += picked.Weight;
                     }
 
                     break;
@@ -197,25 +195,25 @@ public class ItemShop : MonoBehaviour
             return;
         }
 
+        float priceMultiplier = 1f + priceMarkupPercent / 100f;
         for (int i = 0; i < offers.Count; i++)
         {
             BuildingDefinition def = offers[i];
-            int qty = def != null ? UnityEngine.Random.Range(def.MinShopBuyAmount, def.MaxShopBuyAmount + 1) : 1;
-            int price = def != null ? Mathf.CeilToInt(qty * def.ScrapDropAmount * (1f + priceMarkupPercent / 100f)) : 0;
+            int qty = UnityEngine.Random.Range(def.MinShopBuyAmount, def.MaxShopBuyAmount + 1);
+            int price = Mathf.CeilToInt(qty * def.ScrapDropAmount * priceMultiplier);
             ItemShopCard card = Instantiate(cardPrefab, cardContainer);
-            ItemShopCard capturedCard = card;
-            card.Initialize(def, price, qty, (d, p, q) => HandleCardBought(capturedCard, d, p, q));
+            card.Initialize(def, price, qty, (d, p, q) => HandleCardBought(card, d, p, q));
             spawnedCards.Add(card);
         }
     }
 
     private void ClearCards()
     {
-        for (int i = 0; i < spawnedCards.Count; i++)
+        foreach (ItemShopCard card in spawnedCards)
         {
-            if (spawnedCards[i] != null)
+            if (card != null)
             {
-                Destroy(spawnedCards[i].gameObject);
+                Destroy(card.gameObject);
             }
         }
 
