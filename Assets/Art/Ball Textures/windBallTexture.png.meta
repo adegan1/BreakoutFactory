@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: b10b839521f4bd04db0b789efd206dd1
+guid: 9ea994f96b8d4a84b96955e28591b1e2
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4139141558478721188
-    second: basicBallTexture_0
+      213: -7246786458719652926
+    second: windBallTexture_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,7 +126,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: basicBallTexture_0
+      name: windBallTexture_0
       rect:
         serializedVersion: 2
         x: 0
@@ -134,15 +134,59 @@ TextureImporter:
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c5fa1d3cea0de86c0800000000000000
-      internalID: -4139141558478721188
+      spriteID: 2c377e46c1e3e6b90800000000000000
+      internalID: -7246786458719652926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: windBallTexture_1
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0aec2857424707649a30f9ccc0c53bb0
+      internalID: -873705867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: windBallTexture_2
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d5eb4cda33323c74a83f59ba4b7281b4
+      internalID: -1993218852
       vertices: []
       indices: 
       edges: []
@@ -151,7 +195,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 27d635ef092f7304888b9586b882d6a1
     internalID: 0
     vertices: []
     indices: 
@@ -159,9 +203,13 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":3.0,"y":1.0},"gridSpriteSize":{"x":32.0,"y":32.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      basicBallTexture_0: -4139141558478721188
+      windBallTexture_0: -7246786458719652926
+      windBallTexture_1: -873705867
+      windBallTexture_2: -1993218852
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

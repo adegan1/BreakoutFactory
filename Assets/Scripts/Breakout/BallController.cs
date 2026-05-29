@@ -61,6 +61,7 @@ public class BallController : MonoBehaviour
     [SerializeField, Min(0f)] private float ballRollSpeedMultiplier = 1f;
 
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+    private static readonly int BaseMapSTId = Shader.PropertyToID("_BaseMap_ST");
 
     private Rigidbody2D rb;
     private Collider2D ballCollider;
@@ -70,6 +71,8 @@ public class BallController : MonoBehaviour
     private Material defaultMaterial;
     private MaterialPropertyBlock propertyBlock;
     private Color currentBallColor = Color.white;
+    private int animCurrentFrame;
+    private float animFrameTimer;
     private Vector3 baseLocalScale;
     private Vector3 typeBaseScale;
     private bool launched;
@@ -199,6 +202,7 @@ public class BallController : MonoBehaviour
 
         ApplyVelocity();
         UpdateRollingRotation();
+        UpdateTextureAnimation();
     }
 
     public void Launch(Vector2 direction)
@@ -433,6 +437,36 @@ public class BallController : MonoBehaviour
         float typeSpeed = typeData != null ? typeData.MovementSpeed : 1f;
         float degreesPerSecond = (velocity.magnitude / effectiveRadius) * Mathf.Rad2Deg * ballRollSpeedMultiplier * typeSpeed;
         ballVisualTransform.Rotate(rollingAxis, degreesPerSecond * Time.deltaTime, Space.World);
+    }
+
+    private void UpdateTextureAnimation()
+    {
+        if (ballMeshRenderer == null || typeData == null || !typeData.AnimateTexture)
+        {
+            return;
+        }
+
+        int columns = Mathf.Max(1, typeData.AnimFrameColumns);
+        int rows = Mathf.Max(1, typeData.AnimFrameRows);
+        int totalFrames = columns * rows;
+
+        animFrameTimer += Time.deltaTime;
+        float frameDuration = 1f / Mathf.Max(0.01f, typeData.AnimFrameRate);
+        if (animFrameTimer >= frameDuration)
+        {
+            animFrameTimer -= frameDuration;
+            animCurrentFrame = (animCurrentFrame + 1) % totalFrames;
+        }
+
+        float tileX = 1f / columns;
+        float tileY = 1f / rows;
+        int col = animCurrentFrame % columns;
+        int row = animCurrentFrame / columns;
+        float offsetX = col * tileX;
+        float offsetY = 1f - (row + 1) * tileY;
+
+        propertyBlock.SetVector(BaseMapSTId, new Vector4(tileX, tileY, offsetX, offsetY));
+        ballMeshRenderer.SetPropertyBlock(propertyBlock);
     }
 
     private void UpdateSpeedBoost()
@@ -685,6 +719,8 @@ public class BallController : MonoBehaviour
                 ballMeshRenderer.SetPropertyBlock(propertyBlock);
             }
 
+            animCurrentFrame = 0;
+            animFrameTimer = 0f;
             brickTriggersInside.Clear();
             movementRestraint = movementRestraintOverride;
             destroyOnWallHit = false;
@@ -706,6 +742,8 @@ public class BallController : MonoBehaviour
         steamBurstTimeRemaining = 0f;
         blackoutTimer = typeData.BlackoutInterval;
         firstAidHealingAccumulated = 0;
+        animCurrentFrame = 0;
+        animFrameTimer = 0f;
 
         if (ballCollider != null)
         {
@@ -720,14 +758,15 @@ public class BallController : MonoBehaviour
             {
                 ballMeshRenderer.material = typeData.BallMaterial;
             }
-            currentBallColor = typeData.DisplayColor;
-            propertyBlock.SetColor(BaseColorId, currentBallColor);
+            currentBallColor = Color.white;
+            propertyBlock.SetColor(BaseColorId, Color.white);
+            propertyBlock.SetVector(BaseMapSTId, new Vector4(1f, 1f, 0f, 0f));
             ballMeshRenderer.SetPropertyBlock(propertyBlock);
         }
 
         if (trailRenderer != null)
         {
-            Color ballColor = typeData.DisplayColor;
+            Color ballColor = typeData.TrailColor;
             Gradient gradient = new Gradient();
             gradient.SetKeys(
                 new GradientColorKey[] { new GradientColorKey(ballColor, 0f), new GradientColorKey(ballColor, 1f) },

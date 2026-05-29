@@ -177,12 +177,12 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
     {
         if (ballType != null)
         {
-            return ballType.DisplayColor;
+            return ballType.TrailColor;
         }
 
         if (defaultBallType != null)
         {
-            return defaultBallType.DisplayColor;
+            return defaultBallType.TrailColor;
         }
 
         return Color.white;

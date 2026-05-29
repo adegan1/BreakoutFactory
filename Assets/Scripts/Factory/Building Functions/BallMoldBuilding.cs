@@ -511,7 +511,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         }
 
         ballPreviewRenderer.sprite = previewBallType.BallSprite;
-        ballPreviewRenderer.color = previewBallType.DisplayColor;
+        ballPreviewRenderer.color = previewBallType.TrailColor;
 
         // Keep the sprite unsquished and reveal fill using a vertically resized mask.
         ballPreviewRenderer.transform.localPosition = previewBaseLocalPosition;

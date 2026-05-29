@@ -10,9 +10,13 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty secondaryEffectProfileProperty;
     private SerializedProperty displayNameProperty;
     private SerializedProperty descriptionProperty;
-    private SerializedProperty displayColorProperty;
+    private SerializedProperty trailColorProperty;
     private SerializedProperty ballSpriteProperty;
     private SerializedProperty ballMaterialProperty;
+    private SerializedProperty animateTextureProperty;
+    private SerializedProperty animFrameColumnsProperty;
+    private SerializedProperty animFrameRowsProperty;
+    private SerializedProperty animFrameRateProperty;
     private SerializedProperty sizeProperty;
     private SerializedProperty movementSpeedProperty;
     private SerializedProperty damageProperty;
@@ -157,9 +161,13 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         secondaryEffectProfileProperty = FindProperty("secondaryEffectProfile");
         displayNameProperty = FindProperty("displayName");
         descriptionProperty = FindProperty("description");
-        displayColorProperty = FindProperty("displayColor");
+        trailColorProperty = FindProperty("trailColor");
         ballSpriteProperty = FindProperty("ballSprite");
         ballMaterialProperty = FindProperty("ballMaterial");
+        animateTextureProperty = FindProperty("animateTexture");
+        animFrameColumnsProperty = FindProperty("animFrameColumns");
+        animFrameRowsProperty = FindProperty("animFrameRows");
+        animFrameRateProperty = FindProperty("animFrameRate");
         sizeProperty = FindProperty("size");
         movementSpeedProperty = FindProperty("movementSpeed");
         damageProperty = FindProperty("damage");
@@ -302,7 +310,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         serializedObject.Update();
 
         DrawSection("Recipe", primarySourceElementProperty, secondarySourceElementProperty, primaryEffectProfileProperty, secondaryEffectProfileProperty);
-        DrawSection("Display", displayNameProperty, descriptionProperty, displayColorProperty, ballSpriteProperty, ballMaterialProperty, sizeProperty);
+        DrawSection("Display", displayNameProperty, descriptionProperty, trailColorProperty, ballSpriteProperty, ballMaterialProperty, sizeProperty, animateTextureProperty);
+        DrawConditionalGroup(animateTextureProperty, animFrameColumnsProperty, animFrameRowsProperty, animFrameRateProperty);
         DrawSection("Movement", movementSpeedProperty, directionRestraintProperty);
         DrawSection("Core Combat", damageProperty, bouncesProperty, timedEffectInitialDelayProperty);
         DrawSection("Brick Interaction", passThroughBricksProperty, passThroughBallsProperty, destroyOnWallProperty, appliesBurnProperty);

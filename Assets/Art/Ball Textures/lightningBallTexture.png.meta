@@ -1,10 +1,22 @@
 fileFormatVersion: 2
-guid: b10b839521f4bd04db0b789efd206dd1
+guid: a7ea7f0d83b166544a398b53c764de9f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4139141558478721188
-    second: basicBallTexture_0
+      213: -9128364906546403974
+    second: lightningBallTexture_0
+  - first:
+      213: 4928793795223995082
+    second: lightningBallTexture_1
+  - first:
+      213: 4456093597780369124
+    second: lightningBallTexture_2
+  - first:
+      213: -711547199373884719
+    second: lightningBallTexture_3
+  - first:
+      213: -9045154153473953427
+    second: lightningBallTexture_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,7 +138,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: basicBallTexture_0
+      name: lightningBallTexture_0
       rect:
         serializedVersion: 2
         x: 0
@@ -134,15 +146,59 @@ TextureImporter:
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c5fa1d3cea0de86c0800000000000000
-      internalID: -4139141558478721188
+      spriteID: a75e82d4b78815180800000000000000
+      internalID: -9128364906546403974
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lightningBallTexture_1
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac2c977c7d7966440800000000000000
+      internalID: 4928793795223995082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lightningBallTexture_2
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ee579d848937dd30800000000000000
+      internalID: 4456093597780369124
       vertices: []
       indices: 
       edges: []
@@ -151,7 +207,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: b2ee52541bce1a84ba08709093aceaa6
     internalID: 0
     vertices: []
     indices: 
@@ -159,9 +215,13 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":3.0,"y":1.0},"gridSpriteSize":{"x":32.0,"y":32.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      basicBallTexture_0: -4139141558478721188
+      lightningBallTexture_0: -9128364906546403974
+      lightningBallTexture_1: 4928793795223995082
+      lightningBallTexture_2: 4456093597780369124
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -56,9 +56,13 @@ public class BallTypeData : ScriptableObject
     // Display
     [SerializeField] private string displayName;
     [SerializeField, TextArea(2, 4)] private string description;
-    [SerializeField] private Color displayColor = Color.white;
+    [SerializeField] private Color trailColor = Color.white;
     [SerializeField] private Sprite ballSprite;
     [SerializeField] private Material ballMaterial;
+    [SerializeField] private bool animateTexture = false;
+    [SerializeField, Min(1)] private int animFrameColumns = 4;
+    [SerializeField, Min(1)] private int animFrameRows = 1;
+    [SerializeField, Min(1f)] private float animFrameRate = 12f;
     [SerializeField, Range(0.25f, 3f)] private float size = 1f;
 
     // Movement
@@ -215,9 +219,13 @@ public class BallTypeData : ScriptableObject
     public ComboEffectProfile SecondaryEffectProfile => secondaryEffectProfile;
     public string DisplayName => displayName;
     public string Description => description;
-    public Color DisplayColor => displayColor;
+    public Color TrailColor => trailColor;
     public Sprite BallSprite => ballSprite;
     public Material BallMaterial => ballMaterial;
+    public bool AnimateTexture => animateTexture;
+    public int AnimFrameColumns => animFrameColumns;
+    public int AnimFrameRows => animFrameRows;
+    public float AnimFrameRate => animFrameRate;
     public float Size => size;
     public float MovementSpeed => movementSpeed;
     public int Damage => damage;
@@ -380,9 +388,13 @@ public class BallTypeData : ScriptableObject
         string descA = !string.IsNullOrWhiteSpace(a.Description) ? $"{a.DisplayName} - {a.Description}" : a.DisplayName;
         string descB = !string.IsNullOrWhiteSpace(b.Description) ? $"{b.DisplayName} - {b.Description}" : b.DisplayName;
         description = $"{descA}\n+\n{descB}";
-        displayColor = Color.Lerp(a.DisplayColor, b.DisplayColor, 0.5f);
+        trailColor = Color.Lerp(a.TrailColor, b.TrailColor, 0.5f);
         ballSprite = a.BallSprite;
         ballMaterial = a.BallMaterial;
+        animateTexture = a.AnimateTexture;
+        animFrameColumns = a.AnimFrameColumns;
+        animFrameRows = a.AnimFrameRows;
+        animFrameRate = a.AnimFrameRate;
         size = (a.Size + b.Size) * 0.5f;
         movementSpeed = (a.MovementSpeed + b.MovementSpeed) * 0.5f;
         damage = Mathf.Max(a.Damage, b.Damage);

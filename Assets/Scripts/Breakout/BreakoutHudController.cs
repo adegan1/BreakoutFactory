@@ -302,7 +302,7 @@ public class BreakoutHudController : MonoBehaviour
             return Color.white;
         }
 
-        return ballType.DisplayColor;
+        return ballType.TrailColor;
     }
 
     private void UpdateCollectedMachineIcons()

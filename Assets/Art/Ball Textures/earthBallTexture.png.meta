@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: b10b839521f4bd04db0b789efd206dd1
+guid: 0a7f66938eba7c9429e3e719317e215b
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4139141558478721188
-    second: basicBallTexture_0
+      213: -8482890663524663171
+    second: earthBallTexture_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,7 +126,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: basicBallTexture_0
+      name: earthBallTexture_0
       rect:
         serializedVersion: 2
         x: 0
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c5fa1d3cea0de86c0800000000000000
-      internalID: -4139141558478721188
+      spriteID: d708224c2e7b64a80800000000000000
+      internalID: -8482890663524663171
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      basicBallTexture_0: -4139141558478721188
+      earthBallTexture_0: -8482890663524663171
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

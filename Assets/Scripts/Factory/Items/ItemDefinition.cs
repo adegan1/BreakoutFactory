@@ -45,7 +45,7 @@ public class ItemDefinition : ScriptableObject
         displayName = compoundBallType.DisplayName;
         description = compoundBallType.Description;
         icon = compoundBallType.BallSprite;
-        tint = compoundBallType.DisplayColor;
+        tint = compoundBallType.TrailColor;
         baseValue = Mathf.Max(0, compoundBaseValue);
         isFusion = false;
         isCompound = true;
