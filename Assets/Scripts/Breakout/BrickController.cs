@@ -60,10 +60,14 @@ public class BrickController : MonoBehaviour
     [SerializeField] private Sprite conductiveOverlaySprite;
     [SerializeField] private Vector2 overlayScale = Vector2.one;
 
+    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+
     private int currentHitPoints;
     private int maxHitPoints;
     private int overrideHitPoints = -1;
     private SpriteRenderer spriteRenderer;
+    private MeshRenderer brickMeshRenderer;
+    private MaterialPropertyBlock propertyBlock;
     private Collider2D brickCollider;
     private Vector3 targetScale;
     private bool isGrowing;
@@ -145,6 +149,12 @@ public class BrickController : MonoBehaviour
         isGrowing = true;
 
         spriteRenderer = GetComponent<SpriteRenderer>();
+        brickMeshRenderer = GetComponentInChildren<MeshRenderer>();
+        propertyBlock = new MaterialPropertyBlock();
+        if (brickMeshRenderer != null && spriteRenderer != null)
+        {
+            spriteRenderer.enabled = false;
+        }
         brickCollider = GetComponent<Collider2D>();
         InitializeEffectOverlays();
         ApplyTypeData();
@@ -274,7 +284,12 @@ public class BrickController : MonoBehaviour
         ClearForestFire();
         ClearConductive();
 
-        if (spriteRenderer != null)
+        if (brickMeshRenderer != null)
+        {
+            propertyBlock.SetColor(BaseColorId, typeData.DisplayColor);
+            brickMeshRenderer.SetPropertyBlock(propertyBlock);
+        }
+        else if (spriteRenderer != null)
         {
             spriteRenderer.color = typeData.DisplayColor;
         }
@@ -499,15 +514,20 @@ public class BrickController : MonoBehaviour
 
     private void UpdateHealthAlpha()
     {
-        if (spriteRenderer == null)
-        {
-            return;
-        }
-
         float ratio = Mathf.Clamp01((float)currentHitPoints / Mathf.Max(1, maxHitPoints));
-        Color color = spriteRenderer.color;
-        color.a = ratio;
-        spriteRenderer.color = color;
+        if (brickMeshRenderer != null)
+        {
+            Color baseColor = typeData != null ? typeData.DisplayColor : Color.white;
+            baseColor.a = ratio;
+            propertyBlock.SetColor(BaseColorId, baseColor);
+            brickMeshRenderer.SetPropertyBlock(propertyBlock);
+        }
+        else if (spriteRenderer != null)
+        {
+            Color color = spriteRenderer.color;
+            color.a = ratio;
+            spriteRenderer.color = color;
+        }
     }
 
     protected virtual void OnBrickDestroyed()
@@ -1660,7 +1680,7 @@ public class BrickController : MonoBehaviour
 
     private void TriggerDamageFlash()
     {
-        if (!enableDamageFlash || spriteRenderer == null)
+        if (!enableDamageFlash || (brickMeshRenderer == null && spriteRenderer == null))
         {
             return;
         }
@@ -1704,27 +1724,36 @@ public class BrickController : MonoBehaviour
 
     private void ApplyDamageFlashColor(float pulse01)
     {
-        if (spriteRenderer == null)
-        {
-            return;
-        }
-
         Color baseColor = GetBaseBrickColor();
         Color pulseColor = damageFlashColor;
         pulseColor.a = baseColor.a;
 
         float weight = Mathf.Clamp01(damageFlashStrength) * Mathf.Clamp01(pulse01);
-        spriteRenderer.color = Color.Lerp(baseColor, pulseColor, weight);
+        Color result = Color.Lerp(baseColor, pulseColor, weight);
+
+        if (brickMeshRenderer != null)
+        {
+            propertyBlock.SetColor(BaseColorId, result);
+            brickMeshRenderer.SetPropertyBlock(propertyBlock);
+        }
+        else if (spriteRenderer != null)
+        {
+            spriteRenderer.color = result;
+        }
     }
 
     private void SetBaseBrickColor()
     {
-        if (spriteRenderer == null)
+        Color baseColor = GetBaseBrickColor();
+        if (brickMeshRenderer != null)
         {
-            return;
+            propertyBlock.SetColor(BaseColorId, baseColor);
+            brickMeshRenderer.SetPropertyBlock(propertyBlock);
         }
-
-        spriteRenderer.color = GetBaseBrickColor();
+        else if (spriteRenderer != null)
+        {
+            spriteRenderer.color = baseColor;
+        }
     }
 
     private Color GetBaseBrickColor()

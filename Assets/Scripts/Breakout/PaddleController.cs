@@ -20,6 +20,9 @@ public class PaddleController : MonoBehaviour
 
     private Camera mainCamera;
     private SpriteRenderer spriteRenderer;
+    private MeshRenderer paddleMeshRenderer;
+    private MaterialPropertyBlock propertyBlock;
+    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
     private Color baseSpriteColor = Color.white;
     private Coroutine healFlashRoutine;
     private PlayerStats observedPlayerStats;
@@ -35,7 +38,16 @@ public class PaddleController : MonoBehaviour
     {
         mainCamera = Camera.main;
         spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
+        paddleMeshRenderer = GetComponentInChildren<MeshRenderer>();
+        propertyBlock = new MaterialPropertyBlock();
+        if (paddleMeshRenderer != null)
+        {
+            Material mat = paddleMeshRenderer.sharedMaterial;
+            baseSpriteColor = mat != null && mat.HasProperty(BaseColorId) ? mat.GetColor(BaseColorId) : Color.white;
+            if (spriteRenderer != null)
+                spriteRenderer.enabled = false;
+        }
+        else if (spriteRenderer != null)
         {
             baseSpriteColor = spriteRenderer.color;
         }
@@ -239,27 +251,36 @@ public class PaddleController : MonoBehaviour
 
     private void ApplyHealFlashColor(float pulse01)
     {
-        if (spriteRenderer == null)
-        {
-            return;
-        }
-
         Color baseColor = GetBasePaddleColor();
         Color pulseColor = healFlashColor;
         pulseColor.a = baseColor.a;
 
         float weight = Mathf.Clamp01(healFlashStrength) * Mathf.Clamp01(pulse01);
-        spriteRenderer.color = Color.Lerp(baseColor, pulseColor, weight);
+        Color result = Color.Lerp(baseColor, pulseColor, weight);
+
+        if (paddleMeshRenderer != null)
+        {
+            propertyBlock.SetColor(BaseColorId, result);
+            paddleMeshRenderer.SetPropertyBlock(propertyBlock);
+        }
+        else if (spriteRenderer != null)
+        {
+            spriteRenderer.color = result;
+        }
     }
 
     private void SetBasePaddleColor()
     {
-        if (spriteRenderer == null)
+        Color baseColor = GetBasePaddleColor();
+        if (paddleMeshRenderer != null)
         {
-            return;
+            propertyBlock.SetColor(BaseColorId, baseColor);
+            paddleMeshRenderer.SetPropertyBlock(propertyBlock);
         }
-
-        spriteRenderer.color = GetBasePaddleColor();
+        else if (spriteRenderer != null)
+        {
+            spriteRenderer.color = baseColor;
+        }
     }
 
     private Color GetBasePaddleColor()
