@@ -317,6 +317,7 @@ MonoBehaviour:
   bottomKillY: -6
   ballVisualRadius: 0.5
   ballRollSpeedMultiplier: 0.035
+  freezeMovement: 0
 --- !u!1 &4191630665159202167
 GameObject:
   m_ObjectHideFlags: 0
