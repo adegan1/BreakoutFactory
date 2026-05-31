@@ -22,9 +22,22 @@ MonoBehaviour:
     Passes through bricks. Storm Ball
     grows on brick hits. Once it reaches a certain size, it shrinks and releases
     a "Mini Storm" in a random direction, damaging and shocking hit bricks.'
-  displayColor: {r: 0.28146136, g: 0.31049284, b: 0.5188679, a: 1}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 0.3301887, g: 0.3301887, b: 0.3301887, a: 1}
+  - {r: 0.18111429, g: 0.20754719, b: 0.20754719, a: 1}
+  - {r: 0.5377358, g: 0.43265268, b: 0.1699448, a: 1}
+  - {r: 0.3584906, g: 0.33096644, b: 0.29930583, a: 1}
+  - {r: 0.5188679, g: 0.5188679, b: 0.5188679, a: 1}
+  - {r: 0.735849, g: 0.5980951, b: 0.24644002, a: 1}
+  trailColorCycleRate: 7
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: 3fe5d2f91d975ff4ea8e3de2100a8bf2, type: 2}
+  animateTexture: 1
+  animFrameColumns: 5
+  animFrameRows: 1
+  animFrameRate: 5
   size: 1
   movementSpeed: 6
   damage: 1

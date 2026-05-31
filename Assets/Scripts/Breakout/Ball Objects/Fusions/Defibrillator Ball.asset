@@ -21,9 +21,19 @@ MonoBehaviour:
 
     When bouncing off of any wall, a
     random number of bricks are shocked and the player is healed some health.'
-  displayColor: {r: 1, g: 0.4392157, b: 0.45490196, a: 1}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 0.9716981, g: 0.40792987, b: 0.40792987, a: 1}
+  - {r: 0.4528302, g: 0.4528302, b: 0.4528302, a: 1}
+  - {r: 1, g: 0.9260082, b: 0.3537736, a: 1}
+  trailColorCycleRate: 7
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: e94abadaa8e73d64a9fd98d4a637de73, type: 2}
+  animateTexture: 1
+  animFrameColumns: 3
+  animFrameRows: 1
+  animFrameRate: 6
   size: 1
   movementSpeed: 8
   damage: 1

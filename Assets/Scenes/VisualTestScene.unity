@@ -801,7 +801,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: 61202c4b1a878b0429b02ac1c3cae87e, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0
@@ -932,7 +932,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: aaecdfbb30a38e047853c8ec17db8a0b, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0
@@ -1200,7 +1200,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: 63d87ce536632f444bf59a71cd8967c1, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0
@@ -1809,7 +1809,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: db3872469b0e5284ba63b92387d858f6, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0
@@ -2407,7 +2407,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: 514e3c35cca411d4bb00ee0016730488, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0
@@ -2538,7 +2538,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: 0a1f26180b924174e8c1857e7653495c, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0
@@ -2721,7 +2721,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: 663c1357c41f7ce40866a13a37832c86, type: 2}
   speed: 0
   minimumVerticalDirection: 0.2
   ignoreOtherBallCollisions: 0
@@ -3656,7 +3656,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: 7c0a3ee9c805305489d9b4e4b2d6410f, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0
@@ -4049,7 +4049,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: 47d68465e0a91da48adc6d1f888e7188, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0
@@ -4180,7 +4180,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: 474e45faf179a284d9a0630d4adaee62, type: 2}
   speed: 0
   minimumVerticalDirection: 0.2
   ignoreOtherBallCollisions: 0
@@ -4442,7 +4442,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: bc199a281a7d3a94080764007a818f4c, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0
@@ -4777,7 +4777,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: 8c57fa17eb40a8744800ef0ec453feb9, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0
@@ -5234,7 +5234,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: 7ceb46ae75625e949b275a358aa0b47c, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0
@@ -5365,7 +5365,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: 63dc7b6bbfc455643aa9a92804f7031b, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0
@@ -5573,7 +5573,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallController
-  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  typeData: {fileID: 11400000, guid: 0847503139ee98d4eb9ca130888f359c, type: 2}
   speed: 0
   minimumVerticalDirection: 0
   ignoreOtherBallCollisions: 0

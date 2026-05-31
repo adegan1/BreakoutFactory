@@ -22,9 +22,19 @@ MonoBehaviour:
     Roots bricks on hit. When root duration ends,
     2 nearby bricks become rooted. When those bricks'' durations end, they root additional
     nearby bricks.'
-  displayColor: {r: 0.8962264, g: 0.51998043, b: 0.77573884, a: 1}
+  trailColor: {r: 0.9811321, g: 0.47668213, b: 0.9590274, a: 1}
+  trailColors:
+  - {r: 0.912901, g: 0.4995995, b: 0.9716981, a: 1}
+  - {r: 0.7601235, g: 0.099012084, b: 0.8396226, a: 1}
+  - {r: 0.018378438, g: 0.5566038, b: 0.0924241, a: 1}
+  trailColorCycleRate: 4
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: 99c2a329e7e2a234084e803d1f412d7a, type: 2}
+  animateTexture: 0
+  animFrameColumns: 4
+  animFrameRows: 1
+  animFrameRate: 16
   size: 1
   movementSpeed: 8
   damage: 1

@@ -22,9 +22,20 @@ MonoBehaviour:
     Applies "Conductive" to bricks
     on hit. When a conductive brick is hit by any source of damage, they shock every
     brick vertically and horizontally to them.'
-  displayColor: {r: 0.5838142, g: 1, b: 0.25943398, a: 1}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 1, g: 0.50537103, b: 0.13679248, a: 1}
+  - {r: 1, g: 0.8461648, b: 0, a: 1}
+  - {r: 1, g: 0.2259939, b: 0.08018869, a: 1}
+  - {r: 1, g: 0.932778, b: 0.9198113, a: 1}
+  trailColorCycleRate: 4
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: 9b23078ba6d9d224085e5402821fffbc, type: 2}
+  animateTexture: 1
+  animFrameColumns: 3
+  animFrameRows: 1
+  animFrameRate: 6
   size: 1
   movementSpeed: 9
   damage: 1
