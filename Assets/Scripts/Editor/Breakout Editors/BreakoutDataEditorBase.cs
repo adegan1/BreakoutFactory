@@ -28,7 +28,7 @@ public abstract class BreakoutDataEditorBase : Editor
         EditorGUI.indentLevel++;
         for (int i = 0; i < properties.Length; i++)
         {
-            EditorGUILayout.PropertyField(properties[i]);
+            EditorGUILayout.PropertyField(properties[i], includeChildren: true);
         }
 
         EditorGUI.indentLevel--;

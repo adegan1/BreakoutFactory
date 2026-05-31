@@ -42,6 +42,19 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty lightningSnakeRadiusProperty;
     private SerializedProperty lightningSnakeWaterSplitCountProperty;
     private SerializedProperty lightningSnakeBounceDelayProperty;
+    private SerializedProperty lightningBurstBoltColorProperty;
+    private SerializedProperty lightningBurstBoltWidthProperty;
+    private SerializedProperty lightningBurstBoltLifetimeProperty;
+    private SerializedProperty lightningBurstBoltSegmentsProperty;
+    private SerializedProperty lightningBurstBoltNoiseProperty;
+    private SerializedProperty lightningBurstBoltMaterialProperty;
+    private SerializedProperty lightningSnakeVisualModeProperty;
+    private SerializedProperty lightningSnakeBoltColorProperty;
+    private SerializedProperty lightningSnakeBoltWidthProperty;
+    private SerializedProperty lightningSnakeBoltLifetimeProperty;
+    private SerializedProperty lightningSnakeBoltSegmentsProperty;
+    private SerializedProperty lightningSnakeBoltNoiseProperty;
+    private SerializedProperty lightningSnakeBoltMaterialProperty;
     private SerializedProperty earthCrackProperty;
     private SerializedProperty shatterDamageProperty;
     private SerializedProperty shatterRadiusProperty;
@@ -127,6 +140,12 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty createsBlackoutProperty;
     private SerializedProperty blackoutDamageProperty;
     private SerializedProperty blackoutIntervalProperty;
+    private SerializedProperty blackoutBoltColorsProperty;
+    private SerializedProperty blackoutBoltWidthProperty;
+    private SerializedProperty blackoutBoltLifetimeProperty;
+    private SerializedProperty blackoutBoltSegmentsProperty;
+    private SerializedProperty blackoutBoltNoiseProperty;
+    private SerializedProperty blackoutBoltMaterialProperty;
     private SerializedProperty createsFirstAidProperty;
     private SerializedProperty firstAidHealPerHitProperty;
     private SerializedProperty firstAidHealThresholdProperty;
@@ -135,6 +154,13 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty createsElectricCascadeProperty;
     private SerializedProperty electricCascadeShockDamageProperty;
     private SerializedProperty electricCascadeConductiveDurationProperty;
+    private SerializedProperty electricCascadeBeamColorProperty;
+    private SerializedProperty electricCascadeBeamWidthProperty;
+    private SerializedProperty electricCascadeBeamLifetimeProperty;
+    private SerializedProperty electricCascadeBeamSegmentsProperty;
+    private SerializedProperty electricCascadeBeamNoiseProperty;
+    private SerializedProperty electricCascadeBeamLengthProperty;
+    private SerializedProperty electricCascadeBeamMaterialProperty;
     private SerializedProperty createsRollingThunderProperty;
     private SerializedProperty rollingThunderStartScaleMultiplierProperty;
     private SerializedProperty rollingThunderMaxScaleMultiplierProperty;
@@ -147,6 +173,12 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty shockTherapyMaxTargetsProperty;
     private SerializedProperty shockTherapyDamageProperty;
     private SerializedProperty shockTherapyHealAmountProperty;
+    private SerializedProperty shockTherapyBoltColorProperty;
+    private SerializedProperty shockTherapyBoltWidthProperty;
+    private SerializedProperty shockTherapyBoltLifetimeProperty;
+    private SerializedProperty shockTherapyBoltSegmentsProperty;
+    private SerializedProperty shockTherapyBoltNoiseProperty;
+    private SerializedProperty shockTherapyBoltMaterialProperty;
     private SerializedProperty createsPressurizedSplashProperty;
     private SerializedProperty pressurePerHitProperty;
     private SerializedProperty maxPressureProperty;
@@ -196,6 +228,19 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         lightningSnakeRadiusProperty = FindProperty("lightningSnakeRadius");
         lightningSnakeWaterSplitCountProperty = FindProperty("lightningSnakeWaterSplitCount");
         lightningSnakeBounceDelayProperty = FindProperty("lightningSnakeBounceDelay");
+        lightningBurstBoltColorProperty = FindProperty("lightningBurstBoltColor");
+        lightningBurstBoltWidthProperty = FindProperty("lightningBurstBoltWidth");
+        lightningBurstBoltLifetimeProperty = FindProperty("lightningBurstBoltLifetime");
+        lightningBurstBoltSegmentsProperty = FindProperty("lightningBurstBoltSegments");
+        lightningBurstBoltNoiseProperty = FindProperty("lightningBurstBoltNoise");
+        lightningBurstBoltMaterialProperty = FindProperty("lightningBurstBoltMaterial");
+        lightningSnakeVisualModeProperty = FindProperty("lightningSnakeVisualMode");
+        lightningSnakeBoltColorProperty = FindProperty("lightningSnakeBoltColor");
+        lightningSnakeBoltWidthProperty = FindProperty("lightningSnakeBoltWidth");
+        lightningSnakeBoltLifetimeProperty = FindProperty("lightningSnakeBoltLifetime");
+        lightningSnakeBoltSegmentsProperty = FindProperty("lightningSnakeBoltSegments");
+        lightningSnakeBoltNoiseProperty = FindProperty("lightningSnakeBoltNoise");
+        lightningSnakeBoltMaterialProperty = FindProperty("lightningSnakeBoltMaterial");
         earthCrackProperty = FindProperty("earthCrack");
         shatterDamageProperty = FindProperty("shatterDamage");
         shatterRadiusProperty = FindProperty("shatterRadius");
@@ -281,6 +326,12 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         createsBlackoutProperty = FindProperty("createsBlackout");
         blackoutDamageProperty = FindProperty("blackoutDamage");
         blackoutIntervalProperty = FindProperty("blackoutInterval");
+        blackoutBoltColorsProperty = FindProperty("blackoutBoltColors");
+        blackoutBoltWidthProperty = FindProperty("blackoutBoltWidth");
+        blackoutBoltLifetimeProperty = FindProperty("blackoutBoltLifetime");
+        blackoutBoltSegmentsProperty = FindProperty("blackoutBoltSegments");
+        blackoutBoltNoiseProperty = FindProperty("blackoutBoltNoise");
+        blackoutBoltMaterialProperty = FindProperty("blackoutBoltMaterial");
         createsFirstAidProperty = FindProperty("createsFirstAid");
         firstAidHealPerHitProperty = FindProperty("firstAidHealPerHit");
         firstAidHealThresholdProperty = FindProperty("firstAidHealThreshold");
@@ -289,6 +340,13 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         createsElectricCascadeProperty = FindProperty("createsElectricCascade");
         electricCascadeShockDamageProperty = FindProperty("electricCascadeShockDamage");
         electricCascadeConductiveDurationProperty = FindProperty("electricCascadeConductiveDuration");
+        electricCascadeBeamColorProperty = FindProperty("electricCascadeBeamColor");
+        electricCascadeBeamWidthProperty = FindProperty("electricCascadeBeamWidth");
+        electricCascadeBeamLifetimeProperty = FindProperty("electricCascadeBeamLifetime");
+        electricCascadeBeamSegmentsProperty = FindProperty("electricCascadeBeamSegments");
+        electricCascadeBeamNoiseProperty = FindProperty("electricCascadeBeamNoise");
+        electricCascadeBeamLengthProperty = FindProperty("electricCascadeBeamLength");
+        electricCascadeBeamMaterialProperty = FindProperty("electricCascadeBeamMaterial");
         createsRollingThunderProperty = FindProperty("createsRollingThunder");
         rollingThunderStartScaleMultiplierProperty = FindProperty("rollingThunderStartScaleMultiplier");
         rollingThunderMaxScaleMultiplierProperty = FindProperty("rollingThunderMaxScaleMultiplier");
@@ -301,6 +359,12 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         shockTherapyMaxTargetsProperty = FindProperty("shockTherapyMaxTargets");
         shockTherapyDamageProperty = FindProperty("shockTherapyDamage");
         shockTherapyHealAmountProperty = FindProperty("shockTherapyHealAmount");
+        shockTherapyBoltColorProperty = FindProperty("shockTherapyBoltColor");
+        shockTherapyBoltWidthProperty = FindProperty("shockTherapyBoltWidth");
+        shockTherapyBoltLifetimeProperty = FindProperty("shockTherapyBoltLifetime");
+        shockTherapyBoltSegmentsProperty = FindProperty("shockTherapyBoltSegments");
+        shockTherapyBoltNoiseProperty = FindProperty("shockTherapyBoltNoise");
+        shockTherapyBoltMaterialProperty = FindProperty("shockTherapyBoltMaterial");
         createsPressurizedSplashProperty = FindProperty("createsPressurizedSplash");
         pressurePerHitProperty = FindProperty("pressurePerHit");
         maxPressureProperty = FindProperty("maxPressure");
@@ -336,7 +400,16 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         DrawSection("Brick Interaction", passThroughBricksProperty, passThroughBallsProperty, destroyOnWallProperty, appliesBurnProperty);
         DrawConditionalGroup(appliesBurnProperty, burnDamageProperty, burnTickIntervalProperty, burnHitCountProperty);
         EditorGUILayout.PropertyField(lightningBurstProperty, new GUIContent("Lightning Burst"));
-        DrawConditionalGroup(lightningBurstProperty, lightningBurstTargetCountProperty, lightningBurstDamageProperty, lightningBurstRadiusProperty);
+        DrawConditionalGroup(lightningBurstProperty,
+            lightningBurstTargetCountProperty,
+            lightningBurstDamageProperty,
+            lightningBurstRadiusProperty,
+            lightningBurstBoltColorProperty,
+            lightningBurstBoltWidthProperty,
+            lightningBurstBoltLifetimeProperty,
+            lightningBurstBoltSegmentsProperty,
+            lightningBurstBoltNoiseProperty,
+            lightningBurstBoltMaterialProperty);
         EditorGUILayout.PropertyField(createsLightningSnakeProperty, new GUIContent("Lightning Snake"));
         DrawConditionalGroup(
             createsLightningSnakeProperty,
@@ -344,7 +417,14 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             lightningSnakeDamageProperty,
             lightningSnakeRadiusProperty,
             lightningSnakeWaterSplitCountProperty,
-            lightningSnakeBounceDelayProperty);
+            lightningSnakeBounceDelayProperty,
+            lightningSnakeVisualModeProperty,
+            lightningSnakeBoltColorProperty,
+            lightningSnakeBoltWidthProperty,
+            lightningSnakeBoltLifetimeProperty,
+            lightningSnakeBoltSegmentsProperty,
+            lightningSnakeBoltNoiseProperty,
+            lightningSnakeBoltMaterialProperty);
         EditorGUILayout.PropertyField(earthCrackProperty, new GUIContent("Apply Crack"));
         DrawConditionalGroup(earthCrackProperty, shatterDamageProperty, shatterRadiusProperty);
         EditorGUILayout.PropertyField(createsTremorProperty, new GUIContent("Tremor"));
@@ -463,14 +543,29 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             linearProjectileTypeProperty,
             linearProjectileIncludesTopWallProperty);
         EditorGUILayout.PropertyField(createsBlackoutProperty, new GUIContent("Blackout"));
-        DrawConditionalGroup(createsBlackoutProperty, blackoutDamageProperty, blackoutIntervalProperty);
+        DrawConditionalGroup(createsBlackoutProperty,
+            blackoutDamageProperty,
+            blackoutIntervalProperty,
+            blackoutBoltColorsProperty,
+            blackoutBoltWidthProperty,
+            blackoutBoltLifetimeProperty,
+            blackoutBoltSegmentsProperty,
+            blackoutBoltNoiseProperty,
+            blackoutBoltMaterialProperty);
         EditorGUILayout.PropertyField(createsFirstAidProperty, new GUIContent("First Aid"));
         DrawConditionalGroup(createsFirstAidProperty, firstAidHealPerHitProperty, firstAidHealThresholdProperty, firstAidExplosionDamageProperty, firstAidExplosionRadiusProperty);
         EditorGUILayout.PropertyField(createsElectricCascadeProperty, new GUIContent("Electric Cascade"));
         DrawConditionalGroup(
             createsElectricCascadeProperty,
             electricCascadeShockDamageProperty,
-            electricCascadeConductiveDurationProperty);
+            electricCascadeConductiveDurationProperty,
+            electricCascadeBeamColorProperty,
+            electricCascadeBeamWidthProperty,
+            electricCascadeBeamLifetimeProperty,
+            electricCascadeBeamSegmentsProperty,
+            electricCascadeBeamNoiseProperty,
+            electricCascadeBeamLengthProperty,
+            electricCascadeBeamMaterialProperty);
         EditorGUILayout.PropertyField(createsRollingThunderProperty, new GUIContent("Rolling Thunder"));
         DrawConditionalGroup(
             createsRollingThunderProperty,
@@ -486,7 +581,13 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
             shockTherapyMinTargetsProperty,
             shockTherapyMaxTargetsProperty,
             shockTherapyDamageProperty,
-            shockTherapyHealAmountProperty);
+            shockTherapyHealAmountProperty,
+            shockTherapyBoltColorProperty,
+            shockTherapyBoltWidthProperty,
+            shockTherapyBoltLifetimeProperty,
+            shockTherapyBoltSegmentsProperty,
+            shockTherapyBoltNoiseProperty,
+            shockTherapyBoltMaterialProperty);
 
         DrawSection("Compound", isCompoundProperty);
 

@@ -1122,6 +1122,7 @@ public class BallController : MonoBehaviour
         foreach (BrickController brick in allBricks)
         {
             brick.ApplyDirectEffectDamage(typeData.BlackoutDamage);
+            LightningBoltEffect.SpawnBlackout(transform.position, brick.transform.position, typeData);
         }
     }
 
@@ -1180,6 +1181,7 @@ public class BallController : MonoBehaviour
                 if (selectedBrick != null)
                 {
                     selectedBrick.ApplyDirectEffectDamage(shockDamage);
+                    LightningBoltEffect.SpawnShockTherapy(transform.position, selectedBrick.transform.position, typeData);
                 }
             }
         }

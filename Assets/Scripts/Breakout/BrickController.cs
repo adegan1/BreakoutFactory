@@ -100,6 +100,7 @@ public class BrickController : MonoBehaviour
     private bool hasForestFire;
     private bool hasConductive;
     private int conductiveShockDamage;
+    private BallTypeData conductiveVisualData;
     private float conductiveTimeRemaining;
     private int forestFireSpreadGenerationsRemaining;
     private int crackShatterDamage = 1;
@@ -900,6 +901,7 @@ public class BrickController : MonoBehaviour
 
         hasConductive = true;
         conductiveShockDamage = Mathf.Max(conductiveShockDamage, Mathf.Max(1, ballTypeData.ElectricCascadeShockDamage));
+        conductiveVisualData = ballTypeData;
         float clampedDuration = Mathf.Max(MinimumDurationSeconds, ballTypeData.ElectricCascadeConductiveDuration);
         conductiveTimeRemaining = Mathf.Max(conductiveTimeRemaining, clampedDuration);
         conductiveInitialDuration = Mathf.Max(conductiveInitialDuration, clampedDuration);
@@ -909,6 +911,7 @@ public class BrickController : MonoBehaviour
     {
         hasConductive = false;
         conductiveShockDamage = 0;
+        conductiveVisualData = null;
         conductiveTimeRemaining = 0f;
         conductiveInitialDuration = 0f;
     }
@@ -941,6 +944,15 @@ public class BrickController : MonoBehaviour
             }
 
             target.ApplyDamage(shockDamage, DamageSource.ElectricCascade);
+        }
+
+        if (conductiveVisualData != null)
+        {
+            Vector3 origin = transform.position;
+            LightningBoltEffect.SpawnCascadeBeam(origin, Vector2.right, conductiveVisualData);
+            LightningBoltEffect.SpawnCascadeBeam(origin, Vector2.left, conductiveVisualData);
+            LightningBoltEffect.SpawnCascadeBeam(origin, Vector2.up, conductiveVisualData);
+            LightningBoltEffect.SpawnCascadeBeam(origin, Vector2.down, conductiveVisualData);
         }
     }
 
@@ -1318,6 +1330,7 @@ public class BrickController : MonoBehaviour
             nearbyBricksBuffer[i] = selected;
 
             selected.ApplyDamage(burstDamage);
+            LightningBoltEffect.SpawnBurst(transform.position, selected.transform.position, ballTypeData);
         }
     }
 
@@ -1367,7 +1380,8 @@ public class BrickController : MonoBehaviour
             snakeDamage,
             snakeRadius,
             waterSplitCount,
-            bounceDelay));
+            bounceDelay,
+            ballTypeData));
     }
 
     private IEnumerator ApplyLightningSnakeCoroutine(
@@ -1377,7 +1391,8 @@ public class BrickController : MonoBehaviour
         int snakeDamage,
         float snakeRadius,
         int waterSplitCount,
-        float bounceDelay)
+        float bounceDelay,
+        BallTypeData visualData)
     {
         Queue<LightningSnakeNode> activeSnakes = new Queue<LightningSnakeNode>();
         List<BrickController> localNearbyBuffer = new List<BrickController>();
@@ -1403,6 +1418,14 @@ public class BrickController : MonoBehaviour
                 }
 
                 nextTarget.ApplyDamage(snakeDamage);
+
+                if (visualData != null)
+                {
+                    float boltLifetime = visualData.SnakeVisualMode == BallTypeData.LightningSnakeVisualMode.ContinuousTrail
+                        ? node.RemainingBounces * bounceDelay + visualData.LightningSnakeBoltLifetime
+                        : visualData.LightningSnakeBoltLifetime;
+                    LightningBoltEffect.SpawnSnake(node.OriginPosition, nextTarget.transform.position, visualData, boltLifetime);
+                }
 
                 int remainingAfterHit = node.RemainingBounces - 1;
                 if (remainingAfterHit <= 0)

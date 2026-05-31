@@ -2528,7 +2528,7 @@ Transform:
   m_GameObject: {fileID: 419713550}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8.5, y: -1.5, z: 0}
+  m_LocalPosition: {x: -8.5, y: -1.5, z: -5}
   m_LocalScale: {x: 3, y: 12, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9929,13 +9929,13 @@ MonoBehaviour:
   ballPrefab: {fileID: 9021448586808601386, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   paddleTransform: {fileID: 1324807477}
   ballsToDispense:
-  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
-  - {fileID: 11400000, guid: 888835b7651346349a8f66b820c195ad, type: 2}
-  - {fileID: 11400000, guid: 44027800606afc54bbb4640d9d61f5e8, type: 2}
-  - {fileID: 11400000, guid: 35df350068fd84740aa7d5f9b5f3729f, type: 2}
-  - {fileID: 11400000, guid: 0e8a17272e09ba14da90ce240a2820c2, type: 2}
-  - {fileID: 11400000, guid: ae022bdd654522c44817311679a16035, type: 2}
+  - {fileID: 11400000, guid: 63d87ce536632f444bf59a71cd8967c1, type: 2}
   - {fileID: 11400000, guid: f95a714814ad4854b92e441e36a62204, type: 2}
+  - {fileID: 11400000, guid: 3a67e9bb8e8480649b988ac3ac067344, type: 2}
+  - {fileID: 11400000, guid: 514e3c35cca411d4bb00ee0016730488, type: 2}
+  - {fileID: 11400000, guid: bc199a281a7d3a94080764007a818f4c, type: 2}
+  - {fileID: 11400000, guid: aaecdfbb30a38e047853c8ec17db8a0b, type: 2}
+  - {fileID: 11400000, guid: 7ceb46ae75625e949b275a358aa0b47c, type: 2}
   initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}
   enableBrickDrops: 1
@@ -10833,7 +10833,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelSettings
   nextLevelRowsToSpawn: 4
   nextLevelBrickMoveSpeed: 0.075
-  nextLevelBrickHealth: 1
+  nextLevelBrickHealth: 3
   nextLevelBrickOdds:
   - typeData: {fileID: 11400000, guid: 85e9b8c05e2b7214b819ed976f1dd770, type: 2}
     weight: 10
@@ -10940,7 +10940,7 @@ Transform:
   m_GameObject: {fileID: 2083054286}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.2656, y: 4.648, z: 0}
+  m_LocalPosition: {x: -0.2656, y: 4.648, z: -5}
   m_LocalScale: {x: 18, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -11153,7 +11153,7 @@ Transform:
   m_GameObject: {fileID: 2104390231}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 7.8, y: -1.5, z: 0}
+  m_LocalPosition: {x: 7.8, y: -1.5, z: -5}
   m_LocalScale: {x: 3, y: 12, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

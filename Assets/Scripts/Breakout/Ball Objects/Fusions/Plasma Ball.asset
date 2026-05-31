@@ -53,10 +53,23 @@ MonoBehaviour:
   lightningBurstRadius: 2
   createsLightningSnake: 1
   lightningSnakeBounceCount: 5
-  lightningSnakeDamage: 1
+  lightningSnakeDamage: 2
   lightningSnakeRadius: 2
   lightningSnakeWaterSplitCount: 2
   lightningSnakeBounceDelay: 0.1
+  lightningBurstBoltColor: {r: 0.5, g: 0.8, b: 1, a: 0.9}
+  lightningBurstBoltWidth: 0.06
+  lightningBurstBoltLifetime: 0.15
+  lightningBurstBoltSegments: 8
+  lightningBurstBoltNoise: 0.18
+  lightningBurstBoltMaterial: {fileID: 0}
+  lightningSnakeVisualMode: 0
+  lightningSnakeBoltColor: {r: 0.893187, g: 0.2028302, b: 1, a: 0.85}
+  lightningSnakeBoltWidth: 0.05
+  lightningSnakeBoltLifetime: 0.22
+  lightningSnakeBoltSegments: 10
+  lightningSnakeBoltNoise: 0.14
+  lightningSnakeBoltMaterial: {fileID: 0}
   earthCrack: 0
   shatterDamage: 2
   shatterRadius: 1.4

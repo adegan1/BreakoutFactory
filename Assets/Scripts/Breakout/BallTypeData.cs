@@ -50,6 +50,8 @@ public class BallTypeData : ScriptableObject
 
     public enum TrailColorMode { Manual, ManualCycle }
 
+    public enum LightningSnakeVisualMode { PerHopBolt, ContinuousTrail }
+
     // Recipe
     [SerializeField] private BallElement primarySourceElement = BallElement.Basic;
     [SerializeField] private BallElement secondarySourceElement = BallElement.Basic;
@@ -97,6 +99,24 @@ public class BallTypeData : ScriptableObject
     [SerializeField, Min(0.1f)] private float lightningSnakeRadius = 2f;
     [SerializeField, Min(1)] private int lightningSnakeWaterSplitCount = 2;
     [SerializeField, Min(0f)] private float lightningSnakeBounceDelay = 0.06f;
+
+    // Lightning Burst Visual
+    [SerializeField] private Color lightningBurstBoltColor = new Color(0.5f, 0.8f, 1f, 0.9f);
+    [SerializeField, Min(0.01f)] private float lightningBurstBoltWidth = 0.06f;
+    [SerializeField, Min(0.05f)] private float lightningBurstBoltLifetime = 0.15f;
+    [SerializeField, Min(2)] private int lightningBurstBoltSegments = 8;
+    [SerializeField, Min(0f)] private float lightningBurstBoltNoise = 0.18f;
+    [SerializeField] private Material lightningBurstBoltMaterial;
+
+    // Lightning Snake Visual
+    [SerializeField] private LightningSnakeVisualMode lightningSnakeVisualMode = LightningSnakeVisualMode.PerHopBolt;
+    [SerializeField] private Color lightningSnakeBoltColor = new Color(0.35f, 1f, 0.75f, 0.85f);
+    [SerializeField, Min(0.01f)] private float lightningSnakeBoltWidth = 0.05f;
+    [SerializeField, Min(0.05f)] private float lightningSnakeBoltLifetime = 0.22f;
+    [SerializeField, Min(2)] private int lightningSnakeBoltSegments = 10;
+    [SerializeField, Min(0f)] private float lightningSnakeBoltNoise = 0.14f;
+    [SerializeField] private Material lightningSnakeBoltMaterial;
+
     [SerializeField] private bool earthCrack = false;
     [SerializeField, Min(1)] private int shatterDamage = 2;
     [SerializeField, Min(0.1f)] private float shatterRadius = 1.4f;
@@ -184,6 +204,18 @@ public class BallTypeData : ScriptableObject
     [SerializeField] private bool createsBlackout = false;
     [SerializeField, Min(1)] private int blackoutDamage = 1;
     [SerializeField, Min(0.1f)] private float blackoutInterval = 1f;
+    // Blackout Visual
+    [SerializeField] private Color[] blackoutBoltColors = new Color[]
+    {
+        new Color(0.3f, 0.3f, 1f, 0.85f),
+        new Color(0.7f, 0.2f, 1f, 0.85f),
+        new Color(0.2f, 0.8f, 1f, 0.85f)
+    };
+    [SerializeField, Min(0.01f)] private float blackoutBoltWidth = 0.05f;
+    [SerializeField, Min(0.05f)] private float blackoutBoltLifetime = 0.18f;
+    [SerializeField, Min(2)] private int blackoutBoltSegments = 8;
+    [SerializeField, Min(0f)] private float blackoutBoltNoise = 0.2f;
+    [SerializeField] private Material blackoutBoltMaterial;
     [SerializeField] private bool createsFirstAid = false;
     [SerializeField, Min(1)] private int firstAidHealPerHit = 1;
     [SerializeField, Min(1)] private int firstAidHealThreshold = 5;
@@ -192,6 +224,14 @@ public class BallTypeData : ScriptableObject
     [SerializeField] private bool createsElectricCascade = false;
     [SerializeField, Min(1)] private int electricCascadeShockDamage = 1;
     [SerializeField, Min(0.01f)] private float electricCascadeConductiveDuration = 3f;
+    // Electric Cascade Beam Visual
+    [SerializeField] private Color electricCascadeBeamColor = new Color(0.45f, 0.9f, 1f, 0.9f);
+    [SerializeField, Min(0.01f)] private float electricCascadeBeamWidth = 0.07f;
+    [SerializeField, Min(0.05f)] private float electricCascadeBeamLifetime = 0.2f;
+    [SerializeField, Min(2)] private int electricCascadeBeamSegments = 10;
+    [SerializeField, Min(0f)] private float electricCascadeBeamNoise = 0.12f;
+    [SerializeField, Min(0.1f)] private float electricCascadeBeamLength = 8f;
+    [SerializeField] private Material electricCascadeBeamMaterial;
     [SerializeField] private bool createsRollingThunder = false;
     [SerializeField, Min(1f)] private float rollingThunderStartScaleMultiplier = 1f;
     [SerializeField, Min(1f)] private float rollingThunderMaxScaleMultiplier = 2f;
@@ -204,6 +244,13 @@ public class BallTypeData : ScriptableObject
     [SerializeField, Min(1)] private int shockTherapyMaxTargets = 3;
     [SerializeField, Min(1)] private int shockTherapyDamage = 1;
     [SerializeField, Min(1)] private int shockTherapyHealAmount = 1;
+    // Shock Therapy Visual
+    [SerializeField] private Color shockTherapyBoltColor = new Color(1f, 1f, 0.4f, 0.9f);
+    [SerializeField, Min(0.01f)] private float shockTherapyBoltWidth = 0.06f;
+    [SerializeField, Min(0.05f)] private float shockTherapyBoltLifetime = 0.2f;
+    [SerializeField, Min(2)] private int shockTherapyBoltSegments = 9;
+    [SerializeField, Min(0f)] private float shockTherapyBoltNoise = 0.16f;
+    [SerializeField] private Material shockTherapyBoltMaterial;
     [SerializeField] private bool createsPressurizedSplash = false;
     [SerializeField, Min(1)] private int pressurePerHit = 1;
     [SerializeField, Min(1)] private int maxPressure = 4;
@@ -259,6 +306,19 @@ public class BallTypeData : ScriptableObject
     public float LightningSnakeRadius => lightningSnakeRadius;
     public int LightningSnakeWaterSplitCount => lightningSnakeWaterSplitCount;
     public float LightningSnakeBounceDelay => lightningSnakeBounceDelay;
+    public Color LightningBurstBoltColor => lightningBurstBoltColor;
+    public float LightningBurstBoltWidth => lightningBurstBoltWidth;
+    public float LightningBurstBoltLifetime => lightningBurstBoltLifetime;
+    public int LightningBurstBoltSegments => lightningBurstBoltSegments;
+    public float LightningBurstBoltNoise => lightningBurstBoltNoise;
+    public Material LightningBurstBoltMaterial => lightningBurstBoltMaterial;
+    public LightningSnakeVisualMode SnakeVisualMode => lightningSnakeVisualMode;
+    public Color LightningSnakeBoltColor => lightningSnakeBoltColor;
+    public float LightningSnakeBoltWidth => lightningSnakeBoltWidth;
+    public float LightningSnakeBoltLifetime => lightningSnakeBoltLifetime;
+    public int LightningSnakeBoltSegments => lightningSnakeBoltSegments;
+    public float LightningSnakeBoltNoise => lightningSnakeBoltNoise;
+    public Material LightningSnakeBoltMaterial => lightningSnakeBoltMaterial;
     public bool EarthCrack => earthCrack;
     public int ShatterDamage => shatterDamage;
     public float ShatterRadius => shatterRadius;
@@ -344,6 +404,12 @@ public class BallTypeData : ScriptableObject
     public bool CreatesBlackout => createsBlackout;
     public int BlackoutDamage => blackoutDamage;
     public float BlackoutInterval => blackoutInterval;
+    public Color[] BlackoutBoltColors => blackoutBoltColors;
+    public float BlackoutBoltWidth => blackoutBoltWidth;
+    public float BlackoutBoltLifetime => blackoutBoltLifetime;
+    public int BlackoutBoltSegments => blackoutBoltSegments;
+    public float BlackoutBoltNoise => blackoutBoltNoise;
+    public Material BlackoutBoltMaterial => blackoutBoltMaterial;
     public bool CreatesFirstAid => createsFirstAid;
     public int FirstAidHealPerHit => firstAidHealPerHit;
     public int FirstAidHealThreshold => firstAidHealThreshold;
@@ -352,6 +418,13 @@ public class BallTypeData : ScriptableObject
     public bool CreatesElectricCascade => createsElectricCascade;
     public int ElectricCascadeShockDamage => electricCascadeShockDamage;
     public float ElectricCascadeConductiveDuration => electricCascadeConductiveDuration;
+    public Color ElectricCascadeBeamColor => electricCascadeBeamColor;
+    public float ElectricCascadeBeamWidth => electricCascadeBeamWidth;
+    public float ElectricCascadeBeamLifetime => electricCascadeBeamLifetime;
+    public int ElectricCascadeBeamSegments => electricCascadeBeamSegments;
+    public float ElectricCascadeBeamNoise => electricCascadeBeamNoise;
+    public float ElectricCascadeBeamLength => electricCascadeBeamLength;
+    public Material ElectricCascadeBeamMaterial => electricCascadeBeamMaterial;
     public bool CreatesRollingThunder => createsRollingThunder;
     public float RollingThunderStartScaleMultiplier => rollingThunderStartScaleMultiplier;
     public float RollingThunderMaxScaleMultiplier => rollingThunderMaxScaleMultiplier;
@@ -364,6 +437,12 @@ public class BallTypeData : ScriptableObject
     public int ShockTherapyMaxTargets => shockTherapyMaxTargets;
     public int ShockTherapyDamage => shockTherapyDamage;
     public int ShockTherapyHealAmount => shockTherapyHealAmount;
+    public Color ShockTherapyBoltColor => shockTherapyBoltColor;
+    public float ShockTherapyBoltWidth => shockTherapyBoltWidth;
+    public float ShockTherapyBoltLifetime => shockTherapyBoltLifetime;
+    public int ShockTherapyBoltSegments => shockTherapyBoltSegments;
+    public float ShockTherapyBoltNoise => shockTherapyBoltNoise;
+    public Material ShockTherapyBoltMaterial => shockTherapyBoltMaterial;
     public bool CreatesPressurizedSplash => createsPressurizedSplash;
     public int PressurePerHit => pressurePerHit;
     public int MaxPressure => maxPressure;
@@ -462,6 +541,22 @@ public class BallTypeData : ScriptableObject
                 a.CreatesLightningSnake ? a.LightningSnakeBounceDelay : float.MaxValue,
                 b.CreatesLightningSnake ? b.LightningSnakeBounceDelay : float.MaxValue);
         }
+
+        // Inherit lightning visual settings from the primary source ball
+        BallTypeData lightningVisualSource = a.LightningBurst || a.CreatesLightningSnake ? a : b;
+        lightningBurstBoltColor = lightningVisualSource.LightningBurstBoltColor;
+        lightningBurstBoltWidth = lightningVisualSource.LightningBurstBoltWidth;
+        lightningBurstBoltLifetime = lightningVisualSource.LightningBurstBoltLifetime;
+        lightningBurstBoltSegments = lightningVisualSource.LightningBurstBoltSegments;
+        lightningBurstBoltNoise = lightningVisualSource.LightningBurstBoltNoise;
+        lightningBurstBoltMaterial = lightningVisualSource.LightningBurstBoltMaterial;
+        lightningSnakeVisualMode = lightningVisualSource.SnakeVisualMode;
+        lightningSnakeBoltColor = lightningVisualSource.LightningSnakeBoltColor;
+        lightningSnakeBoltWidth = lightningVisualSource.LightningSnakeBoltWidth;
+        lightningSnakeBoltLifetime = lightningVisualSource.LightningSnakeBoltLifetime;
+        lightningSnakeBoltSegments = lightningVisualSource.LightningSnakeBoltSegments;
+        lightningSnakeBoltNoise = lightningVisualSource.LightningSnakeBoltNoise;
+        lightningSnakeBoltMaterial = lightningVisualSource.LightningSnakeBoltMaterial;
 
         earthCrack = a.EarthCrack || b.EarthCrack;
         if (earthCrack)
@@ -743,6 +838,15 @@ public class BallTypeData : ScriptableObject
             blackoutInterval = Mathf.Min(
                 a.CreatesBlackout ? a.BlackoutInterval : float.MaxValue,
                 b.CreatesBlackout ? b.BlackoutInterval : float.MaxValue);
+            BallTypeData blackoutVisualSource = a.CreatesBlackout ? a : b;
+            blackoutBoltColors = blackoutVisualSource.BlackoutBoltColors != null
+                ? (Color[])blackoutVisualSource.BlackoutBoltColors.Clone()
+                : new Color[] { Color.white };
+            blackoutBoltWidth = blackoutVisualSource.BlackoutBoltWidth;
+            blackoutBoltLifetime = blackoutVisualSource.BlackoutBoltLifetime;
+            blackoutBoltSegments = blackoutVisualSource.BlackoutBoltSegments;
+            blackoutBoltNoise = blackoutVisualSource.BlackoutBoltNoise;
+            blackoutBoltMaterial = blackoutVisualSource.BlackoutBoltMaterial;
         }
 
         createsFirstAid = a.CreatesFirstAid || b.CreatesFirstAid;
