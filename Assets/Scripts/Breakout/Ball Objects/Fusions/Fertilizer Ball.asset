@@ -22,9 +22,19 @@ MonoBehaviour:
     Spawns "Fertile Patches" over time.
     Fertile patches slowly move upward, cracking bricks and rooting several nearby
     bricks.'
-  displayColor: {r: 0.5754717, g: 0.39085874, b: 0.21987364, a: 1}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 0.1480585, g: 0.6509434, b: 0.14431292, a: 1}
+  - {r: 0.5, g: 0.33265674, b: 0.20518869, a: 1}
+  - {r: 0.5891929, g: 1, b: 0.5424528, a: 1}
+  trailColorCycleRate: 16
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: 281c19aa60bb76a4e916b7adc1f4d997, type: 2}
+  animateTexture: 0
+  animFrameColumns: 4
+  animFrameRows: 1
+  animFrameRate: 16
   size: 1
   movementSpeed: 8
   damage: 1

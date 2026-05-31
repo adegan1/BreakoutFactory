@@ -21,9 +21,19 @@ MonoBehaviour:
 
     Passes through bricks. Deals several instances
     of damage to hit bricks. Tornado Ball curves chaotically.'
-  displayColor: {r: 0.8852795, g: 0.9074211, b: 0.9245283, a: 1}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 0.616545, g: 0.7322195, b: 0.8018868, a: 1}
+  - {r: 0.36547706, g: 0.4056604, b: 0.4056604, a: 1}
+  - {r: 0.80731577, g: 0.8867924, b: 0.8867924, a: 1}
+  trailColorCycleRate: 4
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: c2fe3a8e6e2789843b65384443e803c4, type: 2}
+  animateTexture: 1
+  animFrameColumns: 3
+  animFrameRows: 1
+  animFrameRate: 7
   size: 1
   movementSpeed: 7
   damage: 1

@@ -21,9 +21,19 @@ MonoBehaviour:
 
     Cracks bricks on hit. When Quake Ball hits
     a cracked brick, shattered bricks become cracked immediately.'
-  displayColor: {r: 0.3584906, g: 0.28816208, b: 0.2282841, a: 1}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 0.46226418, g: 0.28921625, b: 0.19842473, a: 1}
+  - {r: 0.2924528, g: 0.18141164, b: 0.11449803, a: 1}
+  - {r: 0.122641504, g: 0.05930938, b: 0.031817373, a: 1}
+  trailColorCycleRate: 4
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: 76b8900ff0ee6c94fa3e5eb2fad89c2a, type: 2}
+  animateTexture: 1
+  animFrameColumns: 3
+  animFrameRows: 1
+  animFrameRate: 6
   size: 1
   movementSpeed: 8
   damage: 1

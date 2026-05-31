@@ -21,9 +21,19 @@ MonoBehaviour:
 
     Passes through bricks. Bricks hit by Sand
     Ball become "Weakened". Weakened bricks take double damage from all sources.'
-  displayColor: {r: 0.764151, g: 0.6139459, b: 0.4000979, a: 1}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 1, g: 0.846689, b: 0.5518868, a: 1}
+  - {r: 1, g: 0.742598, b: 0.3160377, a: 1}
+  - {r: 1, g: 0.96013063, b: 0.8537736, a: 1}
+  trailColorCycleRate: 4
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: 10aa07b109573bc4db7673b0429019c9, type: 2}
+  animateTexture: 1
+  animFrameColumns: 3
+  animFrameRows: 1
+  animFrameRate: 4
   size: 1
   movementSpeed: 6
   damage: 1

@@ -18,9 +18,18 @@ MonoBehaviour:
   secondaryEffectProfile: 0
   displayName: 
   description: 
-  displayColor: {r: 0, g: 0.24184519, b: 0.5188679, a: 0.7882353}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 0.117746525, g: 0.12330337, b: 0.3962264, a: 1}
+  - {r: 0.025231387, g: 0.036717206, b: 0.5943396, a: 1}
+  trailColorCycleRate: 4
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: 66eb9bb132803344ab3ead326977c785, type: 2}
+  animateTexture: 1
+  animFrameColumns: 3
+  animFrameRows: 1
+  animFrameRate: 6
   size: 0.5
   movementSpeed: 4
   damage: 1
