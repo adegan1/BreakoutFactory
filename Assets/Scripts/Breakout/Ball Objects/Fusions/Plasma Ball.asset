@@ -22,9 +22,19 @@ MonoBehaviour:
     On brick hit, strikes one nearby
     brick with lightning. That brick then strikes one nearby it, and so on. Snake
     stops after several bounces.'
-  displayColor: {r: 0.8589866, g: 0.40396938, b: 0.9622642, a: 1}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 0.848991, g: 0.3160377, b: 1, a: 1}
+  - {r: 1, g: 0, b: 0.90488815, a: 1}
+  - {r: 0.6132076, g: 0, b: 0.09720346, a: 1}
+  trailColorCycleRate: 10
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: 26d211da6f6f3aa43bbc186dd088759e, type: 2}
+  animateTexture: 1
+  animFrameColumns: 3
+  animFrameRows: 1
+  animFrameRate: 6
   size: 1
   movementSpeed: 10
   damage: 1

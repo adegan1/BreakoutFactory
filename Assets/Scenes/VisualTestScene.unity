@@ -190,7 +190,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 15605628}
+      addedObject: {fileID: 15605629}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 15605634}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &15605626 stripped
 Transform:
@@ -202,7 +205,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 15605625}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &15605628
+--- !u!114 &15605629
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 15605627}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e780c2caddda2b848a62f68b87a675af, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &15605634
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -214,7 +248,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1 &86188803
 GameObject:
@@ -740,7 +774,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 318451415}
+      addedObject: {fileID: 318451416}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 318451421}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &318451413 stripped
 Transform:
@@ -752,7 +789,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 318451412}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &318451415
+--- !u!114 &318451416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 318451414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &318451421
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -764,7 +832,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &353349446
 PrefabInstance:
@@ -837,7 +905,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 353349449}
+      addedObject: {fileID: 353349450}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 353349455}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &353349447 stripped
 Transform:
@@ -849,7 +920,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 353349446}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &353349449
+--- !u!114 &353349450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 353349448}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &353349455
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -861,7 +963,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1 &368184971
 GameObject:
@@ -1071,7 +1173,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 511542668}
+      addedObject: {fileID: 511542669}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 511542674}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &511542666 stripped
 Transform:
@@ -1083,7 +1188,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 511542665}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &511542668
+--- !u!114 &511542669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 511542667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &511542674
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1095,7 +1231,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &524330119
 PrefabInstance:
@@ -1168,7 +1304,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 524330122}
+      addedObject: {fileID: 524330123}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 524330128}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &524330120 stripped
 Transform:
@@ -1180,7 +1319,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 524330119}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &524330122
+--- !u!114 &524330123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524330121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: 0e8a17272e09ba14da90ce240a2820c2, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &524330128
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1192,7 +1362,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &544072102
 PrefabInstance:
@@ -1265,7 +1435,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 544072105}
+      addedObject: {fileID: 544072106}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 544072111}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &544072103 stripped
 Transform:
@@ -1277,7 +1450,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 544072102}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &544072105
+--- !u!114 &544072106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 544072104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: b73b8ec3929fee64ea079a47de95c229, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &544072111
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1289,7 +1493,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1 &643391716
 GameObject:
@@ -1578,7 +1782,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 658298367}
+      addedObject: {fileID: 658298368}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 658298373}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &658298365 stripped
 Transform:
@@ -1590,7 +1797,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 658298364}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &658298367
+--- !u!114 &658298368
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 658298366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &658298373
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1602,7 +1840,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &693611724
 PrefabInstance:
@@ -1675,7 +1913,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 693611727}
+      addedObject: {fileID: 693611728}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 693611733}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &693611725 stripped
 Transform:
@@ -1687,7 +1928,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 693611724}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &693611727
+--- !u!114 &693611728
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 693611726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: d6ce3c90c2d49d241a4ba4936955ac1f, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &693611733
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1699,7 +1971,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1 &729336769
 GameObject:
@@ -1977,7 +2249,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 765036450}
+      addedObject: {fileID: 765036451}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 765036456}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &765036448 stripped
 Transform:
@@ -1989,7 +2264,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 765036447}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &765036450
+--- !u!114 &765036451
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 765036449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: 35df350068fd84740aa7d5f9b5f3729f, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &765036456
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2001,7 +2307,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &780743930
 PrefabInstance:
@@ -2074,7 +2380,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 780743933}
+      addedObject: {fileID: 780743934}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 780743939}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &780743931 stripped
 Transform:
@@ -2086,7 +2395,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 780743930}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &780743933
+--- !u!114 &780743934
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 780743932}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &780743939
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2098,7 +2438,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &801732514
 PrefabInstance:
@@ -2171,7 +2511,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 801732517}
+      addedObject: {fileID: 801732518}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 801732523}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &801732515 stripped
 Transform:
@@ -2183,7 +2526,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 801732514}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &801732517
+--- !u!114 &801732518
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 801732516}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &801732523
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2195,7 +2569,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1 &830323164
 GameObject:
@@ -2320,7 +2694,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 879279824}
+      addedObject: {fileID: 879279825}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 879279830}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &879279822 stripped
 Transform:
@@ -2332,7 +2709,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 879279821}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &879279824
+--- !u!114 &879279825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879279823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0.2
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &879279830
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2344,7 +2752,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &914584082
 PrefabInstance:
@@ -2622,7 +3030,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1093576846}
+      addedObject: {fileID: 1093576847}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1093576852}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1093576844 stripped
 Transform:
@@ -2634,7 +3045,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1093576843}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1093576846
+--- !u!114 &1093576847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093576845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: 44027800606afc54bbb4640d9d61f5e8, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1093576852
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2646,7 +3088,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1 &1103154795
 GameObject:
@@ -2833,7 +3275,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1201942456}
+      addedObject: {fileID: 1201942457}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1201942462}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1201942454 stripped
 Transform:
@@ -2845,7 +3290,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1201942453}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1201942456
+--- !u!114 &1201942457
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1201942455}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: 1675dd11319e80e4eaefc4190c80cada, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1201942462
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2857,7 +3333,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!4 &1220801984 stripped
 Transform:
@@ -2940,7 +3416,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1338091513}
+      addedObject: {fileID: 1338091514}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1338091519}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1338091511 stripped
 Transform:
@@ -2952,7 +3431,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1338091510}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1338091513
+--- !u!114 &1338091514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1338091512}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: c3d198d98ee1cd847ac086e54e0226f4, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1338091519
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2964,7 +3474,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!4 &1351295407 stripped
 Transform:
@@ -3119,7 +3629,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1456703296}
+      addedObject: {fileID: 1456703297}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1456703302}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1456703294 stripped
 Transform:
@@ -3131,7 +3644,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1456703293}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1456703296
+--- !u!114 &1456703297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456703295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1456703302
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3143,7 +3687,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &1531992245
 PrefabInstance:
@@ -3216,7 +3760,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1531992248}
+      addedObject: {fileID: 1531992249}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1531992254}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1531992246 stripped
 Transform:
@@ -3228,7 +3775,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1531992245}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1531992248
+--- !u!114 &1531992249
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1531992247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: 888835b7651346349a8f66b820c195ad, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1531992254
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3240,7 +3818,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &1533297050
 PrefabInstance:
@@ -3313,7 +3891,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1533297053}
+      addedObject: {fileID: 1533297054}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1533297059}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1533297051 stripped
 Transform:
@@ -3325,7 +3906,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1533297050}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1533297053
+--- !u!114 &1533297054
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1533297052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: 3a67e9bb8e8480649b988ac3ac067344, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1533297059
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3337,7 +3949,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &1546298171
 PrefabInstance:
@@ -3410,7 +4022,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1546298174}
+      addedObject: {fileID: 1546298175}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1546298180}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1546298172 stripped
 Transform:
@@ -3422,7 +4037,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1546298171}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1546298174
+--- !u!114 &1546298175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1546298173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1546298180
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3434,7 +4080,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &1565820640
 PrefabInstance:
@@ -3507,7 +4153,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1565820643}
+      addedObject: {fileID: 1565820644}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1565820649}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1565820641 stripped
 Transform:
@@ -3519,7 +4168,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1565820640}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1565820643
+--- !u!114 &1565820644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1565820642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0.2
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1565820649
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3531,7 +4211,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &1576816270
 PrefabInstance:
@@ -3604,7 +4284,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1576816273}
+      addedObject: {fileID: 1576816274}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1576816279}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1576816271 stripped
 Transform:
@@ -3616,7 +4299,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1576816270}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1576816273
+--- !u!114 &1576816274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1576816272}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: f95a714814ad4854b92e441e36a62204, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1576816279
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3628,7 +4342,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &1605314741
 PrefabInstance:
@@ -3701,7 +4415,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1605314744}
+      addedObject: {fileID: 1605314745}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1605314750}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1605314742 stripped
 Transform:
@@ -3713,7 +4430,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1605314741}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1605314744
+--- !u!114 &1605314745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1605314743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1605314750
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3725,7 +4473,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &1684530543
 PrefabInstance:
@@ -3798,7 +4546,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1684530546}
+      addedObject: {fileID: 1684530547}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1684530552}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1684530544 stripped
 Transform:
@@ -3810,7 +4561,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1684530543}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1684530546
+--- !u!114 &1684530547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684530545}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1684530552
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3822,7 +4604,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &1704895040
 PrefabInstance:
@@ -3968,7 +4750,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1708073588}
+      addedObject: {fileID: 1708073589}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1708073594}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1708073586 stripped
 Transform:
@@ -3980,7 +4765,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1708073585}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1708073588
+--- !u!114 &1708073589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1708073587}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1708073594
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3992,7 +4808,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &1724989782
 PrefabInstance:
@@ -4065,7 +4881,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1724989785}
+      addedObject: {fileID: 1724989786}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1724989791}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1724989783 stripped
 Transform:
@@ -4077,7 +4896,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1724989782}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1724989785
+--- !u!114 &1724989786
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1724989784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: ae022bdd654522c44817311679a16035, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1724989791
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4089,7 +4939,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &1749325131
 PrefabInstance:
@@ -4357,7 +5207,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1906287283}
+      addedObject: {fileID: 1906287284}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1906287289}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1906287281 stripped
 Transform:
@@ -4369,7 +5222,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1906287280}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1906287283
+--- !u!114 &1906287284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1906287282}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1906287289
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4381,7 +5265,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &1963228733
 PrefabInstance:
@@ -4454,7 +5338,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1963228736}
+      addedObject: {fileID: 1963228737}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1963228742}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &1963228734 stripped
 Transform:
@@ -4466,7 +5353,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 1963228733}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1963228736
+--- !u!114 &1963228737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1963228735}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &1963228742
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4478,7 +5396,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1001 &2027988972
 PrefabInstance:
@@ -4628,7 +5546,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2061944405}
+      addedObject: {fileID: 2061944406}
+    - targetCorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2061944411}
   m_SourcePrefab: {fileID: 100100000, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
 --- !u!4 &2061944403 stripped
 Transform:
@@ -4640,7 +5561,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 556003439054413865, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   m_PrefabInstance: {fileID: 2061944402}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2061944405
+--- !u!114 &2061944406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2061944404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76ae37e9ee90c3549847f5fabfeb64b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallController
+  typeData: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  speed: 0
+  minimumVerticalDirection: 0
+  ignoreOtherBallCollisions: 0
+  unstuckNudgeDistance: 0
+  axisStuckDelay: 10000
+  wallStickRecoveryDelay: 0
+  minimumAxisSpeed: 0
+  verticalNudgeStrength: 0
+  minimumHorizontalDirection: 0
+  logWallRecovery: 0
+  paddleHorizontalInfluence: 0.7
+  maxPaddleHorizontalDirection: 0.6
+  paddleTopContactNormalMinY: 0.35
+  paddleTopSurfacePadding: 0.02
+  bottomKillY: -6
+  ballVisualRadius: 0.5
+  ballRollSpeedMultiplier: 1
+  freezeMovement: 1
+--- !u!114 &2061944411
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4652,7 +5604,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609fa546d45e2214f9e8a074b4eeabb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rotator
-  rotationSpeed: {x: 15, y: 10, z: 30}
+  rotationSpeed: {x: 15, y: 30, z: 10}
   preserveSize: 0
 --- !u!1 &2095598471
 GameObject:

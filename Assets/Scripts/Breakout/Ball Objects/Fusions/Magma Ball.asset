@@ -21,9 +21,18 @@ MonoBehaviour:
 
     Burns bricks on hit. After the brick''s
     burn ends, it explodes, destroying it and damaging nearby bricks.'
-  displayColor: {r: 0.8018868, g: 0.43642905, b: 0, a: 1}
+  trailColor: {r: 0.8584906, g: 0.1581549, b: 0, a: 1}
+  trailColors:
+  - {r: 0.735849, g: 0.12828171, b: 0, a: 1}
+  - {r: 1, g: 0.53286207, b: 0.24056602, a: 1}
+  trailColorCycleRate: 16
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: 0b3a72fa4bf2069449595645ec8ad318, type: 2}
+  animateTexture: 0
+  animFrameColumns: 4
+  animFrameRows: 1
+  animFrameRate: 16
   size: 1
   movementSpeed: 6
   damage: 1

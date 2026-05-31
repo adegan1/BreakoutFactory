@@ -22,9 +22,19 @@ MonoBehaviour:
     Burns bricks on hit. If burning bricks
     are destroyed by Wildfire Ball, burn is spread to 2 random nearby bricks. Once
     those are destroyed, they spread as well.'
-  displayColor: {r: 0.22365674, g: 0.4433962, b: 0.18614274, a: 1}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 0.754717, g: 0.22320354, b: 0, a: 1}
+  - {r: 0.49056602, g: 0.07701489, b: 0, a: 1}
+  - {r: 0.3962264, g: 0.17322908, b: 0.11400853, a: 1}
+  trailColorCycleRate: 4
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: b9e018c514c21f44a8aa2efc51cbc056, type: 2}
+  animateTexture: 1
+  animFrameColumns: 3
+  animFrameRows: 1
+  animFrameRate: 6
   size: 1
   movementSpeed: 6
   damage: 1

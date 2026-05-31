@@ -21,9 +21,19 @@ MonoBehaviour:
 
     Occasionally bursts into 8 balls of
     "Condensed Steam". When this occurs, Steam Ball is launched in the opposite direction.'
-  displayColor: {r: 0.5872642, g: 0.7206135, b: 0.7830189, a: 1}
+  trailColor: {r: 1, g: 1, b: 1, a: 1}
+  trailColors:
+  - {r: 0.5971431, g: 0.6493259, b: 0.6698113, a: 1}
+  - {r: 0.50102353, g: 0.764151, b: 0.764151, a: 1}
+  - {r: 0.7913849, g: 0.9244079, b: 0.9811321, a: 1}
+  trailColorCycleRate: 4
+  trailColorMode: 1
   ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  ballMaterial: {fileID: 2100000, guid: e926820521c7c424db9cce11e49682b9, type: 2}
+  ballMaterial: {fileID: 2100000, guid: cbd2c99cee123664298d21fb464378ba, type: 2}
+  animateTexture: 1
+  animFrameColumns: 3
+  animFrameRows: 1
+  animFrameRate: 6
   size: 1
   movementSpeed: 5
   damage: 1

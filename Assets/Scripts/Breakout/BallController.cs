@@ -60,6 +60,9 @@ public class BallController : MonoBehaviour
     [SerializeField, Min(0.01f)] private float ballVisualRadius = 0.5f;
     [SerializeField, Min(0f)] private float ballRollSpeedMultiplier = 1f;
 
+    [Header("Debug")]
+    [SerializeField] private bool freezeMovement = false;
+
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
     private static readonly int BaseMapSTId = Shader.PropertyToID("_BaseMap_ST");
 
@@ -389,6 +392,12 @@ public class BallController : MonoBehaviour
 
     private void ApplyVelocity()
     {
+        if (freezeMovement)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
         Vector2 dir = travelDirection;
         if (movementRestraint == BallTypeData.DirectionRestraint.HorizontalOnly)
         {
