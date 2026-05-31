@@ -51,16 +51,20 @@ public class BrickController : MonoBehaviour
     [SerializeField, Min(0.01f)] private float damageFlashDuration = 0.12f;
     [SerializeField, Range(0f, 1f)] private float damageFlashStrength = 0.9f;
 
+    [Header("Texture Variation")]
+    [SerializeField] private Vector2 uvOffsetRangeX = new Vector2(0f, 1f);
+    [SerializeField] private Vector2 uvOffsetRangeY = new Vector2(0f, 1f);
+
     [Header("Effect Overlays")]
-    [SerializeField] private Sprite crackedOverlaySprite;
-    [SerializeField] private Sprite burningOverlaySprite;
-    [SerializeField] private Sprite rootedOverlaySprite;
-    [SerializeField] private Sprite pressureOverlaySprite;
-    [SerializeField] private Sprite weakenedOverlaySprite;
-    [SerializeField] private Sprite conductiveOverlaySprite;
-    [SerializeField] private Vector2 overlayScale = Vector2.one;
+    [SerializeField] private Material crackedOverlayMaterial;
+    [SerializeField] private Material burningOverlayMaterial;
+    [SerializeField] private Material rootedOverlayMaterial;
+    [SerializeField] private Material pressureOverlayMaterial;
+    [SerializeField] private Material weakenedOverlayMaterial;
+    [SerializeField] private Material conductiveOverlayMaterial;
 
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+    private static readonly int BaseMapSTId = Shader.PropertyToID("_BaseMap_ST");
 
     private int currentHitPoints;
     private int maxHitPoints;
@@ -119,12 +123,9 @@ public class BrickController : MonoBehaviour
     private float conductiveInitialDuration;
     private Coroutine damageFlashRoutine;
     private Coroutine dangerSequenceRoutine;
-    private SpriteRenderer crackedOverlayRenderer;
-    private SpriteRenderer burningOverlayRenderer;
-    private SpriteRenderer rootedOverlayRenderer;
-    private SpriteRenderer pressureOverlayRenderer;
-    private SpriteRenderer weakenedOverlayRenderer;
-    private SpriteRenderer conductiveOverlayRenderer;
+    private MeshRenderer overlayMeshRenderer;
+    private readonly int[] overlayMaterialIndices = new int[6];
+    private MaterialPropertyBlock overlayPropertyBlock;
     private readonly List<BrickController> nearbyBricksBuffer = new List<BrickController>();
     private readonly List<BrickController> crossLineBricksBuffer = new List<BrickController>();
     private readonly List<BrickController> seedSpreadCandidatesBuffer = new List<BrickController>();
@@ -152,6 +153,9 @@ public class BrickController : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         brickMeshRenderer = GetComponentInChildren<MeshRenderer>();
         propertyBlock = new MaterialPropertyBlock();
+        float offsetX = Random.Range(uvOffsetRangeX.x, uvOffsetRangeX.y);
+        float offsetY = Random.Range(uvOffsetRangeY.x, uvOffsetRangeY.y);
+        propertyBlock.SetVector(BaseMapSTId, new Vector4(1f, 1f, offsetX, offsetY));
         if (brickMeshRenderer != null && spriteRenderer != null)
         {
             spriteRenderer.enabled = false;
@@ -1883,49 +1887,71 @@ public class BrickController : MonoBehaviour
 
     private void InitializeEffectOverlays()
     {
-        int baseSortingOrder = spriteRenderer != null ? spriteRenderer.sortingOrder : 0;
-        crackedOverlayRenderer = CreateOverlayRenderer("Cracked Overlay", baseSortingOrder + 1);
-        burningOverlayRenderer = CreateOverlayRenderer("Burning Overlay", baseSortingOrder + 2);
-        rootedOverlayRenderer = CreateOverlayRenderer("Rooted Overlay", baseSortingOrder + 3);
-        pressureOverlayRenderer = CreateOverlayRenderer("Pressure Overlay", baseSortingOrder + 4);
-        weakenedOverlayRenderer = CreateOverlayRenderer("Weakened Overlay", baseSortingOrder + 5);
-        conductiveOverlayRenderer = CreateOverlayRenderer("Conductive Overlay", baseSortingOrder + 6);
+        if (transform.childCount < 2)
+        {
+            return;
+        }
+
+        overlayMeshRenderer = transform.GetChild(1).GetComponent<MeshRenderer>();
+        if (overlayMeshRenderer == null)
+        {
+            return;
+        }
+
+        Material[] candidates = new Material[]
+        {
+            crackedOverlayMaterial,
+            burningOverlayMaterial,
+            rootedOverlayMaterial,
+            pressureOverlayMaterial,
+            weakenedOverlayMaterial,
+            conductiveOverlayMaterial
+        };
+
+        var assigned = new List<Material>();
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            if (candidates[i] != null)
+            {
+                overlayMaterialIndices[i] = assigned.Count;
+                assigned.Add(candidates[i]);
+            }
+            else
+            {
+                overlayMaterialIndices[i] = -1;
+            }
+        }
+
+        overlayMeshRenderer.sharedMaterials = assigned.ToArray();
+        overlayPropertyBlock = new MaterialPropertyBlock();
+
+        for (int i = 0; i < assigned.Count; i++)
+        {
+            overlayPropertyBlock.SetColor(BaseColorId, new Color(1f, 1f, 1f, 0f));
+            overlayMeshRenderer.SetPropertyBlock(overlayPropertyBlock, i);
+        }
     }
 
-    private SpriteRenderer CreateOverlayRenderer(string objectName, int sortingOrder)
+    private void SetOverlayAlpha(int overlaySlot, float alpha)
     {
-        Transform overlayTransform = transform.Find(objectName);
-        GameObject overlayObject;
-
-        if (overlayTransform == null)
+        if (overlayMeshRenderer == null)
         {
-            overlayObject = new GameObject(objectName);
-            overlayObject.transform.SetParent(transform, false);
-        }
-        else
-        {
-            overlayObject = overlayTransform.gameObject;
+            return;
         }
 
-        overlayObject.transform.localPosition = Vector3.zero;
-        overlayObject.transform.localRotation = Quaternion.identity;
-        overlayObject.transform.localScale = new Vector3(overlayScale.x, overlayScale.y, 1f);
-
-        SpriteRenderer overlayRenderer = overlayObject.GetComponent<SpriteRenderer>();
-        if (overlayRenderer == null)
+        int matIndex = overlayMaterialIndices[overlaySlot];
+        if (matIndex < 0)
         {
-            overlayRenderer = overlayObject.AddComponent<SpriteRenderer>();
+            return;
         }
 
-        overlayRenderer.sortingLayerID = spriteRenderer != null ? spriteRenderer.sortingLayerID : 0;
-        overlayRenderer.sortingOrder = sortingOrder;
-        overlayRenderer.enabled = false;
-        return overlayRenderer;
+        overlayPropertyBlock.SetColor(BaseColorId, new Color(1f, 1f, 1f, Mathf.Clamp01(alpha)));
+        overlayMeshRenderer.SetPropertyBlock(overlayPropertyBlock, matIndex);
     }
 
     private void UpdateEffectOverlays()
     {
-        UpdateOverlay(crackedOverlayRenderer, crackedOverlaySprite, isCracked ? 1f : 0f);
+        SetOverlayAlpha(0, isCracked ? 1f : 0f);
 
         float burnAlpha = 0f;
         if (isBurning && burnHitsRemaining > 0 && burnInitialHitCount > 0)
@@ -1935,7 +1961,7 @@ public class BrickController : MonoBehaviour
             burnAlpha = Mathf.Clamp01(normalizedBurnRemaining);
         }
 
-        UpdateOverlay(burningOverlayRenderer, burningOverlaySprite, burnAlpha);
+        SetOverlayAlpha(1, burnAlpha);
 
         float rootedAlpha = 0f;
         if (isRooted && rootInitialDuration > 0f)
@@ -1943,7 +1969,7 @@ public class BrickController : MonoBehaviour
             rootedAlpha = Mathf.Clamp01(rootTimeRemaining / rootInitialDuration);
         }
 
-        UpdateOverlay(rootedOverlayRenderer, rootedOverlaySprite, rootedAlpha);
+        SetOverlayAlpha(2, rootedAlpha);
 
         float pressureAlpha = 0f;
         if (hasPressurizedSplash && currentPressure > 0 && pressureMaxThreshold > 0)
@@ -1951,7 +1977,7 @@ public class BrickController : MonoBehaviour
             pressureAlpha = Mathf.Clamp01((float)currentPressure / pressureMaxThreshold);
         }
 
-        UpdateOverlay(pressureOverlayRenderer, pressureOverlaySprite, pressureAlpha);
+        SetOverlayAlpha(3, pressureAlpha);
 
         float weakenedAlpha = 0f;
         if (isWeakened && weakenedInitialDuration > 0f)
@@ -1965,27 +1991,15 @@ public class BrickController : MonoBehaviour
             conductiveAlpha = Mathf.Clamp01(conductiveTimeRemaining / conductiveInitialDuration);
         }
 
-        UpdateOverlay(weakenedOverlayRenderer, weakenedOverlaySprite, weakenedAlpha);
-        UpdateOverlay(conductiveOverlayRenderer, conductiveOverlaySprite, conductiveAlpha);
+        SetOverlayAlpha(4, weakenedAlpha);
+        SetOverlayAlpha(5, conductiveAlpha);
+
+        bool anyActive = (isCracked) || burnAlpha > 0f || rootedAlpha > 0f || pressureAlpha > 0f || weakenedAlpha > 0f || conductiveAlpha > 0f;
+        if (overlayMeshRenderer != null)
+        {
+            overlayMeshRenderer.gameObject.SetActive(anyActive);
+        }
     }
 
-    private static void UpdateOverlay(SpriteRenderer overlayRenderer, Sprite overlaySprite, float normalizedAlpha)
-    {
-        if (overlayRenderer == null)
-        {
-            return;
-        }
-
-        if (overlaySprite == null || normalizedAlpha <= 0f)
-        {
-            overlayRenderer.enabled = false;
-            return;
-        }
-
-        overlayRenderer.enabled = true;
-        overlayRenderer.sprite = overlaySprite;
-        Color color = Color.white;
-        color.a = Mathf.Clamp01(normalizedAlpha);
-        overlayRenderer.color = color;
-    }
 }
+

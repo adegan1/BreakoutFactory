@@ -107,7 +107,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &196265140723400500
 Transform:
   m_ObjectHideFlags: 0
@@ -281,10 +281,11 @@ MonoBehaviour:
   damageFlashColor: {r: 1, g: 0.5707547, b: 0.5707547, a: 0.8156863}
   damageFlashDuration: 0.12
   damageFlashStrength: 0.9
-  crackedOverlaySprite: {fileID: -4859547917159273510, guid: 8181e10b7d70f704aa564d3d36750fe4, type: 3}
-  burningOverlaySprite: {fileID: -6142968328325418321, guid: fdc3b8159b9b54747a76e1f7e0d5417a, type: 3}
-  rootedOverlaySprite: {fileID: 7333451817754812743, guid: 863f2a32fb77d0641a56fbb252210bb5, type: 3}
-  pressureOverlaySprite: {fileID: -8140065185233919194, guid: ca2265ac28497e94a81e71f3ad846374, type: 3}
-  weakenedOverlaySprite: {fileID: 6795974876531380568, guid: 8c5b1f62850b1a04f9434341fe7b2d1b, type: 3}
-  conductiveOverlaySprite: {fileID: 10602933523971676, guid: a38c1a1cf3eb6a7429bb839512cee93a, type: 3}
-  overlayScale: {x: 0.1, y: 0.25}
+  uvOffsetRangeX: {x: 0, y: 0.5}
+  uvOffsetRangeY: {x: 0, y: 0.25}
+  crackedOverlayMaterial: {fileID: 0}
+  burningOverlayMaterial: {fileID: 2100000, guid: 0c36a7cd0a80c604b8a2e9b85573e27e, type: 2}
+  rootedOverlayMaterial: {fileID: 0}
+  pressureOverlayMaterial: {fileID: 0}
+  weakenedOverlayMaterial: {fileID: 0}
+  conductiveOverlayMaterial: {fileID: 0}
