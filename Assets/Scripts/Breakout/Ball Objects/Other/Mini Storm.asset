@@ -30,7 +30,7 @@ MonoBehaviour:
   animFrameColumns: 5
   animFrameRows: 1
   animFrameRate: 6
-  size: 0.25
+  size: 0.4
   movementSpeed: 3
   damage: 1
   bounces: 7

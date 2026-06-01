@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &40004520890053240
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7803212753462987338}
+  m_Layer: 8
+  m_Name: Overlays
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7803212753462987338
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 40004520890053240}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.27}
+  m_LocalScale: {x: 1.275, y: 3.225, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7561233227869190151}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4194553806656851136
 GameObject:
   m_ObjectHideFlags: 0
@@ -90,96 +121,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &6309337803641523877
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 196265140723400500}
-  - component: {fileID: 2852104607465672310}
-  - component: {fileID: 5655968303750904400}
-  m_Layer: 8
-  m_Name: Brick Overlay
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &196265140723400500
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6309337803641523877}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 50.5, y: 50.5, z: 50.5}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7561233227869190151}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &2852104607465672310
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6309337803641523877}
-  m_Mesh: {fileID: -5495902117074765545, guid: f57d442caeb80b74ea7a91e0eb58e976, type: 3}
---- !u!23 &5655968303750904400
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6309337803641523877}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: cd8f8ddefd1a3ce4d8fec0bc4e74b6f0, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &8475814028324975126
 GameObject:
   m_ObjectHideFlags: 0
@@ -212,7 +153,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1747137007281291121}
-  - {fileID: 196265140723400500}
+  - {fileID: 7803212753462987338}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!61 &-1914448042046326463
@@ -278,14 +219,46 @@ MonoBehaviour:
   moveDownward: 1
   downwardSpeed: 0.1
   enableDamageFlash: 1
-  damageFlashColor: {r: 1, g: 0.5707547, b: 0.5707547, a: 0.8156863}
-  damageFlashDuration: 0.12
-  damageFlashStrength: 0.9
+  damageFlashColor: {r: 1, g: 0.4764151, b: 0.4764151, a: 0.8156863}
+  damageFlashDuration: 0.18
+  damageFlashStrength: 1
   uvOffsetRangeX: {x: 0, y: 0.5}
   uvOffsetRangeY: {x: 0, y: 0.25}
-  crackedOverlayMaterial: {fileID: 0}
-  burningOverlayMaterial: {fileID: 2100000, guid: 0c36a7cd0a80c604b8a2e9b85573e27e, type: 2}
-  rootedOverlayMaterial: {fileID: 0}
-  pressureOverlayMaterial: {fileID: 0}
-  weakenedOverlayMaterial: {fileID: 0}
-  conductiveOverlayMaterial: {fileID: 0}
+  crackedOverlaySprite: {fileID: -8355149140590542522, guid: 5cc719bcc81a1c6409e2803cb0c73c32, type: 3}
+  crackedOverlayAnimation:
+    frames: []
+    frameRate: 12
+  burningOverlaySprite: {fileID: -8771944007680484705, guid: 7a380a9f0a485b444a9eefa48ea68242, type: 3}
+  burningOverlayAnimation:
+    frames:
+    - {fileID: -8771944007680484705, guid: 7a380a9f0a485b444a9eefa48ea68242, type: 3}
+    - {fileID: 2144716024, guid: 7a380a9f0a485b444a9eefa48ea68242, type: 3}
+    - {fileID: 2037142251, guid: 7a380a9f0a485b444a9eefa48ea68242, type: 3}
+    frameRate: 4
+  rootedOverlaySprite: {fileID: -8812286458022300123, guid: 4ec8fe4f7d86c174e87b31a62aaa95d7, type: 3}
+  rootedOverlayAnimation:
+    frames: []
+    frameRate: 12
+  pressureOverlaySprite: {fileID: 1685229579747000354, guid: fdafbdc68c9042f45bb816577f8a34c6, type: 3}
+  pressureOverlayAnimation:
+    frames:
+    - {fileID: 1685229579747000354, guid: fdafbdc68c9042f45bb816577f8a34c6, type: 3}
+    - {fileID: -1247625593, guid: fdafbdc68c9042f45bb816577f8a34c6, type: 3}
+    - {fileID: -270078575, guid: fdafbdc68c9042f45bb816577f8a34c6, type: 3}
+    - {fileID: 133007113, guid: fdafbdc68c9042f45bb816577f8a34c6, type: 3}
+    - {fileID: 1368179970, guid: fdafbdc68c9042f45bb816577f8a34c6, type: 3}
+    - {fileID: 1332945112, guid: fdafbdc68c9042f45bb816577f8a34c6, type: 3}
+    frameRate: 4
+  weakenedOverlaySprite: {fileID: 5507496548795668155, guid: 984533f8b5809554cbd54e68e91673e2, type: 3}
+  weakenedOverlayAnimation:
+    frames: []
+    frameRate: 12
+  conductiveOverlaySprite: {fileID: 1631409987039214377, guid: b082e4f6536936a4e9a689617c11fdb4, type: 3}
+  conductiveOverlayAnimation:
+    frames:
+    - {fileID: 1631409987039214377, guid: b082e4f6536936a4e9a689617c11fdb4, type: 3}
+    - {fileID: -1634751787, guid: b082e4f6536936a4e9a689617c11fdb4, type: 3}
+    - {fileID: -352067637, guid: b082e4f6536936a4e9a689617c11fdb4, type: 3}
+    frameRate: 5
+  overlayScale: {x: 1, y: 1}
+  overlayLayer: 8

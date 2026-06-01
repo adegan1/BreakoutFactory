@@ -1263,6 +1263,8 @@ public class BallController : MonoBehaviour
         }
 
         BallController spawnedBall = Instantiate(this, spawnPosition, Quaternion.identity);
+        spawnedBall.baseLocalScale = Vector3.one;
+        spawnedBall.transform.localScale = Vector3.one;
         spawnedBall.ResetSpawnedRuntimeState();
         spawnedBall.SetTypeData(spawnedTypeData);
 

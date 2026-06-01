@@ -174,11 +174,11 @@ MonoBehaviour:
   electricCascadeShockDamage: 2
   electricCascadeConductiveDuration: 6.5
   electricCascadeBeamColor: {r: 1, g: 0.37108445, b: 0.25943398, a: 0.9}
-  electricCascadeBeamWidth: 0.12
+  electricCascadeBeamWidth: 0.2
   electricCascadeBeamLifetime: 0.2
   electricCascadeBeamSegments: 12
   electricCascadeBeamNoise: 0.12
-  electricCascadeBeamLength: 8
+  electricCascadeBeamLength: 10
   electricCascadeBeamMaterial: {fileID: 0}
   createsRollingThunder: 0
   rollingThunderStartScaleMultiplier: 1

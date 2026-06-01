@@ -773,11 +773,7 @@ public class BallTypeData : ScriptableObject
             steamBurstBallCount = Mathf.Max(
                 a.CreatesSteamBurst ? a.SteamBurstBallCount : 0,
                 b.CreatesSteamBurst ? b.SteamBurstBallCount : 0);
-            steamBurstBallType = a.CreatesSteamBurst ? a.SteamBurstBallType : b.SteamBurstBallType;
-            if (steamBurstBallType == null)
-            {
-                steamBurstBallType = a.SteamBurstBallType != null ? a.SteamBurstBallType : b.SteamBurstBallType;
-            }
+            steamBurstBallType = a.SteamBurstBallType ?? b.SteamBurstBallType;
             steamBurstMinInterval = Mathf.Min(
                 a.CreatesSteamBurst ? a.SteamBurstMinInterval : float.MaxValue,
                 b.CreatesSteamBurst ? b.SteamBurstMinInterval : float.MaxValue);
@@ -825,7 +821,7 @@ public class BallTypeData : ScriptableObject
         createsLinearProjectile = a.CreatesLinearProjectile || b.CreatesLinearProjectile;
         if (createsLinearProjectile)
         {
-            linearProjectileType = a.LinearProjectileType != null ? a.LinearProjectileType : b.LinearProjectileType;
+            linearProjectileType = a.LinearProjectileType ?? b.LinearProjectileType;
             linearProjectileIncludesTopWall = a.LinearProjectileIncludesTopWall || b.LinearProjectileIncludesTopWall;
         }
 
@@ -889,9 +885,7 @@ public class BallTypeData : ScriptableObject
             rollingThunderGrowthAmount = Mathf.Max(
                 a.CreatesRollingThunder ? a.RollingThunderGrowthAmount : 0f,
                 b.CreatesRollingThunder ? b.RollingThunderGrowthAmount : 0f);
-            rollingThunderSpawnBallType = a.RollingThunderSpawnBallType != null
-                ? a.RollingThunderSpawnBallType
-                : b.RollingThunderSpawnBallType;
+            rollingThunderSpawnBallType = a.RollingThunderSpawnBallType ?? b.RollingThunderSpawnBallType;
             rollingThunderMinLaunchAngle = Mathf.Min(
                 a.CreatesRollingThunder ? a.RollingThunderMinLaunchAngle : float.MaxValue,
                 b.CreatesRollingThunder ? b.RollingThunderMinLaunchAngle : float.MaxValue);
@@ -944,7 +938,7 @@ public class BallTypeData : ScriptableObject
             splashDropletCount = Mathf.Max(
                 a.CreatesPressurizedSplash ? a.SplashDropletCount : 0,
                 b.CreatesPressurizedSplash ? b.SplashDropletCount : 0);
-            splashDropletType = a.SplashDropletType != null ? a.SplashDropletType : b.SplashDropletType;
+            splashDropletType = a.SplashDropletType ?? b.SplashDropletType;
         }
 
         isCompound = true;
