@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class ItemShop : MonoBehaviour
 {
@@ -22,11 +23,17 @@ public class ItemShop : MonoBehaviour
     [SerializeField] private List<ShopEntry> shopEntries = new List<ShopEntry>();
     [SerializeField, Min(0f)] private float priceMarkupPercent = 50f;
 
+    [Header("Reroll Settings")]
+    [SerializeField, Min(0)] private int rerollBaseCost = 5;
+    [SerializeField, Min(0)] private int rerollCostIncrease = 5;
+
     [Header("UI References")]
     [SerializeField] private GameObject shopPanel;
     [SerializeField] private Transform cardContainer;
     [SerializeField] private ItemShopCard cardPrefab;
     [SerializeField] private TextMeshProUGUI scrapValueText;
+    [SerializeField] private TextMeshProUGUI rerollPriceText;
+    [SerializeField] private Button rerollButton;
     [SerializeField] private GameObject insufficientScrapMessage;
 
     [Header("Events")]
@@ -36,6 +43,7 @@ public class ItemShop : MonoBehaviour
 
     private readonly List<ItemShopCard> spawnedCards = new List<ItemShopCard>();
     private bool isOpen;
+    private int rerollCount;
 
     public bool IsOpen => isOpen;
 
@@ -44,6 +52,19 @@ public class ItemShop : MonoBehaviour
         if (shopPanel != null)
         {
             shopPanel.SetActive(false);
+        }
+
+        if (rerollButton != null)
+        {
+            rerollButton.onClick.AddListener(OnRerollClicked);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (rerollButton != null)
+        {
+            rerollButton.onClick.RemoveListener(OnRerollClicked);
         }
     }
 
@@ -57,6 +78,7 @@ public class ItemShop : MonoBehaviour
             return;
         }
 
+        rerollCount = 0;
         isOpen = true;
         BuildCards(offers);
         HideInsufficientScrapMessage();
@@ -67,6 +89,7 @@ public class ItemShop : MonoBehaviour
         }
 
         UpdateScrapText();
+        UpdateRerollPriceText();
         if (PlayerStats.HasInstance)
         {
             PlayerStats.Instance.ScrapChanged += HandleScrapChanged;
@@ -228,7 +251,44 @@ public class ItemShop : MonoBehaviour
         }
     }
 
-    private void HandleScrapChanged(int _) => UpdateScrapText();
+    private void OnRerollClicked()
+    {
+        int cost = GetCurrentRerollCost();
+        if (cost > 0)
+        {
+            if (!PlayerStats.HasInstance || PlayerStats.Instance.Scrap < cost)
+            {
+                ShowInsufficientScrapMessage();
+                return;
+            }
+
+            PlayerStats.Instance.RemoveScrap(cost);
+        }
+
+        rerollCount++;
+        List<BuildingDefinition> offers = PickOffers();
+        BuildCards(offers);
+        HideInsufficientScrapMessage();
+        UpdateRerollPriceText();
+    }
+
+    private int GetCurrentRerollCost()
+    {
+        return rerollBaseCost + rerollCount * rerollCostIncrease;
+    }
+
+    private void UpdateRerollPriceText()
+    {
+        if (rerollPriceText != null)
+        {
+            rerollPriceText.text = "x" + GetCurrentRerollCost().ToString();
+        }
+    }
+
+    private void HandleScrapChanged(int _)
+    {
+        UpdateScrapText();
+    }
 
     private void HideInsufficientScrapMessage()
     {
