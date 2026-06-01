@@ -10268,6 +10268,7 @@ MonoBehaviour:
   ballPrefab: {fileID: 9021448586808601386, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   paddleTransform: {fileID: 1324807477}
   ballsToDispense:
+  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   - {fileID: 11400000, guid: 44027800606afc54bbb4640d9d61f5e8, type: 2}
   - {fileID: 11400000, guid: 8c57fa17eb40a8744800ef0ec453feb9, type: 2}
   - {fileID: 11400000, guid: 888835b7651346349a8f66b820c195ad, type: 2}

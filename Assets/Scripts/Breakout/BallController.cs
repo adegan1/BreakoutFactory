@@ -1263,10 +1263,13 @@ public class BallController : MonoBehaviour
         }
 
         BallController spawnedBall = Instantiate(this, spawnPosition, Quaternion.identity);
-        spawnedBall.baseLocalScale = Vector3.one;
-        spawnedBall.transform.localScale = Vector3.one;
         spawnedBall.ResetSpawnedRuntimeState();
         spawnedBall.SetTypeData(spawnedTypeData);
+        // Always size relative to base scale 1, never inheriting the spawning ball's current scale.
+        spawnedBall.baseLocalScale = Vector3.one;
+        float spawnedSize = Mathf.Clamp(spawnedTypeData.Size, 0.25f, 3f);
+        spawnedBall.typeBaseScale = new Vector3(spawnedSize, spawnedSize, spawnedSize);
+        spawnedBall.transform.localScale = spawnedBall.typeBaseScale;
 
         Collider2D spawnedCollider = spawnedBall.GetComponent<Collider2D>();
         if (ballCollider != null && spawnedCollider != null)
