@@ -20,4 +20,25 @@ MonoBehaviour:
   amplifiesLightning: 0
   lightningTargetBonus: 1
   damageToPlayer: 10
+  windFireBurstRadius: 2
+  windFireBurstDamage: 1
+  windFireBurstColor: {r: 1, g: 0.4, b: 0.05, a: 1}
+  windFireBurstWidth: 0.06
+  windFireBurstRayLength: 1.5
+  windFireBurstLifetime: 0.35
+  windFireBurstRayCount: 8
+  steamWeakenRadius: 2
+  steamWeakenDuration: 3
+  steamColor: {r: 0.75, g: 0.9, b: 1, a: 0.9}
+  steamWidth: 0.08
+  steamRingRadius: 1.8
+  steamLifetime: 0.8
+  lifeRootSearchRadius: 1
+  lifeRootDuration: 2
+  lifeRootSpeedMultiplier: 0.1
+  vineColor: {r: 0.2, g: 0.8, b: 0.25, a: 1}
+  vineWidth: 0.07
+  vineGrowDuration: 0.35
+  vineHoldDuration: 0.25
+  vineFadeDuration: 0.3
   type: 4

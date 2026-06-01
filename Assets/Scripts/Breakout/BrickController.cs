@@ -79,6 +79,12 @@ public class BrickController : MonoBehaviour
     [SerializeField] private Vector2 overlayScale = Vector2.one;
     [LayerSelector] [SerializeField] private int overlayLayer = 0;
 
+    [Header("Crack Shatter Visual")]
+    [SerializeField] private Color crackShatterEffectColor = new Color(0.65f, 0.58f, 0.44f, 1f);
+    [SerializeField, Min(0.005f)] private float crackShatterEffectWidth = 0.07f;
+    [SerializeField, Min(0.05f)] private float crackShatterEffectLifetime = 0.45f;
+    [SerializeField, Range(3, 12)] private int crackShatterEffectCrackCount = 6;
+
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
     private static readonly int BaseMapSTId = Shader.PropertyToID("_BaseMap_ST");
 
@@ -382,6 +388,21 @@ public class BrickController : MonoBehaviour
         }
 
         ApplyBallTypeEffects(ballTypeData);
+
+        if (typeData != null && typeData.Type == BallTypeData.BallElement.Wind && BallHasElement(ballTypeData, BallTypeData.BallElement.Fire))
+        {
+            TriggerWindFireBurst();
+        }
+
+        if (typeData != null && typeData.Type == BallTypeData.BallElement.Fire && BallHasElement(ballTypeData, BallTypeData.BallElement.Water))
+        {
+            TriggerSteamWeaken();
+        }
+
+        if (typeData != null && typeData.Type == BallTypeData.BallElement.Life && BallHasElement(ballTypeData, BallTypeData.BallElement.Water))
+        {
+            TriggerLifeWaterRoot();
+        }
 
         ball.FinalizeBrickHit();
     }
@@ -1061,6 +1082,15 @@ public class BrickController : MonoBehaviour
         }
 
         isCracked = false;
+
+        CrackShatterEffect.Spawn(
+            transform.position,
+            Mathf.Max(MinimumEffectRadius, crackShatterRadius),
+            crackShatterEffectColor,
+            crackShatterEffectWidth,
+            crackShatterEffectLifetime,
+            crackShatterEffectCrackCount);
+
         TriggerShatter(crackShatterDamage, crackShatterRadius, spreadCrackToShatterHits, propagatedCrackDamage, propagatedCrackRadius);
     }
 
@@ -1403,6 +1433,98 @@ public class BrickController : MonoBehaviour
         {
             nearbyBricksBuffer[i].ApplyDamage(burstDamage);
         }
+    }
+
+    private static bool BallHasElement(BallTypeData ballTypeData, BallTypeData.BallElement element)
+    {
+        if (ballTypeData == null)
+        {
+            return false;
+        }
+
+        BallTypeData.BallElement[] elements = ballTypeData.Elements;
+        if (elements == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < elements.Length; i++)
+        {
+            if (elements[i] == element)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void TriggerWindFireBurst()
+    {
+        int burstDamage = Mathf.Max(1, typeData.WindFireBurstDamage);
+        float burstRadius = Mathf.Max(MinimumEffectRadius, typeData.WindFireBurstRadius);
+
+        CollectNearbyBricks(burstRadius, nearbyBricksBuffer);
+        for (int i = 0; i < nearbyBricksBuffer.Count; i++)
+        {
+            nearbyBricksBuffer[i].ApplyDamage(burstDamage);
+        }
+
+        SpawnWindFireBurstVisual();
+    }
+
+    private void SpawnWindFireBurstVisual()
+    {
+        FireBurstEffect.Spawn(
+            transform.position,
+            typeData.WindFireBurstColor,
+            typeData.WindFireBurstWidth,
+            typeData.WindFireBurstRayLength,
+            typeData.WindFireBurstLifetime,
+            typeData.WindFireBurstRayCount);
+    }
+
+    private void TriggerSteamWeaken()
+    {
+        float radius = Mathf.Max(MinimumEffectRadius, typeData.SteamWeakenRadius);
+        float duration = Mathf.Max(MinimumDurationSeconds, typeData.SteamWeakenDuration);
+
+        CollectNearbyBricks(radius, nearbyBricksBuffer);
+        for (int i = 0; i < nearbyBricksBuffer.Count; i++)
+        {
+            nearbyBricksBuffer[i].ApplyWeakened(duration);
+        }
+
+        SteamBurstEffect.Spawn(
+            transform.position,
+            typeData.SteamColor,
+            typeData.SteamRingRadius,
+            typeData.SteamLifetime,
+            typeData.SteamWidth);
+    }
+
+    private void TriggerLifeWaterRoot()
+    {
+        float searchRadius = Mathf.Max(MinimumEffectRadius, typeData.LifeRootSearchRadius);
+        float duration = Mathf.Max(MinimumDurationSeconds, typeData.LifeRootDuration);
+        float speedMult = typeData.LifeRootSpeedMultiplier;
+
+        BrickController target = GetRandomNearbyBrick(transform.position, this, searchRadius, nearbyBricksBuffer);
+        if (target == null)
+        {
+            return;
+        }
+
+        target.ApplyRoot(duration, speedMult);
+
+        VineTendrilEffect.Spawn(
+            transform.position,
+            target.transform.position,
+            typeData.VineColor,
+            typeData.VineWidth,
+            typeData.VineGrowDuration,
+            typeData.VineHoldDuration,
+            typeData.VineFadeDuration);
     }
 
     private void ApplyLightningSnake(BallTypeData ballTypeData)

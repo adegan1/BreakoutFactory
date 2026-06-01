@@ -10196,7 +10196,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1689156944
 RectTransform:
   m_ObjectHideFlags: 0
@@ -10821,8 +10821,8 @@ MonoBehaviour:
   ballPrefab: {fileID: 9021448586808601386, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   paddleTransform: {fileID: 1324807477}
   ballsToDispense:
-  - {fileID: 11400000, guid: 888835b7651346349a8f66b820c195ad, type: 2}
-  - {fileID: 11400000, guid: 63dc7b6bbfc455643aa9a92804f7031b, type: 2}
+  - {fileID: 11400000, guid: 0e8a17272e09ba14da90ce240a2820c2, type: 2}
+  - {fileID: 11400000, guid: 8c57fa17eb40a8744800ef0ec453feb9, type: 2}
   - {fileID: 11400000, guid: 7ceb46ae75625e949b275a358aa0b47c, type: 2}
   initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}
@@ -11721,7 +11721,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelSettings
   nextLevelRowsToSpawn: 4
   nextLevelBrickMoveSpeed: 0.075
-  nextLevelBrickHealth: 2
+  nextLevelBrickHealth: 5
   nextLevelBrickOdds:
   - typeData: {fileID: 11400000, guid: 85e9b8c05e2b7214b819ed976f1dd770, type: 2}
     weight: 10
@@ -11732,7 +11732,7 @@ MonoBehaviour:
   - typeData: {fileID: 11400000, guid: af792289cdc9fcd4cb06a790b650cdbc, type: 2}
     weight: 1
   - typeData: {fileID: 11400000, guid: 5f4435093ea3bd745a1b198243926470, type: 2}
-    weight: 100
+    weight: 1
   - typeData: {fileID: 11400000, guid: 5f789f2fb566a5d469628041845bc087, type: 2}
     weight: 1
   - typeData: {fileID: 11400000, guid: 0f820a6fe33f08f43957becd1b6b398b, type: 2}

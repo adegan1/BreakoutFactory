@@ -24,6 +24,7 @@ public class BreakoutItemDrop : MonoBehaviour
     private Vector3 startPosition;
     private float elapsedTime;
     private Vector3 initialScale;
+    private SpriteStacker spriteStacker;
 
     public BuildingDefinition BuildingDefinition => buildingDefinition;
     public int Quantity => quantity;
@@ -51,6 +52,7 @@ public class BreakoutItemDrop : MonoBehaviour
         startPosition = transform.position;
         elapsedTime = 0f;
         initialScale = transform.localScale;
+        spriteStacker = GetComponent<SpriteStacker>();
     }
 
     private void Update()
@@ -149,6 +151,8 @@ public class BreakoutItemDrop : MonoBehaviour
         float gray = baseColor.grayscale;
         Color pausedColor = new Color(gray, gray, gray, baseColor.a * Mathf.Clamp01(alphaMultiplier));
         spriteRenderer.color = Color.Lerp(baseColor, pausedColor, Mathf.Clamp01(grayscaleBlend));
+
+        spriteStacker?.ApplyPauseVisual(grayscaleBlend, alphaMultiplier);
     }
 
     private void ApplyItemVisuals()
@@ -164,5 +168,7 @@ public class BreakoutItemDrop : MonoBehaviour
         }
 
         spriteRenderer.color = buildingDefinition.BuildingColor;
+
+        spriteStacker?.Refresh(spriteRenderer.sprite, spriteRenderer.color);
     }
 }

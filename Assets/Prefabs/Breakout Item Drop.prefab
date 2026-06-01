@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1295851713529073815}
   - component: {fileID: 2131423529643061772}
   - component: {fileID: 85278584926764849}
+  - component: {fileID: 1569366136865215439}
   m_Layer: 0
   m_Name: Breakout Item Drop
   m_TagString: Untagged
@@ -184,3 +185,19 @@ MonoBehaviour:
   bobAmplitude: 0.08
   bobFrequency: 0.5
   scalePulseAmplitude: 0.12
+--- !u!114 &1569366136865215439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7965238737824211754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9159a89de82d72c4faea310bffaaa9e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteStacker
+  layers: 10
+  totalDepth: 0.25
+  direction: {x: 1, y: -1}
+  edgeBrightness: 0.4

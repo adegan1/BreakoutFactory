@@ -20,4 +20,17 @@ MonoBehaviour:
   amplifiesLightning: 0
   lightningTargetBonus: 1
   damageToPlayer: 10
+  windFireBurstRadius: 0.5
+  windFireBurstDamage: 1
+  windFireBurstColor: {r: 1, g: 0.4, b: 0.05, a: 0.6745098}
+  windFireBurstWidth: 0.1
+  windFireBurstRayLength: 1
+  windFireBurstLifetime: 0.3
+  windFireBurstRayCount: 8
+  steamWeakenRadius: 2
+  steamWeakenDuration: 3
+  steamColor: {r: 0.75, g: 0.9, b: 1, a: 0.9}
+  steamWidth: 0.08
+  steamRingRadius: 1.8
+  steamLifetime: 0.8
   type: 6

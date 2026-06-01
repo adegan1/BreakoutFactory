@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1295851713529073815}
   - component: {fileID: 2131423529643061772}
   - component: {fileID: 3200500697679839297}
+  - component: {fileID: -5446161099282329276}
   m_Layer: 0
   m_Name: Breakout Scrap Drop
   m_TagString: Untagged
@@ -132,7 +133,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2.8, y: 2.78}
+    oldSize: {x: 1.09375, y: 1.0859375}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -184,3 +185,19 @@ MonoBehaviour:
   bobAmplitude: 0.08
   bobFrequency: 0.5
   scalePulseAmplitude: 0.12
+--- !u!114 &-5446161099282329276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7965238737824211754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9159a89de82d72c4faea310bffaaa9e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteStacker
+  layers: 8
+  totalDepth: 0.2
+  direction: {x: 1, y: -1}
+  edgeBrightness: 0.4
