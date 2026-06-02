@@ -16,6 +16,10 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
     private SerializedProperty conveyorStraightSpriteProperty;
     private SerializedProperty conveyorTurnLeftSpriteProperty;
     private SerializedProperty conveyorTurnRightSpriteProperty;
+    private SerializedProperty conveyorStraightAnimationSpritesProperty;
+    private SerializedProperty conveyorTurnLeftAnimationSpritesProperty;
+    private SerializedProperty conveyorTurnRightAnimationSpritesProperty;
+    private SerializedProperty conveyorAnimationFrameRateProperty;
     private SerializedProperty scrapDropAmountProperty;
     private SerializedProperty spriteScaleModeProperty;
     private SerializedProperty customSpriteScaleProperty;
@@ -37,6 +41,10 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
         conveyorStraightSpriteProperty = FindProperty("conveyorStraightSprite");
         conveyorTurnLeftSpriteProperty = FindProperty("conveyorTurnLeftSprite");
         conveyorTurnRightSpriteProperty = FindProperty("conveyorTurnRightSprite");
+        conveyorStraightAnimationSpritesProperty = FindProperty("conveyorStraightAnimationSprites");
+        conveyorTurnLeftAnimationSpritesProperty = FindProperty("conveyorTurnLeftAnimationSprites");
+        conveyorTurnRightAnimationSpritesProperty = FindProperty("conveyorTurnRightAnimationSprites");
+        conveyorAnimationFrameRateProperty = FindProperty("conveyorAnimationFrameRate");
         scrapDropAmountProperty = FindProperty("scrapDropAmount");
         spriteScaleModeProperty = FindProperty("spriteScaleMode");
         customSpriteScaleProperty = FindProperty("customSpriteScale");
@@ -61,7 +69,15 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
         DrawSection("Conveyor", isConveyorProperty);
         if (isConveyorProperty.boolValue)
         {
-            DrawSection("Conveyor Visuals", conveyorStraightSpriteProperty, conveyorTurnLeftSpriteProperty, conveyorTurnRightSpriteProperty);
+            DrawSection(
+                "Conveyor Visuals",
+                conveyorStraightSpriteProperty,
+                conveyorTurnLeftSpriteProperty,
+                conveyorTurnRightSpriteProperty,
+                conveyorStraightAnimationSpritesProperty,
+                conveyorTurnLeftAnimationSpritesProperty,
+                conveyorTurnRightAnimationSpritesProperty,
+                conveyorAnimationFrameRateProperty);
         }
 
         DrawSection("Visuals", spriteScaleModeProperty);

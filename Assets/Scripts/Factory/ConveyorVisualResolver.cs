@@ -32,17 +32,32 @@ public static class ConveyorVisualResolver
     public static Result Resolve(
         BuildingDefinition definition,
         Vector2Int? incomingDirection,
-        int defaultQuarterTurns)
+        int defaultQuarterTurns,
+        int animationFrameIndex = -1)
     {
         int quarterTurns = defaultQuarterTurns;
         Vector2Int currentDirection = DirectionFromQuarterTurns(quarterTurns);
-        Sprite selectedSprite = definition.ConveyorStraightSprite != null
-            ? definition.ConveyorStraightSprite
-            : definition.BuildingSprite;
+        int visualQuarterTurns = Mathf.Abs(quarterTurns) % 4;
+        Sprite straightSprite = GetAnimatedFrame(
+            definition.ConveyorStraightAnimationSprites,
+            definition.ConveyorStraightSprite != null ? definition.ConveyorStraightSprite : definition.BuildingSprite,
+            animationFrameIndex);
+
+        Sprite turnLeftSprite = GetAnimatedFrame(
+            definition.ConveyorTurnLeftAnimationSprites,
+            definition.ConveyorTurnLeftSprite,
+            animationFrameIndex);
+
+        Sprite turnRightSprite = GetAnimatedFrame(
+            definition.ConveyorTurnRightAnimationSprites,
+            definition.ConveyorTurnRightSprite,
+            animationFrameIndex);
+
+        Sprite selectedSprite = straightSprite;
 
         if (!incomingDirection.HasValue)
         {
-            return new Result(selectedSprite, quarterTurns);
+            return new Result(selectedSprite, visualQuarterTurns);
         }
 
         Vector2Int incoming = incomingDirection.Value;
@@ -51,26 +66,41 @@ public static class ConveyorVisualResolver
 
         if (isColinear)
         {
-            return new Result(selectedSprite, quarterTurns);
+            return new Result(selectedSprite, visualQuarterTurns);
         }
 
         if (cross < 0)
         {
-            selectedSprite = definition.ConveyorTurnRightSprite != null
-                ? definition.ConveyorTurnRightSprite
-                : (definition.ConveyorTurnLeftSprite != null
-                    ? definition.ConveyorTurnLeftSprite
+            selectedSprite = turnRightSprite != null
+                ? turnRightSprite
+                : (turnLeftSprite != null
+                    ? turnLeftSprite
                     : selectedSprite);
         }
         else
         {
-            selectedSprite = definition.ConveyorTurnLeftSprite != null
-                ? definition.ConveyorTurnLeftSprite
-                : (definition.ConveyorTurnRightSprite != null
-                    ? definition.ConveyorTurnRightSprite
+            selectedSprite = turnLeftSprite != null
+                ? turnLeftSprite
+                : (turnRightSprite != null
+                    ? turnRightSprite
                     : selectedSprite);
+
+            // Left-turn art needs an extra 180 degrees from its current adjusted facing.
+            visualQuarterTurns = (visualQuarterTurns + 3) % 4;
         }
 
-        return new Result(selectedSprite, quarterTurns);
+        return new Result(selectedSprite, visualQuarterTurns);
+    }
+
+    private static Sprite GetAnimatedFrame(Sprite[] frames, Sprite fallback, int animationFrameIndex)
+    {
+        if (animationFrameIndex < 0 || frames == null || frames.Length == 0)
+        {
+            return fallback;
+        }
+
+        int frame = Mathf.Abs(animationFrameIndex) % frames.Length;
+        Sprite selected = frames[frame];
+        return selected != null ? selected : fallback;
     }
 }

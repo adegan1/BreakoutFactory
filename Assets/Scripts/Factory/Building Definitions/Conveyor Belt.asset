@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
   displayName: Conveyor
   description: Moves items from place to place
-  buildingSprite: {fileID: 21300000, guid: 6324a18f0dc4608448bfe767f4e0fa56, type: 3}
+  buildingSprite: {fileID: -7874262641381568579, guid: b3af6ca1930b7964e907e68f05c4c380, type: 3}
   buildingColor: {r: 1, g: 1, b: 1, a: 1}
   footprintWidth: 1
   footprintHeight: 1
@@ -23,9 +23,25 @@ MonoBehaviour:
   isConveyor: 1
   spriteScaleMode: 0
   customSpriteScale: {x: 1, y: 1}
-  conveyorStraightSprite: {fileID: 21300000, guid: 6324a18f0dc4608448bfe767f4e0fa56, type: 3}
-  conveyorTurnLeftSprite: {fileID: 21300000, guid: 9303860836e54a44bb93ae41b04af99d, type: 3}
-  conveyorTurnRightSprite: {fileID: 21300000, guid: 37fed4ea19834f14c91d05a9c8b8838a, type: 3}
+  conveyorStraightSprite: {fileID: -7874262641381568579, guid: b3af6ca1930b7964e907e68f05c4c380, type: 3}
+  conveyorTurnLeftSprite: {fileID: 4231874485728667292, guid: 3fd71bb110f35554489c90af49e9338e, type: 3}
+  conveyorTurnRightSprite: {fileID: 5802525504857118073, guid: f246a43476702174db6ee33fda67c184, type: 3}
+  conveyorStraightAnimationSprites:
+  - {fileID: -7874262641381568579, guid: b3af6ca1930b7964e907e68f05c4c380, type: 3}
+  - {fileID: -1573011146, guid: b3af6ca1930b7964e907e68f05c4c380, type: 3}
+  - {fileID: 1346325936, guid: b3af6ca1930b7964e907e68f05c4c380, type: 3}
+  - {fileID: -448189925, guid: b3af6ca1930b7964e907e68f05c4c380, type: 3}
+  conveyorTurnLeftAnimationSprites:
+  - {fileID: 4231874485728667292, guid: 3fd71bb110f35554489c90af49e9338e, type: 3}
+  - {fileID: -898526990, guid: 3fd71bb110f35554489c90af49e9338e, type: 3}
+  - {fileID: -1647451847, guid: 3fd71bb110f35554489c90af49e9338e, type: 3}
+  - {fileID: -2053727196, guid: 3fd71bb110f35554489c90af49e9338e, type: 3}
+  conveyorTurnRightAnimationSprites:
+  - {fileID: 5802525504857118073, guid: f246a43476702174db6ee33fda67c184, type: 3}
+  - {fileID: 1908021435, guid: f246a43476702174db6ee33fda67c184, type: 3}
+  - {fileID: 1732390344, guid: f246a43476702174db6ee33fda67c184, type: 3}
+  - {fileID: 2105957460, guid: f246a43476702174db6ee33fda67c184, type: 3}
+  conveyorAnimationFrameRate: 6
   scrapDropAmount: 0.5
   maxOwnedQuantityFromBreakoutDrops: 0
   minShopBuyAmount: 4

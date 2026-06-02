@@ -34,6 +34,10 @@ public class BuildingDefinition : ScriptableObject
     [SerializeField] private Sprite conveyorStraightSprite;
     [SerializeField] private Sprite conveyorTurnLeftSprite;
     [SerializeField] private Sprite conveyorTurnRightSprite;
+    [SerializeField] private Sprite[] conveyorStraightAnimationSprites;
+    [SerializeField] private Sprite[] conveyorTurnLeftAnimationSprites;
+    [SerializeField] private Sprite[] conveyorTurnRightAnimationSprites;
+    [SerializeField, Min(0.1f)] private float conveyorAnimationFrameRate = 8f;
 
     // Drops
     [SerializeField, Min(0)] private float scrapDropAmount = 0f;
@@ -53,6 +57,10 @@ public class BuildingDefinition : ScriptableObject
     public Sprite ConveyorStraightSprite => conveyorStraightSprite;
     public Sprite ConveyorTurnLeftSprite => conveyorTurnLeftSprite;
     public Sprite ConveyorTurnRightSprite => conveyorTurnRightSprite;
+    public Sprite[] ConveyorStraightAnimationSprites => conveyorStraightAnimationSprites;
+    public Sprite[] ConveyorTurnLeftAnimationSprites => conveyorTurnLeftAnimationSprites;
+    public Sprite[] ConveyorTurnRightAnimationSprites => conveyorTurnRightAnimationSprites;
+    public float ConveyorAnimationFrameRate => conveyorAnimationFrameRate;
     public float ScrapDropAmount => scrapDropAmount;
     public int MaxOwnedQuantityFromBreakoutDrops => maxOwnedQuantityFromBreakoutDrops;
     public int MinShopBuyAmount => minShopBuyAmount;
@@ -61,6 +69,12 @@ public class BuildingDefinition : ScriptableObject
     public Vector2 CustomSpriteScale => customSpriteScale;
 
     public Vector2Int FootprintSize => new Vector2Int(footprintWidth, footprintHeight);
+
+    public int GetConveyorAnimationFrameIndex(float animationTime)
+    {
+        float clampedRate = Mathf.Max(0.1f, conveyorAnimationFrameRate);
+        return Mathf.FloorToInt(Mathf.Max(0f, animationTime) * clampedRate);
+    }
 
     public Vector2 GetVisualScale(int rotationQuarterTurns = 0)
     {

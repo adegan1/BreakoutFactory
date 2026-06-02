@@ -3,6 +3,9 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class ConveyorBuilding : MonoBehaviour
 {
+    private static float sharedAnimationClockSeconds;
+    private static int sharedAnimationClockFrame = -1;
+
     [Header("References")]
     [SerializeField] private BuildingInstance buildingInstance;
     [SerializeField] private TileManager tileManager;
@@ -45,6 +48,9 @@ public class ConveyorBuilding : MonoBehaviour
             return;
         }
 
+        TickSharedAnimationClock();
+        ApplyAnimatedConveyorVisual();
+
         if (carriedItem != null && !carriedItem.IsClaimedBy(this))
         {
             carriedItem.ClearReservedDestination(this);
@@ -82,6 +88,98 @@ public class ConveyorBuilding : MonoBehaviour
         }
 
         TickMove();
+    }
+
+    private void TickSharedAnimationClock()
+    {
+        if (sharedAnimationClockFrame == Time.frameCount)
+        {
+            return;
+        }
+
+        sharedAnimationClockFrame = Time.frameCount;
+        sharedAnimationClockSeconds += FactoryBuildingPlacer.FactoryDeltaTime;
+    }
+
+    private void ApplyAnimatedConveyorVisual()
+    {
+        if (buildingInstance == null)
+        {
+            return;
+        }
+
+        BuildingDefinition definition = buildingInstance.BuildingDefinition;
+        if (definition == null || !definition.IsConveyor)
+        {
+            return;
+        }
+
+        SpriteRenderer targetRenderer = buildingInstance.TargetSpriteRenderer;
+        if (targetRenderer == null)
+        {
+            return;
+        }
+
+        int quarterTurns = Mathf.Abs(buildingInstance.RotationQuarterTurns) % 4;
+        int animationFrameIndex = definition.GetConveyorAnimationFrameIndex(sharedAnimationClockSeconds);
+        ConveyorVisualResolver.Result conveyorVisual = ConveyorVisualResolver.Resolve(
+            definition,
+            GetIncomingDirectionForThisConveyor(),
+            quarterTurns,
+            animationFrameIndex);
+
+        if (conveyorVisual.Sprite != null)
+        {
+            targetRenderer.sprite = conveyorVisual.Sprite;
+        }
+    }
+
+    private Vector2Int? GetIncomingDirectionForThisConveyor()
+    {
+        if (!TryGetConveyorTile(out Vector2Int conveyorTile))
+        {
+            return null;
+        }
+
+        Vector2Int[] candidateIncomingDirections =
+        {
+            Vector2Int.right,
+            Vector2Int.up,
+            Vector2Int.left,
+            Vector2Int.down
+        };
+
+        for (int i = 0; i < candidateIncomingDirections.Length; i++)
+        {
+            Vector2Int incomingDirection = candidateIncomingDirections[i];
+            Vector2Int sourceTile = conveyorTile - incomingDirection;
+            if (!tileManager.IsInBounds(sourceTile))
+            {
+                continue;
+            }
+
+            if (!BuildingInstanceSceneQuery.TryGetBuildingAtTile(sourceTile, out BuildingInstance upstream)
+                || upstream == null
+                || upstream == buildingInstance)
+            {
+                continue;
+            }
+
+            BuildingDefinition upstreamDefinition = upstream.BuildingDefinition;
+            if (upstreamDefinition == null || !upstreamDefinition.IsConveyor)
+            {
+                continue;
+            }
+
+            int upstreamQuarterTurns = Mathf.Abs(upstream.RotationQuarterTurns) % 4;
+            Vector2Int upstreamOutputDirection = ConveyorVisualResolver.DirectionFromQuarterTurns(upstreamQuarterTurns);
+            if (upstreamOutputDirection == incomingDirection)
+            {
+                return incomingDirection;
+            }
+        }
+
+        return null;
     }
 
     private void ResolveDependenciesIfNeeded()

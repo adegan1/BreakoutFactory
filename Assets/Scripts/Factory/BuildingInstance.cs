@@ -13,6 +13,7 @@ public class BuildingInstance : MonoBehaviour
     private float tileSize = 1f;
 
     public BuildingDefinition BuildingDefinition => buildingDefinition;
+    public SpriteRenderer TargetSpriteRenderer => targetSpriteRenderer;
     public Vector2Int GridPosition => gridPosition;
     public Vector2Int FootprintSize => footprintSize;
     public int RotationQuarterTurns => rotationQuarterTurns;

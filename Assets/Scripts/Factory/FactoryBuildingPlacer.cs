@@ -1881,6 +1881,9 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         int rotationQuarterTurns = FactoryGridDirectionUtility.DirectionToQuarterTurns(dragDirection);
 
+        // Keep placement preview aligned with the most recent conveyor drag direction.
+        selectedRotationQuarterTurns = rotationQuarterTurns;
+
         // Re-orient the previously placed belt so the chain points consistently along drag direction.
         TryPlaceAtGrid(lastConveyorDragTile, rotationQuarterTurns);
 
@@ -2595,10 +2598,13 @@ public class FactoryBuildingPlacer : MonoBehaviour
             return;
         }
 
+        int animationFrameIndex = conveyorRecord.Definition.GetConveyorAnimationFrameIndex(Time.time);
+
         ConveyorVisualResolver.Result conveyorVisual = ConveyorVisualResolver.Resolve(
             conveyorRecord.Definition,
             GetIncomingDirectionForRecord(conveyorRecord),
-            conveyorRecord.PlacedRotationQuarterTurns);
+            conveyorRecord.PlacedRotationQuarterTurns,
+            animationFrameIndex);
 
         int visualQuarterTurns = conveyorVisual.QuarterTurns;
         int logicalQuarterTurns = conveyorRecord.PlacedRotationQuarterTurns;
