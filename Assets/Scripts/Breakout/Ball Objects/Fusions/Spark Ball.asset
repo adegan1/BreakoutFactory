@@ -30,7 +30,7 @@ MonoBehaviour:
   - {r: 1, g: 0.932778, b: 0.9198113, a: 1}
   trailColorCycleRate: 4
   trailColorMode: 1
-  ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
+  ballSprite: {fileID: 4044992636299411695, guid: 60aa08de28a621f42b5bf0b5c2a5ecf2, type: 3}
   ballMaterial: {fileID: 2100000, guid: 9b23078ba6d9d224085e5402821fffbc, type: 2}
   animateTexture: 1
   animFrameColumns: 3
@@ -114,6 +114,8 @@ MonoBehaviour:
   waterDropCooldown: 0.08
   createsFlameTrail: 0
   flameTrailSprite: {fileID: 0}
+  flameTrailAnimSprites: []
+  flameTrailAnimFrameRate: 12
   flameTrailColor: {r: 1, g: 0.45, b: 0.1, a: 0.95}
   flameTrailSizeMultiplier: 0.55
   flameTrailSpawnInterval: 0.2
@@ -125,6 +127,8 @@ MonoBehaviour:
   flameTrailBurnHitCount: 2
   createsFertileLand: 0
   fertilePatchSprite: {fileID: 0}
+  fertilePatchAnimSprites: []
+  fertilePatchAnimFrameRate: 12
   fertilePatchColor: {r: 0.35, g: 0.85, b: 0.35, a: 0.95}
   fertilePatchSizeMultiplier: 0.55
   fertilePatchSpawnInterval: 0.3
@@ -151,7 +155,24 @@ MonoBehaviour:
   collapseRadius: 1.8
   collapseDuration: 3
   createsLinearProjectile: 0
-  linearProjectileType: {fileID: 0}
+  linearProjectileSprite: {fileID: 0}
+  linearProjectileAnimSprites: []
+  linearProjectileAnimFrameRate: 12
+  linearProjectileColor: {r: 1, g: 1, b: 1, a: 1}
+  linearProjectileSize: 0.5
+  linearProjectileSpeed: 6
+  linearProjectileDamage: 1
+  linearProjectileAppliesBurn: 0
+  linearProjectileBurnDamage: 1
+  linearProjectileBurnTickInterval: 0.5
+  linearProjectileBurnHitCount: 3
+  linearProjectileAppliesCrack: 0
+  linearProjectileCrackShatterDamage: 1
+  linearProjectileCrackShatterRadius: 1.5
+  linearProjectileAppliesRoot: 0
+  linearProjectileRootDuration: 2
+  linearProjectileRootSpeedMultiplier: 0.1
+  linearProjectileHitsBeforeDestroy: 1
   linearProjectileIncludesTopWall: 0
   createsBlackout: 0
   blackoutDamage: 1

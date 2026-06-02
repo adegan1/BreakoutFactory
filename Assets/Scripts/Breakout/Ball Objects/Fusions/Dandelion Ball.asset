@@ -29,7 +29,7 @@ MonoBehaviour:
   - {r: 1, g: 0.93569005, b: 0.4009434, a: 1}
   trailColorCycleRate: 4
   trailColorMode: 1
-  ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
+  ballSprite: {fileID: 2987864930864626440, guid: a42fe54e22de9814e8044ca76416202f, type: 3}
   ballMaterial: {fileID: 2100000, guid: 6cd2b3bd9aed8194d893c3158aba0ea2, type: 2}
   animateTexture: 1
   animFrameColumns: 3

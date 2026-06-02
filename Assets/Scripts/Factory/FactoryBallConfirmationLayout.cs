@@ -146,7 +146,7 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         }
 
         iconImage.sprite = ResolveSprite(ballType);
-        iconImage.color = ResolveTint(ballType);
+        iconImage.color = Color.white;
         iconImage.gameObject.SetActive(iconImage.sprite != null);
 
         TooltipTrigger tooltip = iconImage.GetComponent<TooltipTrigger>();
@@ -173,18 +173,4 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         return fallbackSprite;
     }
 
-    private Color ResolveTint(BallTypeData ballType)
-    {
-        if (ballType != null)
-        {
-            return ballType.TrailColor;
-        }
-
-        if (defaultBallType != null)
-        {
-            return defaultBallType.TrailColor;
-        }
-
-        return Color.white;
-    }
 }

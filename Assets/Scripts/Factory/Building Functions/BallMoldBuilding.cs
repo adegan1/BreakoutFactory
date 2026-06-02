@@ -71,6 +71,8 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     [SerializeField] private List<BallPreviewBallTypeEntry> ballGenerations = new();
     [SerializeField, Min(0f)] private float previewFillLerpSpeed = 6f;
     [SerializeField] private bool hidePreviewWhenEmpty = true;
+    [SerializeField, Range(0f, 1f)] private float previewMaskMinFill = 0f;
+    [SerializeField, Range(0f, 1f)] private float previewMaskMaxFill = 1f;
 
     [Header("Debug Inventory")]
     [SerializeField] private List<StoredItemEntry> storedItems = new();
@@ -511,7 +513,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         }
 
         ballPreviewRenderer.sprite = previewBallType.BallSprite;
-        ballPreviewRenderer.color = previewBallType.TrailColor;
+        ballPreviewRenderer.color = Color.white;
 
         // Keep the sprite unsquished and reveal fill using a vertically resized mask.
         ballPreviewRenderer.transform.localPosition = previewBaseLocalPosition;
@@ -524,12 +526,13 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         }
 
         float clampedFill = Mathf.Clamp01(visualFill);
+        float remappedMaskFill = Mathf.Lerp(previewMaskMinFill, previewMaskMaxFill, clampedFill);
         Vector3 maskScale = maskBaseScale;
-        maskScale.y = maskBaseScale.y * clampedFill;
+        maskScale.y = maskBaseScale.y * remappedMaskFill;
         ballPreviewMaskTransform.localScale = maskScale;
 
         Vector3 maskLocalPos = maskBaseLocalPosition;
-        maskLocalPos.y = maskBaseLocalPosition.y - maskBaseScale.y * (1f - clampedFill) * 0.5f;
+        maskLocalPos.y = maskBaseLocalPosition.y - maskBaseScale.y * (1f - remappedMaskFill) * 0.5f;
         ballPreviewMaskTransform.localPosition = maskLocalPos;
         ApplyPreviewDefaultRotationIfNeeded();
     }
@@ -743,5 +746,11 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     private void OnValidate()
     {
         maxResources = Mathf.Max(1, maxResources);
+        previewMaskMinFill = Mathf.Clamp01(previewMaskMinFill);
+        previewMaskMaxFill = Mathf.Clamp01(previewMaskMaxFill);
+        if (previewMaskMaxFill < previewMaskMinFill)
+        {
+            previewMaskMaxFill = previewMaskMinFill;
+        }
     }
 }

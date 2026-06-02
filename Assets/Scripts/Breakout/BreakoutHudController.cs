@@ -297,12 +297,7 @@ public class BreakoutHudController : MonoBehaviour
 
     private static Color ResolveBallTint(BallTypeData ballType)
     {
-        if (ballType == null)
-        {
-            return Color.white;
-        }
-
-        return ballType.TrailColor;
+        return Color.white;
     }
 
     private void UpdateCollectedMachineIcons()

@@ -28,7 +28,7 @@ MonoBehaviour:
   - {r: 0.8962264, g: 0.3470604, b: 0, a: 1}
   trailColorCycleRate: 4
   trailColorMode: 1
-  ballSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
+  ballSprite: {fileID: 4529108455947985838, guid: 065a05dd1c1c5354e9989b5511417633, type: 3}
   ballMaterial: {fileID: 2100000, guid: 57feea8f9b972cb438f28f747b0ed192, type: 2}
   animateTexture: 1
   animFrameColumns: 3
@@ -174,6 +174,7 @@ MonoBehaviour:
   linearProjectileAppliesRoot: 0
   linearProjectileRootDuration: 2
   linearProjectileRootSpeedMultiplier: 0.1
+  linearProjectileHitsBeforeDestroy: 1
   linearProjectileIncludesTopWall: 0
   createsBlackout: 0
   blackoutDamage: 1
