@@ -10822,8 +10822,9 @@ MonoBehaviour:
   paddleTransform: {fileID: 1324807477}
   ballsToDispense:
   - {fileID: 11400000, guid: 888835b7651346349a8f66b820c195ad, type: 2}
-  - {fileID: 11400000, guid: 63dc7b6bbfc455643aa9a92804f7031b, type: 2}
-  - {fileID: 11400000, guid: 7ceb46ae75625e949b275a358aa0b47c, type: 2}
+  - {fileID: 11400000, guid: ae022bdd654522c44817311679a16035, type: 2}
+  - {fileID: 11400000, guid: f95a714814ad4854b92e441e36a62204, type: 2}
+  - {fileID: 11400000, guid: 35df350068fd84740aa7d5f9b5f3729f, type: 2}
   initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}
   enableBrickDrops: 1
@@ -11730,11 +11731,11 @@ MonoBehaviour:
   - typeData: {fileID: 11400000, guid: d627063a367f56c4287815b5fb7c64be, type: 2}
     weight: 1
   - typeData: {fileID: 11400000, guid: af792289cdc9fcd4cb06a790b650cdbc, type: 2}
-    weight: 1
-  - typeData: {fileID: 11400000, guid: 5f4435093ea3bd745a1b198243926470, type: 2}
     weight: 100
-  - typeData: {fileID: 11400000, guid: 5f789f2fb566a5d469628041845bc087, type: 2}
+  - typeData: {fileID: 11400000, guid: 5f4435093ea3bd745a1b198243926470, type: 2}
     weight: 1
+  - typeData: {fileID: 11400000, guid: 5f789f2fb566a5d469628041845bc087, type: 2}
+    weight: 100
   - typeData: {fileID: 11400000, guid: 0f820a6fe33f08f43957becd1b6b398b, type: 2}
     weight: 1
   scaleRowsByCurrentLevel: 1

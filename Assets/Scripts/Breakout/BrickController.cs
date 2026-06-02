@@ -131,6 +131,9 @@ public class BrickController : MonoBehaviour
     private int forestFireSpreadGenerationsRemaining;
     private int crackShatterDamage = 1;
     private float crackShatterRadius = 1f;
+    private bool hasLightningCrackField;
+    private float lightningCrackFieldTimeRemaining;
+    private float lightningCrackFieldTickTimer;
     private int burnDamage;
     private float burnTickInterval;
     private float burnTickTimer;
@@ -204,6 +207,7 @@ public class BrickController : MonoBehaviour
         UpdateSeedRoot();
         UpdateColumnSlowing();
         UpdateConductive();
+        UpdateLightningCrackField();
         UpdateEffectOverlays();
 
         float currentDownwardSpeed = GetCurrentDownwardSpeed();
@@ -403,6 +407,28 @@ public class BrickController : MonoBehaviour
         {
             TriggerLifeWaterRoot();
         }
+
+        if (typeData != null && typeData.Type == BallTypeData.BallElement.Lightning && BallHasElement(ballTypeData, BallTypeData.BallElement.Earth))
+        {
+            TriggerEarthLightningFireStrike();
+        }
+
+        if (typeData != null && typeData.Type == BallTypeData.BallElement.Lightning && BallHasElement(ballTypeData, BallTypeData.BallElement.Wind))
+        {
+            TriggerWindChainLightning(ball);
+        }
+
+        if (typeData != null && typeData.Type == BallTypeData.BallElement.Earth && BallHasElement(ballTypeData, BallTypeData.BallElement.Lightning))
+        {
+            TriggerLightningEarthCrackField();
+        }
+
+        if (typeData != null && typeData.Type == BallTypeData.BallElement.Earth && BallHasElement(ballTypeData, BallTypeData.BallElement.Life))
+        {
+            TriggerEarthLifeRoot();
+        }
+
+        ball.TryFireChainLightning(this);
 
         ball.FinalizeBrickHit();
     }
@@ -1525,6 +1551,139 @@ public class BrickController : MonoBehaviour
             typeData.VineGrowDuration,
             typeData.VineHoldDuration,
             typeData.VineFadeDuration);
+    }
+
+    private void TriggerEarthLightningFireStrike()
+    {
+        float strikeRadius = Mathf.Max(MinimumEffectRadius, typeData.EarthLightningStrikeRadius);
+        BrickController target = GetRandomNearbyBrick(transform.position, this, strikeRadius, nearbyBricksBuffer);
+        if (target == null)
+        {
+            return;
+        }
+
+        int strikeDamage = Mathf.Max(1, typeData.EarthLightningStrikeDamage);
+        target.ApplyDamage(strikeDamage);
+        target.ApplyExternalBurn(
+            typeData.EarthLightningStrikeBurnDamage,
+            typeData.EarthLightningStrikeBurnInterval,
+            typeData.EarthLightningStrikeBurnHitCount);
+
+        LightningBoltEffect.Spawn(
+            transform.position,
+            target.transform.position,
+            typeData.EarthLightningBoltColor,
+            typeData.EarthLightningBoltWidth,
+            typeData.EarthLightningBoltLifetime,
+            typeData.EarthLightningBoltSegments,
+            typeData.EarthLightningBoltNoise);
+    }
+
+    private void TriggerWindChainLightning(BallController ball)
+    {
+        ball.ApplyChainLightning(
+            typeData.WindChainLightningDuration,
+            typeData.WindChainLightningDamage,
+            typeData.WindChainLightningRadius,
+            typeData.WindChainLightningBoltColor,
+            typeData.WindChainLightningBoltWidth,
+            typeData.WindChainLightningBoltLifetime,
+            typeData.WindChainLightningBoltSegments,
+            typeData.WindChainLightningBoltNoise);
+    }
+
+    private void TriggerLightningEarthCrackField()
+    {
+        float duration = Mathf.Max(MinimumDurationSeconds, typeData.LightningCrackFieldDuration);
+        float tickInterval = Mathf.Max(MinimumDurationSeconds, typeData.LightningCrackFieldTickInterval);
+        lightningCrackFieldTimeRemaining = Mathf.Max(lightningCrackFieldTimeRemaining, duration);
+        lightningCrackFieldTickTimer = tickInterval;
+        hasLightningCrackField = true;
+    }
+
+    private void TriggerEarthLifeRoot()
+    {
+        float searchRadius = Mathf.Max(MinimumEffectRadius, typeData.EarthLifeRootSearchRadius);
+        float duration = Mathf.Max(MinimumDurationSeconds, typeData.EarthLifeRootDuration);
+        float speedMult = typeData.EarthLifeRootSpeedMultiplier;
+
+        BrickController target = GetRandomNearbyBrick(transform.position, this, searchRadius, nearbyBricksBuffer);
+        if (target == null)
+        {
+            return;
+        }
+
+        target.ApplyRoot(duration, speedMult);
+
+        VineTendrilEffect.Spawn(
+            transform.position,
+            target.transform.position,
+            typeData.VineColor,
+            typeData.VineWidth,
+            typeData.VineGrowDuration,
+            typeData.VineHoldDuration,
+            typeData.VineFadeDuration);
+    }
+
+    private void UpdateLightningCrackField()
+    {
+        if (!hasLightningCrackField || currentHitPoints <= 0)
+        {
+            return;
+        }
+
+        lightningCrackFieldTimeRemaining -= Time.deltaTime;
+        if (lightningCrackFieldTimeRemaining <= 0f)
+        {
+            hasLightningCrackField = false;
+            return;
+        }
+
+        lightningCrackFieldTickTimer -= Time.deltaTime;
+        if (lightningCrackFieldTickTimer > 0f)
+        {
+            return;
+        }
+
+        lightningCrackFieldTickTimer = Mathf.Max(MinimumDurationSeconds, typeData != null
+            ? typeData.LightningCrackFieldTickInterval
+            : MinimumDurationSeconds);
+
+        if (typeData == null)
+        {
+            return;
+        }
+
+        float searchRadius = Mathf.Max(MinimumEffectRadius, typeData.LightningCrackFieldSearchRadius);
+        int targetCount = Mathf.Max(1, typeData.LightningCrackFieldTargetCount);
+        int crackDamage = Mathf.Max(1, typeData.LightningCrackFieldCrackDamage);
+        float crackRadius = Mathf.Max(MinimumEffectRadius, typeData.LightningCrackFieldCrackRadius);
+
+        CollectNearbyBricks(searchRadius, nearbyBricksBuffer);
+        if (nearbyBricksBuffer.Count == 0)
+        {
+            return;
+        }
+
+        int hits = Mathf.Min(targetCount, nearbyBricksBuffer.Count);
+        for (int i = 0; i < hits; i++)
+        {
+            int randomIndex = Random.Range(i, nearbyBricksBuffer.Count);
+            BrickController selected = nearbyBricksBuffer[randomIndex];
+            nearbyBricksBuffer[randomIndex] = nearbyBricksBuffer[i];
+            nearbyBricksBuffer[i] = selected;
+
+            selected.SetCrackedState(crackDamage, crackRadius);
+
+            LightningBoltEffect.Spawn(
+                transform.position,
+                selected.transform.position,
+                typeData.LightningCrackFieldBoltColor,
+                typeData.LightningCrackFieldBoltWidth,
+                typeData.LightningCrackFieldBoltLifetime,
+                typeData.LightningCrackFieldBoltSegments,
+                typeData.LightningCrackFieldBoltNoise);
+        }
     }
 
     private void ApplyLightningSnake(BallTypeData ballTypeData)

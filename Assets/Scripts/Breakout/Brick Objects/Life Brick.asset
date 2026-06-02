@@ -36,9 +36,33 @@ MonoBehaviour:
   lifeRootSearchRadius: 1
   lifeRootDuration: 2
   lifeRootSpeedMultiplier: 0.1
-  vineColor: {r: 0.2, g: 0.8, b: 0.25, a: 1}
+  vineColor: {r: 0.2, g: 0.8, b: 0.25, a: 0.7607843}
   vineWidth: 0.07
   vineGrowDuration: 0.35
   vineHoldDuration: 0.25
   vineFadeDuration: 0.3
+  earthLightningStrikeRadius: 3
+  earthLightningStrikeDamage: 2
+  earthLightningStrikeBurnDamage: 1
+  earthLightningStrikeBurnInterval: 0.5
+  earthLightningStrikeBurnHitCount: 5
+  earthLightningBoltColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  earthLightningBoltWidth: 0.07
+  earthLightningBoltLifetime: 0.35
+  earthLightningBoltSegments: 12
+  earthLightningBoltNoise: 0.15
+  windChainLightningDuration: 5
+  windChainLightningDamage: 1
+  windChainLightningRadius: 3
+  windChainLightningBoltColor: {r: 0.7, g: 0.88, b: 1, a: 1}
+  windChainLightningBoltWidth: 0.05
+  windChainLightningBoltLifetime: 0.2
+  windChainLightningBoltSegments: 8
+  windChainLightningBoltNoise: 0.1
+  lightningCrackFieldDuration: 4
+  lightningCrackFieldTickInterval: 0.6
+  lightningCrackFieldCrackDamage: 1
+  lightningCrackFieldCrackRadius: 1.5
+  lightningCrackFieldSearchRadius: 3
+  lightningCrackFieldTargetCount: 2
   type: 4

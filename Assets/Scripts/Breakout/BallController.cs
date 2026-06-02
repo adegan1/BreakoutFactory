@@ -95,6 +95,15 @@ public class BallController : MonoBehaviour
     private float blackoutTimer;
     private int firstAidHealingAccumulated;
     private float speedBoostLerpRate;
+    private bool hasChainLightning;
+    private float chainLightningTimeRemaining;
+    private int chainLightningDamage;
+    private float chainLightningRadius;
+    private Color chainLightningBoltColor;
+    private float chainLightningBoltWidth;
+    private float chainLightningBoltLifetime;
+    private int chainLightningBoltSegments;
+    private float chainLightningBoltNoise;
     private bool suppressTimedSpawnEffects;
     private BallTypeData.DirectionRestraint movementRestraint;
     private BallTypeData.DirectionRestraint movementRestraintOverride;
@@ -183,6 +192,7 @@ public class BallController : MonoBehaviour
             TrySpawnFertilePatchOverTime();
             TrySpawnSteamBurstOverTime();
             TryApplyBlackout();
+            UpdateChainLightning();
         }
         if (isForceStopped)
         {
@@ -534,6 +544,81 @@ public class BallController : MonoBehaviour
         }
     }
 
+    public void ApplyChainLightning(float duration, int damage, float radius,
+        Color boltColor, float boltWidth, float boltLifetime, int boltSegments, float boltNoise)
+    {
+        float clampedDuration = Mathf.Max(0.01f, duration);
+        chainLightningTimeRemaining = Mathf.Max(chainLightningTimeRemaining, clampedDuration);
+        chainLightningDamage = Mathf.Max(1, damage);
+        chainLightningRadius = Mathf.Max(0.1f, radius);
+        chainLightningBoltColor = boltColor;
+        chainLightningBoltWidth = Mathf.Max(0.005f, boltWidth);
+        chainLightningBoltLifetime = Mathf.Max(0.05f, boltLifetime);
+        chainLightningBoltSegments = Mathf.Max(2, boltSegments);
+        chainLightningBoltNoise = Mathf.Max(0f, boltNoise);
+        hasChainLightning = true;
+    }
+
+    public void TryFireChainLightning(BrickController sourceBrick)
+    {
+        if (!hasChainLightning || sourceBrick == null)
+        {
+            return;
+        }
+
+        float radiusSqr = chainLightningRadius * chainLightningRadius;
+        Vector3 origin = sourceBrick.transform.position;
+        BrickController target = null;
+        int candidateCount = 0;
+
+        BrickController[] allBricks = Object.FindObjectsByType<BrickController>(FindObjectsSortMode.None);
+        for (int i = 0; i < allBricks.Length; i++)
+        {
+            BrickController candidate = allBricks[i];
+            if (candidate == sourceBrick || candidate.CurrentHitPoints <= 0)
+            {
+                continue;
+            }
+            if ((candidate.transform.position - origin).sqrMagnitude <= radiusSqr)
+            {
+                candidateCount++;
+                if (Random.Range(0, candidateCount) == 0)
+                {
+                    target = candidate;
+                }
+            }
+        }
+
+        if (target == null)
+        {
+            return;
+        }
+
+        target.ApplyDirectEffectDamage(chainLightningDamage);
+        LightningBoltEffect.Spawn(
+            origin,
+            target.transform.position,
+            chainLightningBoltColor,
+            chainLightningBoltWidth,
+            chainLightningBoltLifetime,
+            chainLightningBoltSegments,
+            chainLightningBoltNoise);
+    }
+
+    private void UpdateChainLightning()
+    {
+        if (!hasChainLightning)
+        {
+            return;
+        }
+
+        chainLightningTimeRemaining -= Time.deltaTime;
+        if (chainLightningTimeRemaining <= 0f)
+        {
+            hasChainLightning = false;
+        }
+    }
+
     public void ResetSpawnedRuntimeState()
     {
         launched = false;
@@ -549,6 +634,8 @@ public class BallController : MonoBehaviour
         firstAidHealingAccumulated = 0;
         speedBoostMultiplier = 1f;
         speedBoostLerpRate = 0f;
+        hasChainLightning = false;
+        chainLightningTimeRemaining = 0f;
         travelDirection = Vector2.up;
         lastVelocity = Vector2.zero;
         noVerticalMovementTime = 0f;
@@ -617,6 +704,7 @@ public class BallController : MonoBehaviour
         if (hitObject.CompareTag("Paddle"))
         {
             TrySpawnLinearProjectile(Vector2.up);
+            TryApplyShockTherapyOnWallHit(hitObject);
             return TryDestroyOnWallHit();
         }
 
@@ -1156,7 +1244,7 @@ public class BallController : MonoBehaviour
             return;
         }
 
-        bool isShockWall = wallObject.CompareTag("SideWall") || wallObject.CompareTag("TopWall");
+        bool isShockWall = wallObject.CompareTag("SideWall") || wallObject.CompareTag("TopWall") || wallObject.CompareTag("Paddle");
         if (!isShockWall)
         {
             return;

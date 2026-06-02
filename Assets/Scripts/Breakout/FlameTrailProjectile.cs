@@ -16,6 +16,10 @@ public class FlameTrailProjectile : MonoBehaviour
     private int burnDamage;
     private int burnHitCount;
     private bool isMovementLocked;
+    private Sprite[] animSprites;
+    private float animFrameRate;
+    private int animCurrentFrame;
+    private float animFrameTimer;
 
     public static FlameTrailProjectile Spawn(BallTypeData sourceTypeData, Vector3 position, float sourceScale, Collider2D ignoredCollider)
     {
@@ -75,6 +79,7 @@ public class FlameTrailProjectile : MonoBehaviour
             return;
         }
 
+        UpdateSpriteAnimation();
         transform.position += Vector3.up * Mathf.Max(0f, riseSpeed) * Time.deltaTime;
     }
 
@@ -105,9 +110,19 @@ public class FlameTrailProjectile : MonoBehaviour
         burnTickInterval = Mathf.Max(MinimumLifetimeSeconds, sourceTypeData.FlameTrailBurnTickInterval);
         burnHitCount = Mathf.Max(1, sourceTypeData.FlameTrailBurnHitCount);
 
+        Sprite[] anim = sourceTypeData.FlameTrailAnimSprites;
+        if (anim != null && anim.Length > 1)
+        {
+            animSprites = anim;
+            animFrameRate = Mathf.Max(0.01f, sourceTypeData.FlameTrailAnimFrameRate);
+        }
+
         if (spriteRenderer != null)
         {
-            spriteRenderer.sprite = sourceTypeData.FlameTrailSprite != null ? sourceTypeData.FlameTrailSprite : sourceTypeData.BallSprite;
+            Sprite resolvedSprite = (animSprites != null && animSprites.Length > 0 && animSprites[0] != null)
+                ? animSprites[0]
+                : (sourceTypeData.FlameTrailSprite != null ? sourceTypeData.FlameTrailSprite : sourceTypeData.BallSprite);
+            spriteRenderer.sprite = resolvedSprite;
             spriteRenderer.color = sourceTypeData.FlameTrailColor;
             spriteRenderer.sortingOrder = 2;
         }
@@ -118,6 +133,26 @@ public class FlameTrailProjectile : MonoBehaviour
         if (ignoredCollider != null && hitbox != null)
         {
             Physics2D.IgnoreCollision(hitbox, ignoredCollider, true);
+        }
+    }
+
+    private void UpdateSpriteAnimation()
+    {
+        if (spriteRenderer == null || animSprites == null || animSprites.Length <= 1)
+        {
+            return;
+        }
+
+        animFrameTimer += Time.deltaTime;
+        float frameDuration = 1f / animFrameRate;
+        if (animFrameTimer >= frameDuration)
+        {
+            animFrameTimer -= frameDuration;
+            animCurrentFrame = (animCurrentFrame + 1) % animSprites.Length;
+            if (animSprites[animCurrentFrame] != null)
+            {
+                spriteRenderer.sprite = animSprites[animCurrentFrame];
+            }
         }
     }
 

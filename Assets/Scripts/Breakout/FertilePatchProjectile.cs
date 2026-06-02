@@ -19,6 +19,10 @@ public class FertilePatchProjectile : MonoBehaviour
     private float rootSpeedMultiplier;
     private bool appliesRoot;
     private bool isMovementLocked;
+    private Sprite[] animSprites;
+    private float animFrameRate;
+    private int animCurrentFrame;
+    private float animFrameTimer;
 
     public static FertilePatchProjectile Spawn(BallTypeData sourceTypeData, Vector3 position, float sourceScale, Collider2D ignoredCollider)
     {
@@ -78,6 +82,7 @@ public class FertilePatchProjectile : MonoBehaviour
             return;
         }
 
+        UpdateSpriteAnimation();
         transform.position += Vector3.up * Mathf.Max(0f, riseSpeed) * Time.deltaTime;
     }
 
@@ -111,9 +116,19 @@ public class FertilePatchProjectile : MonoBehaviour
         rootSpeedMultiplier = Mathf.Clamp01(sourceTypeData.FertilePatchRootSpeedMultiplier);
         appliesRoot = sourceTypeData.AppliesRoot;
 
+        Sprite[] anim = sourceTypeData.FertilePatchAnimSprites;
+        if (anim != null && anim.Length > 1)
+        {
+            animSprites = anim;
+            animFrameRate = Mathf.Max(0.01f, sourceTypeData.FertilePatchAnimFrameRate);
+        }
+
         if (spriteRenderer != null)
         {
-            spriteRenderer.sprite = sourceTypeData.FertilePatchSprite != null ? sourceTypeData.FertilePatchSprite : sourceTypeData.BallSprite;
+            Sprite resolvedSprite = (animSprites != null && animSprites.Length > 0 && animSprites[0] != null)
+                ? animSprites[0]
+                : (sourceTypeData.FertilePatchSprite != null ? sourceTypeData.FertilePatchSprite : sourceTypeData.BallSprite);
+            spriteRenderer.sprite = resolvedSprite;
             spriteRenderer.color = sourceTypeData.FertilePatchColor;
             spriteRenderer.sortingOrder = 2;
         }
@@ -124,6 +139,26 @@ public class FertilePatchProjectile : MonoBehaviour
         if (ignoredCollider != null && hitbox != null)
         {
             Physics2D.IgnoreCollision(hitbox, ignoredCollider, true);
+        }
+    }
+
+    private void UpdateSpriteAnimation()
+    {
+        if (spriteRenderer == null || animSprites == null || animSprites.Length <= 1)
+        {
+            return;
+        }
+
+        animFrameTimer += Time.deltaTime;
+        float frameDuration = 1f / animFrameRate;
+        if (animFrameTimer >= frameDuration)
+        {
+            animFrameTimer -= frameDuration;
+            animCurrentFrame = (animCurrentFrame + 1) % animSprites.Length;
+            if (animSprites[animCurrentFrame] != null)
+            {
+                spriteRenderer.sprite = animSprites[animCurrentFrame];
+            }
         }
     }
 

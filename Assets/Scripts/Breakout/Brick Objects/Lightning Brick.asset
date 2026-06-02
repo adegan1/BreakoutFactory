@@ -20,4 +20,52 @@ MonoBehaviour:
   amplifiesLightning: 0
   lightningTargetBonus: 2
   damageToPlayer: 10
+  windFireBurstRadius: 2
+  windFireBurstDamage: 1
+  windFireBurstColor: {r: 1, g: 0.4, b: 0.05, a: 1}
+  windFireBurstWidth: 0.06
+  windFireBurstRayLength: 1.5
+  windFireBurstLifetime: 0.35
+  windFireBurstRayCount: 8
+  steamWeakenRadius: 2
+  steamWeakenDuration: 3
+  steamColor: {r: 0.75, g: 0.9, b: 1, a: 0.9}
+  steamWidth: 0.08
+  steamRingRadius: 1.8
+  steamLifetime: 0.8
+  lifeRootSearchRadius: 3
+  lifeRootDuration: 3
+  lifeRootSpeedMultiplier: 0.1
+  vineColor: {r: 0.2, g: 0.8, b: 0.25, a: 1}
+  vineWidth: 0.07
+  vineGrowDuration: 0.35
+  vineHoldDuration: 0.25
+  vineFadeDuration: 0.3
+  earthLightningStrikeRadius: 1
+  earthLightningStrikeDamage: 1
+  earthLightningStrikeBurnDamage: 1
+  earthLightningStrikeBurnInterval: 0.5
+  earthLightningStrikeBurnHitCount: 3
+  earthLightningBoltColor: {r: 0.9056604, g: 0.5640625, b: 0.23495908, a: 0.7372549}
+  earthLightningBoltWidth: 0.5
+  earthLightningBoltLifetime: 0.2
+  earthLightningBoltSegments: 7
+  earthLightningBoltNoise: 0.15
+  windChainLightningDuration: 2
+  windChainLightningDamage: 1
+  windChainLightningRadius: 1
+  windChainLightningBoltColor: {r: 0.990566, g: 0.9081815, b: 0.36912602, a: 0.74509805}
+  windChainLightningBoltWidth: 0.3
+  windChainLightningBoltLifetime: 0.2
+  windChainLightningBoltSegments: 8
+  windChainLightningBoltNoise: 0.1
+  lightningCrackFieldDuration: 4
+  lightningCrackFieldTickInterval: 0.6
+  lightningCrackFieldCrackDamage: 1
+  lightningCrackFieldCrackRadius: 1.5
+  lightningCrackFieldSearchRadius: 3
+  lightningCrackFieldTargetCount: 2
+  earthLifeRootSearchRadius: 3
+  earthLifeRootDuration: 3
+  earthLifeRootSpeedMultiplier: 0.1
   type: 3

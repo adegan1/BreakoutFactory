@@ -160,6 +160,8 @@ public class BallTypeData : ScriptableObject
     [SerializeField, Min(0.01f)] private float waterDropCooldown = 0.08f;
     [SerializeField] private bool createsFlameTrail = false;
     [SerializeField] private Sprite flameTrailSprite;
+    [SerializeField] private Sprite[] flameTrailAnimSprites;
+    [SerializeField, Min(1f)] private float flameTrailAnimFrameRate = 12f;
     [SerializeField] private Color flameTrailColor = new Color(1f, 0.45f, 0.1f, 0.95f);
     [SerializeField, Range(0.1f, 2f)] private float flameTrailSizeMultiplier = 0.55f;
     [SerializeField, Min(0.01f)] private float flameTrailSpawnInterval = 0.2f;
@@ -171,6 +173,8 @@ public class BallTypeData : ScriptableObject
     [SerializeField, Min(1)] private int flameTrailBurnHitCount = 2;
     [SerializeField] private bool createsFertileLand = false;
     [SerializeField] private Sprite fertilePatchSprite;
+    [SerializeField] private Sprite[] fertilePatchAnimSprites;
+    [SerializeField, Min(1f)] private float fertilePatchAnimFrameRate = 12f;
     [SerializeField] private Color fertilePatchColor = new Color(0.35f, 0.85f, 0.35f, 0.95f);
     [SerializeField, Range(0.1f, 2f)] private float fertilePatchSizeMultiplier = 0.55f;
     [SerializeField, Min(0.01f)] private float fertilePatchSpawnInterval = 0.3f;
@@ -362,6 +366,8 @@ public class BallTypeData : ScriptableObject
     public float WaterDropCooldown => waterDropCooldown;
     public bool CreatesFlameTrail => createsFlameTrail;
     public Sprite FlameTrailSprite => flameTrailSprite;
+    public Sprite[] FlameTrailAnimSprites => flameTrailAnimSprites;
+    public float FlameTrailAnimFrameRate => flameTrailAnimFrameRate;
     public Color FlameTrailColor => flameTrailColor;
     public float FlameTrailSizeMultiplier => flameTrailSizeMultiplier;
     public float FlameTrailSpawnInterval => flameTrailSpawnInterval;
@@ -373,6 +379,8 @@ public class BallTypeData : ScriptableObject
     public int FlameTrailBurnHitCount => flameTrailBurnHitCount;
     public bool CreatesFertileLand => createsFertileLand;
     public Sprite FertilePatchSprite => fertilePatchSprite;
+    public Sprite[] FertilePatchAnimSprites => fertilePatchAnimSprites;
+    public float FertilePatchAnimFrameRate => fertilePatchAnimFrameRate;
     public Color FertilePatchColor => fertilePatchColor;
     public float FertilePatchSizeMultiplier => fertilePatchSizeMultiplier;
     public float FertilePatchSpawnInterval => fertilePatchSpawnInterval;
