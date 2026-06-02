@@ -383,12 +383,17 @@ public class BrickController : MonoBehaviour
         ApplyDamage(damage, DamageSource.BallHit);
         if (isSuperEffectiveHit)
         {
+            BreakoutSoundController.PlaySuperEffectiveBrickHitSfx();
             SuperEffectiveGleamEffect.Spawn(
                 transform.position,
                 superEffectiveGleamColor,
                 superEffectiveGleamSize,
                 superEffectiveGleamWidth,
                 superEffectiveGleamLifetime);
+        }
+        else if (typeData != null && typeData.Type == BallTypeData.BallElement.Basic)
+        {
+            BreakoutSoundController.PlayBasicBrickHitSfx();
         }
 
         ball.RegisterRollingThunderBrickHit();

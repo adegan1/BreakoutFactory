@@ -257,6 +257,8 @@ public class BallController : MonoBehaviour
 
         if (collision.gameObject.CompareTag("Paddle"))
         {
+            BreakoutSoundController.PlayPaddleHitSfx();
+
             if (TryHandleTaggedCollisionEffects(collision.gameObject, Vector2.zero))
             {
                 return;
@@ -268,6 +270,12 @@ public class BallController : MonoBehaviour
         }
 
         ContactPoint2D contact = collision.GetContact(0);
+        bool hitWall = collision.gameObject.CompareTag("SideWall") || collision.gameObject.CompareTag("TopWall");
+        if (hitWall)
+        {
+            BreakoutSoundController.PlayWallHitSfx();
+        }
+
         Vector2 sideWallDirection = contact.normal.x >= 0f ? Vector2.right : Vector2.left;
         if (TryHandleTaggedCollisionEffects(collision.gameObject, sideWallDirection))
         {
@@ -348,6 +356,15 @@ public class BallController : MonoBehaviour
 
         if (passThroughBricks)
         {
+            if (other.CompareTag("Paddle"))
+            {
+                BreakoutSoundController.PlayPaddleHitSfx();
+            }
+            else if (other.CompareTag("SideWall") || other.CompareTag("TopWall"))
+            {
+                BreakoutSoundController.PlayWallHitSfx();
+            }
+
             Vector2 sideWallDirection = transform.position.x >= other.bounds.center.x ? Vector2.right : Vector2.left;
             if (TryHandleTaggedCollisionEffects(other.gameObject, sideWallDirection))
             {

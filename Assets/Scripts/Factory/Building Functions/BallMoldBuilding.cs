@@ -66,7 +66,6 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
     [Header("Ball Preview")]
     [SerializeField] private SpriteRenderer ballPreviewRenderer;
-    [SerializeField] private MeshRenderer ballPreviewMeshRenderer;
     [SerializeField] private Transform ballPreviewMaskTransform;
     [SerializeField] private bool keepPreviewDefaultRotation = true;
     [SerializeField] private List<BallPreviewBallTypeEntry> ballGenerations = new();
@@ -86,13 +85,10 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
     private float previewFillVisual;
     private Vector3 previewBaseLocalPosition;
     private Vector3 previewBaseScale = Vector3.one;
-    private Vector3 previewMeshBaseLocalPosition;
-    private Vector3 previewMeshBaseLocalScale = Vector3.one;
     private Vector3 maskBaseLocalPosition;
     private Vector3 maskBaseScale = Vector3.one;
     private Quaternion previewBaseWorldRotation = Quaternion.identity;
     private Quaternion maskBaseWorldRotation = Quaternion.identity;
-    private bool usesMeshPreview;
 
     public int DistinctItemCount => inventoryByItem.Count;
     public InputSide ConfiguredInputSide => inputSide;
@@ -440,22 +436,6 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
     private void CachePreviewBaseTransform()
     {
-        usesMeshPreview = ballPreviewMeshRenderer != null;
-
-        if (usesMeshPreview)
-        {
-            previewMeshBaseLocalPosition = ballPreviewMeshRenderer.transform.localPosition;
-            previewMeshBaseLocalScale = ballPreviewMeshRenderer.transform.localScale;
-            previewBaseWorldRotation = FactoryGridDirectionUtility.CalculateUnrotatedWorldRotation(ballPreviewMeshRenderer.transform);
-
-            if (ballPreviewRenderer != null)
-            {
-                ballPreviewRenderer.enabled = false;
-            }
-
-            return;
-        }
-
         if (ballPreviewRenderer == null)
         {
             return;
@@ -516,7 +496,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
 
     private void ApplyPreviewRendererVisual(float visualFill)
     {
-        if (ballPreviewRenderer == null && ballPreviewMeshRenderer == null)
+        if (ballPreviewRenderer == null)
         {
             return;
         }
@@ -524,35 +504,16 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         ItemDefinition previewItem = acceptedResourceDefinition;
         BallTypeData previewBallType = ResolvePreviewBallType(previewItem);
         bool shouldShow = previewBallType != null && (!hidePreviewWhenEmpty || visualFill > 0.001f);
-        if (usesMeshPreview && ballPreviewMeshRenderer != null)
-        {
-            ballPreviewMeshRenderer.enabled = shouldShow;
-        }
-        else if (ballPreviewRenderer != null)
-        {
-            ballPreviewRenderer.enabled = shouldShow;
-        }
-
+        ballPreviewRenderer.enabled = shouldShow;
         if (!shouldShow)
         {
-            return;
-        }
-
-        if (usesMeshPreview && ballPreviewMeshRenderer != null)
-        {
-            // 3D preview path: gradually scale the ball model from empty to full size.
-            float clampedFill = Mathf.Clamp01(visualFill);
-            Transform previewTransform = ballPreviewMeshRenderer.transform;
-            previewTransform.localPosition = previewMeshBaseLocalPosition;
-            previewTransform.localScale = previewMeshBaseLocalScale * clampedFill;
-            ApplyPreviewDefaultRotationIfNeeded();
             return;
         }
 
         ballPreviewRenderer.sprite = previewBallType.BallSprite;
         ballPreviewRenderer.color = previewBallType.TrailColor;
 
-        // Legacy 2D preview path: keep the sprite unsquished and reveal fill using a vertically resized mask.
+        // Keep the sprite unsquished and reveal fill using a vertically resized mask.
         ballPreviewRenderer.transform.localPosition = previewBaseLocalPosition;
         ballPreviewRenderer.transform.localScale = previewBaseScale;
         ApplyPreviewDefaultRotationIfNeeded();
@@ -562,13 +523,13 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
             return;
         }
 
-        float clampedMaskFill = Mathf.Clamp01(visualFill);
+        float clampedFill = Mathf.Clamp01(visualFill);
         Vector3 maskScale = maskBaseScale;
-        maskScale.y = maskBaseScale.y * clampedMaskFill;
+        maskScale.y = maskBaseScale.y * clampedFill;
         ballPreviewMaskTransform.localScale = maskScale;
 
         Vector3 maskLocalPos = maskBaseLocalPosition;
-        maskLocalPos.y = maskBaseLocalPosition.y - maskBaseScale.y * (1f - clampedMaskFill) * 0.5f;
+        maskLocalPos.y = maskBaseLocalPosition.y - maskBaseScale.y * (1f - clampedFill) * 0.5f;
         ballPreviewMaskTransform.localPosition = maskLocalPos;
         ApplyPreviewDefaultRotationIfNeeded();
     }
@@ -583,11 +544,6 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         if (ballPreviewRenderer != null)
         {
             ballPreviewRenderer.transform.rotation = previewBaseWorldRotation;
-        }
-
-        if (ballPreviewMeshRenderer != null)
-        {
-            ballPreviewMeshRenderer.transform.rotation = previewBaseWorldRotation;
         }
 
         if (ballPreviewMaskTransform != null)
