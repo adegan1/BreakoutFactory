@@ -43,6 +43,7 @@ public class BrickController : MonoBehaviour
     private const float DefaultRowSpacing = 1.2f;
     private const float FollowDistanceThresholdMultiplier = 1.05f;
     private const float MinimumFollowGap = 0.02f;
+    private const int StrongAgainstDamageMultiplier = 2;
 
     [SerializeField] private BrickTypeData typeData;
 
@@ -80,6 +81,12 @@ public class BrickController : MonoBehaviour
     [SerializeField, Min(0.005f)] private float crackShatterEffectWidth = 0.07f;
     [SerializeField, Min(0.05f)] private float crackShatterEffectLifetime = 0.45f;
     [SerializeField, Range(3, 12)] private int crackShatterEffectCrackCount = 6;
+
+    [Header("Super Effective Visual")]
+    [SerializeField] private Color superEffectiveGleamColor = new Color(1f, 0.95f, 0.55f, 1f);
+    [SerializeField, Min(0.01f)] private float superEffectiveGleamSize = 0.5f;
+    [SerializeField, Min(0.005f)] private float superEffectiveGleamWidth = 0.04f;
+    [SerializeField, Min(0.05f)] private float superEffectiveGleamLifetime = 0.18f;
 
     private int currentHitPoints;
     private int maxHitPoints;
@@ -370,9 +377,20 @@ public class BrickController : MonoBehaviour
         lastHittingBall = ball;
         BallTypeData ballTypeData = ball.TypeData;
         bool wasCrackedBeforeHit = isCracked;
+        bool isSuperEffectiveHit = IsSuperEffectiveHit(ball);
 
         int damage = GetDamageFromBall(ball);
         ApplyDamage(damage, DamageSource.BallHit);
+        if (isSuperEffectiveHit)
+        {
+            SuperEffectiveGleamEffect.Spawn(
+                transform.position,
+                superEffectiveGleamColor,
+                superEffectiveGleamSize,
+                superEffectiveGleamWidth,
+                superEffectiveGleamLifetime);
+        }
+
         ball.RegisterRollingThunderBrickHit();
 
         ball.TrySpawnWaterDropsFromBrickHit();
@@ -435,7 +453,26 @@ public class BrickController : MonoBehaviour
             return 1;
         }
 
-        return Mathf.Max(1, ball.TypeData.Damage);
+        int baseDamage = Mathf.Max(1, ball.TypeData.Damage);
+        if (typeData == null)
+        {
+            return baseDamage;
+        }
+
+        if (IsSuperEffectiveHit(ball))
+        {
+            return baseDamage * StrongAgainstDamageMultiplier;
+        }
+
+        return baseDamage;
+    }
+
+    private bool IsSuperEffectiveHit(BallController ball)
+    {
+        return ball != null
+            && ball.TypeData != null
+            && typeData != null
+            && ball.TypeData.IsStrongAgainst(typeData.Type);
     }
 
     protected virtual void ApplyDamage(int amount)

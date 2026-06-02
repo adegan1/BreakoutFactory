@@ -234,6 +234,10 @@ MonoBehaviour:
   crackShatterEffectWidth: 0.12
   crackShatterEffectLifetime: 0.35
   crackShatterEffectCrackCount: 5
+  superEffectiveGleamColor: {r: 1, g: 0.9845365, b: 0.8632076, a: 1}
+  superEffectiveGleamSize: 0.25
+  superEffectiveGleamWidth: 0.02
+  superEffectiveGleamLifetime: 0.18
 --- !u!114 &2147875426264235273
 MonoBehaviour:
   m_ObjectHideFlags: 0

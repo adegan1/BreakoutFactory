@@ -501,6 +501,11 @@ public class BallTypeData : ScriptableObject
 
     public bool IsStrongAgainst(BallElement brickType)
     {
+        if (strongAgainst == null || strongAgainst.Length == 0)
+        {
+            return false;
+        }
+
         for (int i = 0; i < strongAgainst.Length; i++)
         {
             if (strongAgainst[i] == brickType)

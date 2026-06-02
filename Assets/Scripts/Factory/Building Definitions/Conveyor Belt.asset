@@ -41,7 +41,7 @@ MonoBehaviour:
   - {fileID: 1908021435, guid: f246a43476702174db6ee33fda67c184, type: 3}
   - {fileID: 1732390344, guid: f246a43476702174db6ee33fda67c184, type: 3}
   - {fileID: 2105957460, guid: f246a43476702174db6ee33fda67c184, type: 3}
-  conveyorAnimationFrameRate: 6
+  conveyorAnimationFrameRate: 32
   scrapDropAmount: 0.5
   maxOwnedQuantityFromBreakoutDrops: 0
   minShopBuyAmount: 4

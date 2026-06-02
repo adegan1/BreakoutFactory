@@ -161,7 +161,7 @@ MonoBehaviour:
   - {fileID: 367967755916830602, guid: 6b4c2d05337fb63448320934ac03e988, type: 3}
   linearProjectileAnimFrameRate: 7
   linearProjectileColor: {r: 1, g: 1, b: 1, a: 0.27058825}
-  linearProjectileSize: 0.75
+  linearProjectileSize: 0.65
   linearProjectileSpeed: 5
   linearProjectileDamage: 1
   linearProjectileAppliesBurn: 0
