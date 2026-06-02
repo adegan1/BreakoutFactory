@@ -10821,10 +10821,10 @@ MonoBehaviour:
   ballPrefab: {fileID: 9021448586808601386, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   paddleTransform: {fileID: 1324807477}
   ballsToDispense:
-  - {fileID: 11400000, guid: 888835b7651346349a8f66b820c195ad, type: 2}
-  - {fileID: 11400000, guid: ae022bdd654522c44817311679a16035, type: 2}
-  - {fileID: 11400000, guid: f95a714814ad4854b92e441e36a62204, type: 2}
-  - {fileID: 11400000, guid: 35df350068fd84740aa7d5f9b5f3729f, type: 2}
+  - {fileID: 11400000, guid: e780c2caddda2b848a62f68b87a675af, type: 2}
+  - {fileID: 11400000, guid: 7c0a3ee9c805305489d9b4e4b2d6410f, type: 2}
+  - {fileID: 11400000, guid: 61202c4b1a878b0429b02ac1c3cae87e, type: 2}
+  - {fileID: 11400000, guid: 0a1f26180b924174e8c1857e7653495c, type: 2}
   initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}
   enableBrickDrops: 1
@@ -11731,11 +11731,11 @@ MonoBehaviour:
   - typeData: {fileID: 11400000, guid: d627063a367f56c4287815b5fb7c64be, type: 2}
     weight: 1
   - typeData: {fileID: 11400000, guid: af792289cdc9fcd4cb06a790b650cdbc, type: 2}
-    weight: 100
+    weight: 1
   - typeData: {fileID: 11400000, guid: 5f4435093ea3bd745a1b198243926470, type: 2}
     weight: 1
   - typeData: {fileID: 11400000, guid: 5f789f2fb566a5d469628041845bc087, type: 2}
-    weight: 100
+    weight: 1
   - typeData: {fileID: 11400000, guid: 0f820a6fe33f08f43957becd1b6b398b, type: 2}
     weight: 1
   scaleRowsByCurrentLevel: 1

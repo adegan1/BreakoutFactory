@@ -24,18 +24,29 @@ public class FertilePatchProjectile : MonoBehaviour
     private int animCurrentFrame;
     private float animFrameTimer;
 
-    public static FertilePatchProjectile Spawn(BallTypeData sourceTypeData, Vector3 position, float sourceScale, Collider2D ignoredCollider)
+    public static FertilePatchProjectile Spawn(
+        Vector3 position,
+        Collider2D ignoredCollider,
+        Sprite sprite,
+        Sprite[] animSprites,
+        float animFrameRate,
+        Color color,
+        float scale,
+        float riseSpeed,
+        float lifetime,
+        bool appliesCrack,
+        int crackShatterDamage,
+        float crackShatterRadius,
+        bool appliesRoot,
+        float rootRadius,
+        float rootDuration,
+        float rootSpeedMultiplier)
     {
-        if (sourceTypeData == null || !sourceTypeData.CreatesFertileLand)
-        {
-            return null;
-        }
-
         GameObject projectileObject = new GameObject("Fertile Patch Projectile");
         projectileObject.transform.position = position;
 
         FertilePatchProjectile projectile = projectileObject.AddComponent<FertilePatchProjectile>();
-        projectile.Initialize(sourceTypeData, sourceScale, ignoredCollider);
+        projectile.Initialize(sprite, animSprites, animFrameRate, color, scale, riseSpeed, lifetime, appliesCrack, crackShatterDamage, crackShatterRadius, appliesRoot, rootRadius, rootDuration, rootSpeedMultiplier, ignoredCollider);
         return projectile;
     }
 
@@ -104,37 +115,50 @@ public class FertilePatchProjectile : MonoBehaviour
         spriteRenderer.color = Color.Lerp(baseColor, pausedColor, Mathf.Clamp01(grayscaleBlend));
     }
 
-    private void Initialize(BallTypeData sourceTypeData, float sourceScale, Collider2D ignoredCollider)
+    private void Initialize(
+        Sprite sprite,
+        Sprite[] animFrames,
+        float frameRate,
+        Color color,
+        float scale,
+        float riseSpeedValue,
+        float lifetime,
+        bool appliesCrackValue,
+        int crackShatterDamageValue,
+        float crackShatterRadiusValue,
+        bool appliesRootValue,
+        float rootRadiusValue,
+        float rootDurationValue,
+        float rootSpeedMultiplierValue,
+        Collider2D ignoredCollider)
     {
-        riseSpeed = Mathf.Max(0f, sourceTypeData.FertilePatchRiseSpeed);
-        lifetimeRemaining = Mathf.Max(MinimumLifetimeSeconds, sourceTypeData.FertilePatchLifetime);
-        crackShatterDamage = Mathf.Max(1, sourceTypeData.FertilePatchCrackShatterDamage);
-        crackShatterRadius = Mathf.Max(0.1f, sourceTypeData.FertilePatchCrackShatterRadius);
-        appliesCrack = sourceTypeData.EarthCrack;
-        rootRadius = Mathf.Max(0.1f, sourceTypeData.FertilePatchRootRadius);
-        rootDuration = Mathf.Max(MinimumLifetimeSeconds, sourceTypeData.FertilePatchRootDuration);
-        rootSpeedMultiplier = Mathf.Clamp01(sourceTypeData.FertilePatchRootSpeedMultiplier);
-        appliesRoot = sourceTypeData.AppliesRoot;
+        riseSpeed = Mathf.Max(0f, riseSpeedValue);
+        lifetimeRemaining = Mathf.Max(MinimumLifetimeSeconds, lifetime);
+        crackShatterDamage = Mathf.Max(1, crackShatterDamageValue);
+        crackShatterRadius = Mathf.Max(0.1f, crackShatterRadiusValue);
+        appliesCrack = appliesCrackValue;
+        rootRadius = Mathf.Max(0.1f, rootRadiusValue);
+        rootDuration = Mathf.Max(MinimumLifetimeSeconds, rootDurationValue);
+        rootSpeedMultiplier = Mathf.Clamp01(rootSpeedMultiplierValue);
+        appliesRoot = appliesRootValue;
 
-        Sprite[] anim = sourceTypeData.FertilePatchAnimSprites;
-        if (anim != null && anim.Length > 1)
+        if (animFrames != null && animFrames.Length > 1)
         {
-            animSprites = anim;
-            animFrameRate = Mathf.Max(0.01f, sourceTypeData.FertilePatchAnimFrameRate);
+            animSprites = animFrames;
+            animFrameRate = Mathf.Max(0.01f, frameRate);
         }
 
         if (spriteRenderer != null)
         {
             Sprite resolvedSprite = (animSprites != null && animSprites.Length > 0 && animSprites[0] != null)
                 ? animSprites[0]
-                : (sourceTypeData.FertilePatchSprite != null ? sourceTypeData.FertilePatchSprite : sourceTypeData.BallSprite);
+                : sprite;
             spriteRenderer.sprite = resolvedSprite;
-            spriteRenderer.color = sourceTypeData.FertilePatchColor;
+            spriteRenderer.color = color;
             spriteRenderer.sortingOrder = 2;
         }
 
-        float clampedScale = Mathf.Max(MinimumSize, sourceScale * Mathf.Max(MinimumSize, sourceTypeData.FertilePatchSizeMultiplier));
-        transform.localScale = Vector3.one * clampedScale;
+        transform.localScale = Vector3.one * Mathf.Max(MinimumSize, scale);
 
         if (ignoredCollider != null && hitbox != null)
         {

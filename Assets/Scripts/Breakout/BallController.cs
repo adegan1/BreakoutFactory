@@ -1323,24 +1323,31 @@ public class BallController : MonoBehaviour
             return;
         }
 
-        BallTypeData waveType = typeData.LinearProjectileType;
-        if (waveType == null)
-        {
-            return;
-        }
-
         const float WaveSpawnOffset = 0.18f;
         Vector2 normalizedDirection = launchDirection.sqrMagnitude > DirectionEpsilon ? launchDirection.normalized : Vector2.up;
         Vector3 spawnPosition = transform.position + (Vector3)(normalizedDirection * WaveSpawnOffset);
-        BallController spawnedWave = SpawnBallCopy(waveType, spawnPosition, normalizedDirection, enforceMinimumVerticalDirection: false);
-
-        if (spawnedWave != null && waveType.MovementRestraint == BallTypeData.DirectionRestraint.None)
-        {
-            bool isHorizontal = Mathf.Abs(normalizedDirection.x) > Mathf.Abs(normalizedDirection.y);
-            spawnedWave.SetMovementRestraint(isHorizontal
-                ? BallTypeData.DirectionRestraint.HorizontalOnly
-                : BallTypeData.DirectionRestraint.VerticalOnly);
-        }
+        LinearProjectileEntity.Spawn(
+            spawnPosition,
+            normalizedDirection,
+            ballCollider,
+            typeData.LinearProjectileSprite,
+            typeData.LinearProjectileAnimSprites,
+            typeData.LinearProjectileAnimFrameRate,
+            typeData.LinearProjectileColor,
+            typeData.LinearProjectileSize,
+            typeData.LinearProjectileSpeed,
+            typeData.LinearProjectileDamage,
+            typeData.LinearProjectileAppliesBurn,
+            typeData.LinearProjectileBurnDamage,
+            typeData.LinearProjectileBurnTickInterval,
+            typeData.LinearProjectileBurnHitCount,
+            typeData.LinearProjectileAppliesCrack,
+            typeData.LinearProjectileCrackShatterDamage,
+            typeData.LinearProjectileCrackShatterRadius,
+            typeData.LinearProjectileAppliesRoot,
+            typeData.LinearProjectileRootDuration,
+            typeData.LinearProjectileRootSpeedMultiplier,
+            typeData.LinearProjectileHitsBeforeDestroy);
     }
 
     private BallController SpawnBallCopy(BallTypeData spawnedTypeData, Vector3 spawnPosition, Vector2 launchDirection, bool enforceMinimumVerticalDirection = true)
@@ -1411,7 +1418,22 @@ public class BallController : MonoBehaviour
 
         float spawnOffsetY = ballCollider != null ? ballCollider.bounds.extents.y + FlameTrailSpawnOffset : FlameTrailSpawnOffset;
         Vector3 spawnPosition = transform.position - new Vector3(0f, spawnOffsetY, 0f);
-        FlameTrailProjectile.Spawn(typeData, spawnPosition, transform.lossyScale.x, ballCollider);
+        float flameScale = transform.lossyScale.x * typeData.FlameTrailSizeMultiplier;
+        Sprite flameSprite = typeData.FlameTrailSprite != null ? typeData.FlameTrailSprite : typeData.BallSprite;
+        FlameTrailProjectile.Spawn(
+            spawnPosition,
+            ballCollider,
+            flameSprite,
+            typeData.FlameTrailAnimSprites,
+            typeData.FlameTrailAnimFrameRate,
+            typeData.FlameTrailColor,
+            flameScale,
+            typeData.FlameTrailRiseSpeed,
+            typeData.FlameTrailLifetime,
+            typeData.FlameTrailImpactDamage,
+            typeData.FlameTrailBurnDamage,
+            typeData.FlameTrailBurnTickInterval,
+            typeData.FlameTrailBurnHitCount);
     }
 
     private void TrySpawnFertilePatchOverTime()
@@ -1430,7 +1452,25 @@ public class BallController : MonoBehaviour
 
         float spawnOffsetY = ballCollider != null ? ballCollider.bounds.extents.y + FlameTrailSpawnOffset : FlameTrailSpawnOffset;
         Vector3 spawnPosition = transform.position - new Vector3(0f, spawnOffsetY, 0f);
-        FertilePatchProjectile.Spawn(typeData, spawnPosition, transform.lossyScale.x, ballCollider);
+        float patchScale = transform.lossyScale.x * typeData.FertilePatchSizeMultiplier;
+        Sprite patchSprite = typeData.FertilePatchSprite != null ? typeData.FertilePatchSprite : typeData.BallSprite;
+        FertilePatchProjectile.Spawn(
+            spawnPosition,
+            ballCollider,
+            patchSprite,
+            typeData.FertilePatchAnimSprites,
+            typeData.FertilePatchAnimFrameRate,
+            typeData.FertilePatchColor,
+            patchScale,
+            typeData.FertilePatchRiseSpeed,
+            typeData.FertilePatchLifetime,
+            typeData.EarthCrack,
+            typeData.FertilePatchCrackShatterDamage,
+            typeData.FertilePatchCrackShatterRadius,
+            typeData.AppliesRoot,
+            typeData.FertilePatchRootRadius,
+            typeData.FertilePatchRootDuration,
+            typeData.FertilePatchRootSpeedMultiplier);
     }
 
     private void InitializeRollingThunderCycle()

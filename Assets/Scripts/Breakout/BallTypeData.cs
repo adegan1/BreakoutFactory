@@ -202,8 +202,24 @@ public class BallTypeData : ScriptableObject
     [SerializeField, Min(0.01f)] private float collapseDuration = 3f;
     [FormerlySerializedAs("createsOceanBreeze")]
     [SerializeField] private bool createsLinearProjectile = false;
-    [FormerlySerializedAs("oceanBreezeWaveType")]
-    [SerializeField] private BallTypeData linearProjectileType;
+    [SerializeField] private Sprite linearProjectileSprite;
+    [SerializeField] private Sprite[] linearProjectileAnimSprites;
+    [SerializeField, Min(1f)] private float linearProjectileAnimFrameRate = 12f;
+    [SerializeField] private Color linearProjectileColor = Color.white;
+    [SerializeField, Min(0.05f)] private float linearProjectileSize = 0.5f;
+    [SerializeField, Min(0f)] private float linearProjectileSpeed = 6f;
+    [SerializeField, Min(0)] private int linearProjectileDamage = 1;
+    [SerializeField] private bool linearProjectileAppliesBurn = false;
+    [SerializeField, Min(1)] private int linearProjectileBurnDamage = 1;
+    [SerializeField, Min(0.01f)] private float linearProjectileBurnTickInterval = 0.5f;
+    [SerializeField, Min(1)] private int linearProjectileBurnHitCount = 3;
+    [SerializeField] private bool linearProjectileAppliesCrack = false;
+    [SerializeField, Min(1)] private int linearProjectileCrackShatterDamage = 1;
+    [SerializeField, Min(0.1f)] private float linearProjectileCrackShatterRadius = 1.5f;
+    [SerializeField] private bool linearProjectileAppliesRoot = false;
+    [SerializeField, Min(0.1f)] private float linearProjectileRootDuration = 2f;
+    [SerializeField, Range(0f, 1f)] private float linearProjectileRootSpeedMultiplier = 0.1f;
+    [SerializeField, Min(1)] private int linearProjectileHitsBeforeDestroy = 1;
     [SerializeField] private bool linearProjectileIncludesTopWall = false;
     [SerializeField] private bool createsBlackout = false;
     [SerializeField, Min(1)] private int blackoutDamage = 1;
@@ -407,7 +423,24 @@ public class BallTypeData : ScriptableObject
     public float CollapseRadius => collapseRadius;
     public float CollapseDuration => collapseDuration;
     public bool CreatesLinearProjectile => createsLinearProjectile;
-    public BallTypeData LinearProjectileType => linearProjectileType;
+    public Sprite LinearProjectileSprite => linearProjectileSprite;
+    public Sprite[] LinearProjectileAnimSprites => linearProjectileAnimSprites;
+    public float LinearProjectileAnimFrameRate => linearProjectileAnimFrameRate;
+    public Color LinearProjectileColor => linearProjectileColor;
+    public float LinearProjectileSize => linearProjectileSize;
+    public float LinearProjectileSpeed => linearProjectileSpeed;
+    public int LinearProjectileDamage => linearProjectileDamage;
+    public bool LinearProjectileAppliesBurn => linearProjectileAppliesBurn;
+    public int LinearProjectileBurnDamage => linearProjectileBurnDamage;
+    public float LinearProjectileBurnTickInterval => linearProjectileBurnTickInterval;
+    public int LinearProjectileBurnHitCount => linearProjectileBurnHitCount;
+    public bool LinearProjectileAppliesCrack => linearProjectileAppliesCrack;
+    public int LinearProjectileCrackShatterDamage => linearProjectileCrackShatterDamage;
+    public float LinearProjectileCrackShatterRadius => linearProjectileCrackShatterRadius;
+    public bool LinearProjectileAppliesRoot => linearProjectileAppliesRoot;
+    public float LinearProjectileRootDuration => linearProjectileRootDuration;
+    public float LinearProjectileRootSpeedMultiplier => linearProjectileRootSpeedMultiplier;
+    public int LinearProjectileHitsBeforeDestroy => linearProjectileHitsBeforeDestroy;
     public bool LinearProjectileIncludesTopWall => linearProjectileIncludesTopWall;
     public bool CreatesBlackout => createsBlackout;
     public int BlackoutDamage => blackoutDamage;
@@ -829,7 +862,25 @@ public class BallTypeData : ScriptableObject
         createsLinearProjectile = a.CreatesLinearProjectile || b.CreatesLinearProjectile;
         if (createsLinearProjectile)
         {
-            linearProjectileType = a.LinearProjectileType ?? b.LinearProjectileType;
+            BallTypeData linearSource = a.CreatesLinearProjectile ? a : b;
+            linearProjectileSprite = linearSource.LinearProjectileSprite;
+            linearProjectileAnimSprites = linearSource.LinearProjectileAnimSprites;
+            linearProjectileAnimFrameRate = linearSource.LinearProjectileAnimFrameRate;
+            linearProjectileColor = linearSource.LinearProjectileColor;
+            linearProjectileSize = linearSource.LinearProjectileSize;
+            linearProjectileSpeed = linearSource.LinearProjectileSpeed;
+            linearProjectileDamage = linearSource.LinearProjectileDamage;
+            linearProjectileAppliesBurn = linearSource.LinearProjectileAppliesBurn;
+            linearProjectileBurnDamage = linearSource.LinearProjectileBurnDamage;
+            linearProjectileBurnTickInterval = linearSource.LinearProjectileBurnTickInterval;
+            linearProjectileBurnHitCount = linearSource.LinearProjectileBurnHitCount;
+            linearProjectileAppliesCrack = linearSource.LinearProjectileAppliesCrack;
+            linearProjectileCrackShatterDamage = linearSource.LinearProjectileCrackShatterDamage;
+            linearProjectileCrackShatterRadius = linearSource.LinearProjectileCrackShatterRadius;
+            linearProjectileAppliesRoot = linearSource.LinearProjectileAppliesRoot;
+            linearProjectileRootDuration = linearSource.LinearProjectileRootDuration;
+            linearProjectileRootSpeedMultiplier = linearSource.LinearProjectileRootSpeedMultiplier;
+            linearProjectileHitsBeforeDestroy = Mathf.Max(linearSource.LinearProjectileHitsBeforeDestroy, 1);
             linearProjectileIncludesTopWall = a.LinearProjectileIncludesTopWall || b.LinearProjectileIncludesTopWall;
         }
 

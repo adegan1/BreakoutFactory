@@ -112,6 +112,8 @@ MonoBehaviour:
   waterDropCooldown: 0.08
   createsFlameTrail: 0
   flameTrailSprite: {fileID: 0}
+  flameTrailAnimSprites: []
+  flameTrailAnimFrameRate: 12
   flameTrailColor: {r: 1, g: 0.45, b: 0.1, a: 0.95}
   flameTrailSizeMultiplier: 0.55
   flameTrailSpawnInterval: 0.2
@@ -123,6 +125,8 @@ MonoBehaviour:
   flameTrailBurnHitCount: 2
   createsFertileLand: 0
   fertilePatchSprite: {fileID: 0}
+  fertilePatchAnimSprites: []
+  fertilePatchAnimFrameRate: 12
   fertilePatchColor: {r: 0.35, g: 0.85, b: 0.35, a: 0.95}
   fertilePatchSizeMultiplier: 0.55
   fertilePatchSpawnInterval: 0.3
@@ -186,8 +190,8 @@ MonoBehaviour:
   rollingThunderMinLaunchAngle: 20
   rollingThunderMaxLaunchAngle: 160
   createsShockTherapy: 1
-  shockTherapyMinTargets: 3
-  shockTherapyMaxTargets: 6
+  shockTherapyMinTargets: 1
+  shockTherapyMaxTargets: 4
   shockTherapyDamage: 1
   shockTherapyHealAmount: 1
   shockTherapyBoltColor: {r: 0.2678517, g: 0.8867924, b: 0.1966002, a: 0.9}

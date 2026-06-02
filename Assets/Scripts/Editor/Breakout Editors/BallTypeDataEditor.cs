@@ -107,6 +107,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty flameTrailBurnDamageProperty;
     private SerializedProperty flameTrailBurnTickIntervalProperty;
     private SerializedProperty flameTrailBurnHitCountProperty;
+    private SerializedProperty flameTrailAnimSpritesProperty;
+    private SerializedProperty flameTrailAnimFrameRateProperty;
     private SerializedProperty createsFertileLandProperty;
     private SerializedProperty fertilePatchSpriteProperty;
     private SerializedProperty fertilePatchColorProperty;
@@ -119,6 +121,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty fertilePatchRootRadiusProperty;
     private SerializedProperty fertilePatchRootDurationProperty;
     private SerializedProperty fertilePatchRootSpeedMultiplierProperty;
+    private SerializedProperty fertilePatchAnimSpritesProperty;
+    private SerializedProperty fertilePatchAnimFrameRateProperty;
     private SerializedProperty timedEffectInitialDelayProperty;
     private SerializedProperty createsSteamBurstProperty;
     private SerializedProperty steamBurstBallTypeProperty;
@@ -135,7 +139,24 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty collapseRadiusProperty;
     private SerializedProperty collapseDurationProperty;
     private SerializedProperty createsLinearProjectileProperty;
-    private SerializedProperty linearProjectileTypeProperty;
+    private SerializedProperty linearProjectileSpriteProperty;
+    private SerializedProperty linearProjectileAnimSpritesProperty;
+    private SerializedProperty linearProjectileAnimFrameRateProperty;
+    private SerializedProperty linearProjectileColorProperty;
+    private SerializedProperty linearProjectileSizeProperty;
+    private SerializedProperty linearProjectileSpeedProperty;
+    private SerializedProperty linearProjectileDamageProperty;
+    private SerializedProperty linearProjectileAppliesBurnProperty;
+    private SerializedProperty linearProjectileBurnDamageProperty;
+    private SerializedProperty linearProjectileBurnTickIntervalProperty;
+    private SerializedProperty linearProjectileBurnHitCountProperty;
+    private SerializedProperty linearProjectileAppliesCrackProperty;
+    private SerializedProperty linearProjectileCrackShatterDamageProperty;
+    private SerializedProperty linearProjectileCrackShatterRadiusProperty;
+    private SerializedProperty linearProjectileAppliesRootProperty;
+    private SerializedProperty linearProjectileRootDurationProperty;
+    private SerializedProperty linearProjectileRootSpeedMultiplierProperty;
+    private SerializedProperty linearProjectileHitsBeforeDestroyProperty;
     private SerializedProperty linearProjectileIncludesTopWallProperty;
     private SerializedProperty createsBlackoutProperty;
     private SerializedProperty blackoutDamageProperty;
@@ -293,6 +314,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         flameTrailBurnDamageProperty = FindProperty("flameTrailBurnDamage");
         flameTrailBurnTickIntervalProperty = FindProperty("flameTrailBurnTickInterval");
         flameTrailBurnHitCountProperty = FindProperty("flameTrailBurnHitCount");
+        flameTrailAnimSpritesProperty = FindProperty("flameTrailAnimSprites");
+        flameTrailAnimFrameRateProperty = FindProperty("flameTrailAnimFrameRate");
         createsFertileLandProperty = FindProperty("createsFertileLand");
         fertilePatchSpriteProperty = FindProperty("fertilePatchSprite");
         fertilePatchColorProperty = FindProperty("fertilePatchColor");
@@ -305,6 +328,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         fertilePatchRootRadiusProperty = FindProperty("fertilePatchRootRadius");
         fertilePatchRootDurationProperty = FindProperty("fertilePatchRootDuration");
         fertilePatchRootSpeedMultiplierProperty = FindProperty("fertilePatchRootSpeedMultiplier");
+        fertilePatchAnimSpritesProperty = FindProperty("fertilePatchAnimSprites");
+        fertilePatchAnimFrameRateProperty = FindProperty("fertilePatchAnimFrameRate");
         timedEffectInitialDelayProperty = FindProperty("timedEffectInitialDelay");
         createsSteamBurstProperty = FindProperty("createsSteamBurst");
         steamBurstBallTypeProperty = FindProperty("steamBurstBallType");
@@ -321,7 +346,24 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         collapseRadiusProperty = FindProperty("collapseRadius");
         collapseDurationProperty = FindProperty("collapseDuration");
         createsLinearProjectileProperty = FindProperty("createsLinearProjectile");
-        linearProjectileTypeProperty = FindProperty("linearProjectileType");
+        linearProjectileSpriteProperty = FindProperty("linearProjectileSprite");
+        linearProjectileAnimSpritesProperty = FindProperty("linearProjectileAnimSprites");
+        linearProjectileAnimFrameRateProperty = FindProperty("linearProjectileAnimFrameRate");
+        linearProjectileColorProperty = FindProperty("linearProjectileColor");
+        linearProjectileSizeProperty = FindProperty("linearProjectileSize");
+        linearProjectileSpeedProperty = FindProperty("linearProjectileSpeed");
+        linearProjectileDamageProperty = FindProperty("linearProjectileDamage");
+        linearProjectileAppliesBurnProperty = FindProperty("linearProjectileAppliesBurn");
+        linearProjectileBurnDamageProperty = FindProperty("linearProjectileBurnDamage");
+        linearProjectileBurnTickIntervalProperty = FindProperty("linearProjectileBurnTickInterval");
+        linearProjectileBurnHitCountProperty = FindProperty("linearProjectileBurnHitCount");
+        linearProjectileAppliesCrackProperty = FindProperty("linearProjectileAppliesCrack");
+        linearProjectileCrackShatterDamageProperty = FindProperty("linearProjectileCrackShatterDamage");
+        linearProjectileCrackShatterRadiusProperty = FindProperty("linearProjectileCrackShatterRadius");
+        linearProjectileAppliesRootProperty = FindProperty("linearProjectileAppliesRoot");
+        linearProjectileRootDurationProperty = FindProperty("linearProjectileRootDuration");
+        linearProjectileRootSpeedMultiplierProperty = FindProperty("linearProjectileRootSpeedMultiplier");
+        linearProjectileHitsBeforeDestroyProperty = FindProperty("linearProjectileHitsBeforeDestroy");
         linearProjectileIncludesTopWallProperty = FindProperty("linearProjectileIncludesTopWall");
         createsBlackoutProperty = FindProperty("createsBlackout");
         blackoutDamageProperty = FindProperty("blackoutDamage");
@@ -488,6 +530,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         DrawConditionalGroup(
             createsFlameTrailProperty,
             flameTrailSpriteProperty,
+            flameTrailAnimSpritesProperty,
+            flameTrailAnimFrameRateProperty,
             flameTrailColorProperty,
             flameTrailSizeMultiplierProperty,
             flameTrailSpawnIntervalProperty,
@@ -501,6 +545,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         DrawConditionalGroup(
             createsFertileLandProperty,
             fertilePatchSpriteProperty,
+            fertilePatchAnimSpritesProperty,
+            fertilePatchAnimFrameRateProperty,
             fertilePatchColorProperty,
             fertilePatchSizeMultiplierProperty,
             fertilePatchSpawnIntervalProperty,
@@ -540,7 +586,24 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         EditorGUILayout.PropertyField(createsLinearProjectileProperty, new GUIContent("Linear Projectile"));
         DrawConditionalGroup(
             createsLinearProjectileProperty,
-            linearProjectileTypeProperty,
+            linearProjectileSpriteProperty,
+            linearProjectileAnimSpritesProperty,
+            linearProjectileAnimFrameRateProperty,
+            linearProjectileColorProperty,
+            linearProjectileSizeProperty,
+            linearProjectileSpeedProperty,
+            linearProjectileDamageProperty,
+            linearProjectileAppliesBurnProperty,
+            linearProjectileBurnDamageProperty,
+            linearProjectileBurnTickIntervalProperty,
+            linearProjectileBurnHitCountProperty,
+            linearProjectileAppliesCrackProperty,
+            linearProjectileCrackShatterDamageProperty,
+            linearProjectileCrackShatterRadiusProperty,
+            linearProjectileAppliesRootProperty,
+            linearProjectileRootDurationProperty,
+            linearProjectileRootSpeedMultiplierProperty,
+            linearProjectileHitsBeforeDestroyProperty,
             linearProjectileIncludesTopWallProperty);
         EditorGUILayout.PropertyField(createsBlackoutProperty, new GUIContent("Blackout"));
         DrawConditionalGroup(createsBlackoutProperty,

@@ -45,9 +45,9 @@ MonoBehaviour:
   earthLightningStrikeDamage: 1
   earthLightningStrikeBurnDamage: 1
   earthLightningStrikeBurnInterval: 0.5
-  earthLightningStrikeBurnHitCount: 3
+  earthLightningStrikeBurnHitCount: 2
   earthLightningBoltColor: {r: 0.9056604, g: 0.5640625, b: 0.23495908, a: 0.7372549}
-  earthLightningBoltWidth: 0.5
+  earthLightningBoltWidth: 0.1
   earthLightningBoltLifetime: 0.2
   earthLightningBoltSegments: 7
   earthLightningBoltNoise: 0.15
@@ -55,7 +55,7 @@ MonoBehaviour:
   windChainLightningDamage: 1
   windChainLightningRadius: 1
   windChainLightningBoltColor: {r: 0.990566, g: 0.9081815, b: 0.36912602, a: 0.74509805}
-  windChainLightningBoltWidth: 0.3
+  windChainLightningBoltWidth: 0.08
   windChainLightningBoltLifetime: 0.2
   windChainLightningBoltSegments: 8
   windChainLightningBoltNoise: 0.1
@@ -65,6 +65,11 @@ MonoBehaviour:
   lightningCrackFieldCrackRadius: 1.5
   lightningCrackFieldSearchRadius: 3
   lightningCrackFieldTargetCount: 2
+  lightningCrackFieldBoltColor: {r: 0.6, g: 0.85, b: 0.5, a: 1}
+  lightningCrackFieldBoltWidth: 0.06
+  lightningCrackFieldBoltLifetime: 0.3
+  lightningCrackFieldBoltSegments: 10
+  lightningCrackFieldBoltNoise: 0.18
   earthLifeRootSearchRadius: 3
   earthLifeRootDuration: 3
   earthLifeRootSpeedMultiplier: 0.1

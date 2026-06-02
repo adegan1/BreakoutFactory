@@ -804,6 +804,19 @@ public class BreakoutGameController : MonoBehaviour
             fertilePatch.StopMovement();
             fertilePatch.ApplyLevelCompletePauseVisual(pauseGrayscaleBlend, pauseAlphaMultiplier);
         }
+
+        LinearProjectileEntity[] linearProjectiles = FindObjectsByType<LinearProjectileEntity>(FindObjectsSortMode.None);
+        for (int i = 0; i < linearProjectiles.Length; i++)
+        {
+            LinearProjectileEntity linearProjectile = linearProjectiles[i];
+            if (linearProjectile == null)
+            {
+                continue;
+            }
+
+            linearProjectile.StopMovement();
+            linearProjectile.ApplyLevelCompletePauseVisual(pauseGrayscaleBlend, pauseAlphaMultiplier);
+        }
     }
 
     private void ApplyPauseVisualToPaddle()

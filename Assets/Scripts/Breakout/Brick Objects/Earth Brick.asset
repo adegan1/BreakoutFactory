@@ -59,12 +59,17 @@ MonoBehaviour:
   windChainLightningBoltLifetime: 0.2
   windChainLightningBoltSegments: 8
   windChainLightningBoltNoise: 0.1
-  lightningCrackFieldDuration: 1.5
-  lightningCrackFieldTickInterval: 0.6
-  lightningCrackFieldCrackDamage: 1
-  lightningCrackFieldCrackRadius: 1
-  lightningCrackFieldSearchRadius: 1.5
+  lightningCrackFieldDuration: 0.9
+  lightningCrackFieldTickInterval: 0.4
+  lightningCrackFieldCrackDamage: 0
+  lightningCrackFieldCrackRadius: 2
+  lightningCrackFieldSearchRadius: 2.5
   lightningCrackFieldTargetCount: 1
+  lightningCrackFieldBoltColor: {r: 0.5849056, g: 0.46187076, b: 0.3669455, a: 1}
+  lightningCrackFieldBoltWidth: 0.06
+  lightningCrackFieldBoltLifetime: 0.3
+  lightningCrackFieldBoltSegments: 10
+  lightningCrackFieldBoltNoise: 0.18
   earthLifeRootSearchRadius: 1
   earthLifeRootDuration: 2
   earthLifeRootSpeedMultiplier: 0.4
