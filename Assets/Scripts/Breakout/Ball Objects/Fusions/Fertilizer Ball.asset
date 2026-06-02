@@ -72,7 +72,7 @@ MonoBehaviour:
   lightningSnakeBoltMaterial: {fileID: 0}
   earthCrack: 1
   shatterDamage: 1
-  shatterRadius: 1.5
+  shatterRadius: 1
   createsTremor: 0
   tremorCrackDamage: 2
   tremorCrackRadius: 1.4
@@ -132,15 +132,15 @@ MonoBehaviour:
   - {fileID: 1837672657067869476, guid: eb901bdc246bb7147a608a1da62d8805, type: 3}
   - {fileID: 8210697671344305544, guid: eb901bdc246bb7147a608a1da62d8805, type: 3}
   fertilePatchAnimFrameRate: 6
-  fertilePatchColor: {r: 0.40392157, g: 0.25490198, b: 0.16470589, a: 0.95}
+  fertilePatchColor: {r: 1, g: 1, b: 1, a: 0.95}
   fertilePatchSizeMultiplier: 0.55
-  fertilePatchSpawnInterval: 2
+  fertilePatchSpawnInterval: 2.5
   fertilePatchRiseSpeed: 1.25
   fertilePatchLifetime: 10
-  fertilePatchCrackShatterDamage: 2
-  fertilePatchCrackShatterRadius: 1
-  fertilePatchRootRadius: 1.5
-  fertilePatchRootDuration: 2
+  fertilePatchCrackShatterDamage: 1
+  fertilePatchCrackShatterRadius: 0.75
+  fertilePatchRootRadius: 1
+  fertilePatchRootDuration: 3
   fertilePatchRootSpeedMultiplier: 0.5
   timedEffectInitialDelay: 0.5
   createsSteamBurst: 0
@@ -175,6 +175,7 @@ MonoBehaviour:
   linearProjectileAppliesRoot: 0
   linearProjectileRootDuration: 2
   linearProjectileRootSpeedMultiplier: 0.1
+  linearProjectileHitsBeforeDestroy: 1
   linearProjectileIncludesTopWall: 0
   createsBlackout: 0
   blackoutDamage: 1

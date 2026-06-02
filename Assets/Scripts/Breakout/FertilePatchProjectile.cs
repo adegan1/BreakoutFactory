@@ -52,31 +52,7 @@ public class FertilePatchProjectile : MonoBehaviour
 
     private void Awake()
     {
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer == null)
-        {
-            spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
-        }
-
-        rb = GetComponent<Rigidbody2D>();
-        if (rb == null)
-        {
-            rb = gameObject.AddComponent<Rigidbody2D>();
-        }
-
-        rb.bodyType = RigidbodyType2D.Kinematic;
-        rb.gravityScale = 0f;
-        rb.linearVelocity = Vector2.zero;
-        rb.freezeRotation = true;
-
-        hitbox = GetComponent<CircleCollider2D>();
-        if (hitbox == null)
-        {
-            hitbox = gameObject.AddComponent<CircleCollider2D>();
-        }
-
-        hitbox.isTrigger = true;
-        hitbox.radius = 0.5f;
+        BreakoutEffectUtility.EnsureProjectileComponents(gameObject, out spriteRenderer, out rb, out hitbox, 0.5f);
     }
 
     private void Update()
@@ -104,15 +80,7 @@ public class FertilePatchProjectile : MonoBehaviour
 
     public void ApplyLevelCompletePauseVisual(float grayscaleBlend, float alphaMultiplier)
     {
-        if (spriteRenderer == null)
-        {
-            return;
-        }
-
-        Color baseColor = spriteRenderer.color;
-        float gray = baseColor.grayscale;
-        Color pausedColor = new Color(gray, gray, gray, baseColor.a * Mathf.Clamp01(alphaMultiplier));
-        spriteRenderer.color = Color.Lerp(baseColor, pausedColor, Mathf.Clamp01(grayscaleBlend));
+        BreakoutEffectUtility.ApplyPauseVisual(spriteRenderer, grayscaleBlend, alphaMultiplier);
     }
 
     private void Initialize(
@@ -168,22 +136,12 @@ public class FertilePatchProjectile : MonoBehaviour
 
     private void UpdateSpriteAnimation()
     {
-        if (spriteRenderer == null || animSprites == null || animSprites.Length <= 1)
-        {
-            return;
-        }
-
-        animFrameTimer += Time.deltaTime;
-        float frameDuration = 1f / animFrameRate;
-        if (animFrameTimer >= frameDuration)
-        {
-            animFrameTimer -= frameDuration;
-            animCurrentFrame = (animCurrentFrame + 1) % animSprites.Length;
-            if (animSprites[animCurrentFrame] != null)
-            {
-                spriteRenderer.sprite = animSprites[animCurrentFrame];
-            }
-        }
+        BreakoutEffectUtility.AdvanceSpriteAnimation(
+            spriteRenderer,
+            animSprites,
+            animFrameRate,
+            ref animFrameTimer,
+            ref animCurrentFrame);
     }
 
     private void OnTriggerEnter2D(Collider2D other)

@@ -212,27 +212,6 @@ public class LightningBoltEffect : MonoBehaviour
 
     private static Material GetOrCreateBoltMaterial()
     {
-        if (sharedBoltMaterial != null)
-        {
-            return sharedBoltMaterial;
-        }
-
-        Shader shader = Shader.Find("Sprites/Default");
-        if (shader == null)
-        {
-            shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-        }
-        if (shader == null)
-        {
-            shader = Shader.Find("Unlit/Color");
-        }
-
-        if (shader == null)
-        {
-            return null;
-        }
-
-        sharedBoltMaterial = new Material(shader);
-        return sharedBoltMaterial;
+        return BreakoutEffectUtility.GetOrCreateSharedLineMaterial(ref sharedBoltMaterial);
     }
 }

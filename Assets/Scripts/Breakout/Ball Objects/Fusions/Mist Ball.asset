@@ -57,6 +57,19 @@ MonoBehaviour:
   lightningSnakeRadius: 2
   lightningSnakeWaterSplitCount: 2
   lightningSnakeBounceDelay: 0.06
+  lightningBurstBoltColor: {r: 0.5, g: 0.8, b: 1, a: 0.9}
+  lightningBurstBoltWidth: 0.06
+  lightningBurstBoltLifetime: 0.15
+  lightningBurstBoltSegments: 8
+  lightningBurstBoltNoise: 0.18
+  lightningBurstBoltMaterial: {fileID: 0}
+  lightningSnakeVisualMode: 0
+  lightningSnakeBoltColor: {r: 0.35, g: 1, b: 0.75, a: 0.85}
+  lightningSnakeBoltWidth: 0.05
+  lightningSnakeBoltLifetime: 0.22
+  lightningSnakeBoltSegments: 10
+  lightningSnakeBoltNoise: 0.14
+  lightningSnakeBoltMaterial: {fileID: 0}
   earthCrack: 0
   shatterDamage: 2
   shatterRadius: 1.4
@@ -100,6 +113,8 @@ MonoBehaviour:
   waterDropCooldown: 0.08
   createsFlameTrail: 0
   flameTrailSprite: {fileID: 0}
+  flameTrailAnimSprites: []
+  flameTrailAnimFrameRate: 12
   flameTrailColor: {r: 1, g: 0.45, b: 0.1, a: 0.95}
   flameTrailSizeMultiplier: 0.55
   flameTrailSpawnInterval: 0.2
@@ -111,6 +126,8 @@ MonoBehaviour:
   flameTrailBurnHitCount: 2
   createsFertileLand: 0
   fertilePatchSprite: {fileID: 0}
+  fertilePatchAnimSprites: []
+  fertilePatchAnimFrameRate: 12
   fertilePatchColor: {r: 0.35, g: 0.85, b: 0.35, a: 0.95}
   fertilePatchSizeMultiplier: 0.55
   fertilePatchSpawnInterval: 0.3
@@ -137,11 +154,40 @@ MonoBehaviour:
   collapseRadius: 1.8
   collapseDuration: 3
   createsLinearProjectile: 1
-  linearProjectileType: {fileID: 11400000, guid: b5eced93ea3a5f74b898310518a2abee, type: 2}
+  linearProjectileSprite: {fileID: 2174477136716580349, guid: 6b4c2d05337fb63448320934ac03e988, type: 3}
+  linearProjectileAnimSprites:
+  - {fileID: 2174477136716580349, guid: 6b4c2d05337fb63448320934ac03e988, type: 3}
+  - {fileID: 5639685137696533497, guid: 6b4c2d05337fb63448320934ac03e988, type: 3}
+  - {fileID: 367967755916830602, guid: 6b4c2d05337fb63448320934ac03e988, type: 3}
+  linearProjectileAnimFrameRate: 7
+  linearProjectileColor: {r: 1, g: 1, b: 1, a: 0.27058825}
+  linearProjectileSize: 0.75
+  linearProjectileSpeed: 5
+  linearProjectileDamage: 1
+  linearProjectileAppliesBurn: 0
+  linearProjectileBurnDamage: 1
+  linearProjectileBurnTickInterval: 0.5
+  linearProjectileBurnHitCount: 3
+  linearProjectileAppliesCrack: 0
+  linearProjectileCrackShatterDamage: 1
+  linearProjectileCrackShatterRadius: 1.5
+  linearProjectileAppliesRoot: 0
+  linearProjectileRootDuration: 2
+  linearProjectileRootSpeedMultiplier: 0.1
+  linearProjectileHitsBeforeDestroy: 8
   linearProjectileIncludesTopWall: 0
   createsBlackout: 0
   blackoutDamage: 1
   blackoutInterval: 1
+  blackoutBoltColors:
+  - {r: 0.3, g: 0.3, b: 1, a: 0.85}
+  - {r: 0.7, g: 0.2, b: 1, a: 0.85}
+  - {r: 0.2, g: 0.8, b: 1, a: 0.85}
+  blackoutBoltWidth: 0.05
+  blackoutBoltLifetime: 0.18
+  blackoutBoltSegments: 8
+  blackoutBoltNoise: 0.2
+  blackoutBoltMaterial: {fileID: 0}
   createsFirstAid: 0
   firstAidHealPerHit: 1
   firstAidHealThreshold: 5
@@ -150,6 +196,13 @@ MonoBehaviour:
   createsElectricCascade: 0
   electricCascadeShockDamage: 1
   electricCascadeConductiveDuration: 3
+  electricCascadeBeamColor: {r: 0.45, g: 0.9, b: 1, a: 0.9}
+  electricCascadeBeamWidth: 0.07
+  electricCascadeBeamLifetime: 0.2
+  electricCascadeBeamSegments: 10
+  electricCascadeBeamNoise: 0.12
+  electricCascadeBeamLength: 8
+  electricCascadeBeamMaterial: {fileID: 0}
   createsRollingThunder: 0
   rollingThunderStartScaleMultiplier: 1
   rollingThunderMaxScaleMultiplier: 2
@@ -162,6 +215,12 @@ MonoBehaviour:
   shockTherapyMaxTargets: 3
   shockTherapyDamage: 1
   shockTherapyHealAmount: 1
+  shockTherapyBoltColor: {r: 1, g: 1, b: 0.4, a: 0.9}
+  shockTherapyBoltWidth: 0.06
+  shockTherapyBoltLifetime: 0.2
+  shockTherapyBoltSegments: 9
+  shockTherapyBoltNoise: 0.16
+  shockTherapyBoltMaterial: {fileID: 0}
   createsPressurizedSplash: 0
   pressurePerHit: 1
   maxPressure: 4

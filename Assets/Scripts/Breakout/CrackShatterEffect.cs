@@ -170,19 +170,6 @@ public class CrackShatterEffect : MonoBehaviour
 
     private static Material GetOrCreateMaterial()
     {
-        if (sharedMaterial != null)
-            return sharedMaterial;
-
-        Shader shader = Shader.Find("Sprites/Default");
-        if (shader == null)
-            shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-        if (shader == null)
-            shader = Shader.Find("Unlit/Color");
-
-        if (shader == null)
-            return null;
-
-        sharedMaterial = new Material(shader);
-        return sharedMaterial;
+        return BreakoutEffectUtility.GetOrCreateSharedLineMaterial(ref sharedMaterial);
     }
 }

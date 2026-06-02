@@ -161,10 +161,10 @@ MonoBehaviour:
   - {fileID: 7568875337612205380, guid: a9efe43bab2be45499e55abdfd2a0657, type: 3}
   - {fileID: 2073546389808981072, guid: a9efe43bab2be45499e55abdfd2a0657, type: 3}
   linearProjectileAnimFrameRate: 6
-  linearProjectileColor: {r: 1, g: 1, b: 1, a: 1}
-  linearProjectileSize: 0.5
+  linearProjectileColor: {r: 1, g: 1, b: 1, a: 0.8862745}
+  linearProjectileSize: 0.4
   linearProjectileSpeed: 6
-  linearProjectileDamage: 1
+  linearProjectileDamage: 0
   linearProjectileAppliesBurn: 0
   linearProjectileBurnDamage: 1
   linearProjectileBurnTickInterval: 0.5
@@ -172,9 +172,10 @@ MonoBehaviour:
   linearProjectileAppliesCrack: 0
   linearProjectileCrackShatterDamage: 1
   linearProjectileCrackShatterRadius: 1.5
-  linearProjectileAppliesRoot: 0
-  linearProjectileRootDuration: 2
-  linearProjectileRootSpeedMultiplier: 0.1
+  linearProjectileAppliesRoot: 1
+  linearProjectileRootDuration: 2.5
+  linearProjectileRootSpeedMultiplier: 0.3
+  linearProjectileHitsBeforeDestroy: 7
   linearProjectileIncludesTopWall: 1
   createsBlackout: 0
   blackoutDamage: 1
