@@ -32,6 +32,10 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
     [Header("State")]
     [SerializeField] private string machineStateId;
 
+    [Header("Out Of Resources Indicator")]
+    [SerializeField] private bool showOutOfResourcesIndicator = true;
+    [SerializeField] private SpriteRenderer outOfResourcesIndicatorRenderer;
+
     private float spawnTimer;
     private int spawnedItemCount;
     private ItemEntity launchingItem;
@@ -67,11 +71,13 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
         ResolveDependenciesIfNeeded();
         EnsureMachineStateIdAssigned();
         RegisterMachineStateIdIfValid();
+        RefreshOutOfResourcesIndicatorVisual();
     }
 
     private void Update()
     {
         TickLaunchMovement();
+        RefreshOutOfResourcesIndicatorVisual();
 
         if (launchingItem != null)
         {
@@ -188,6 +194,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
 
         BeginLaunch(spawnedItem, spawnPosition, targetPosition);
         spawnedItemCount++;
+        RefreshOutOfResourcesIndicatorVisual();
         return true;
     }
 
@@ -354,6 +361,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
         }
 
         spawnedItemCount = Mathf.Max(0, spawnedItemCount - refundAmount);
+        RefreshOutOfResourcesIndicatorVisual();
         return true;
     }
 
@@ -368,6 +376,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
         }
 
         generator.spawnedItemCount = Mathf.Max(0, generator.spawnedItemCount - amount);
+        generator.RefreshOutOfResourcesIndicatorVisual();
         return true;
     }
 
@@ -393,6 +402,26 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
 
         int clampedRemaining = Mathf.Clamp(resourceAmount, 0, settings.MaxItemsToSpawn);
         spawnedItemCount = Mathf.Clamp(settings.MaxItemsToSpawn - clampedRemaining, 0, settings.MaxItemsToSpawn);
+        RefreshOutOfResourcesIndicatorVisual();
+    }
+
+    private void RefreshOutOfResourcesIndicatorVisual()
+    {
+        if (outOfResourcesIndicatorRenderer == null)
+        {
+            return;
+        }
+
+        GeneratorBuildingSettings settings = GetGeneratorSettings();
+        bool hasConfig = settings != null && settings.ItemDefinition != null && settings.MaxItemsToSpawn > 0;
+        bool shouldShow = showOutOfResourcesIndicator
+            && hasConfig
+            && RemainingItemCount <= 0;
+
+        if (outOfResourcesIndicatorRenderer.enabled != shouldShow)
+        {
+            outOfResourcesIndicatorRenderer.enabled = shouldShow;
+        }
     }
 
     private void RegisterMachineStateIdIfValid()
@@ -446,6 +475,11 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
     private void OnDisable()
     {
         UnregisterMachineStateIdIfValid();
+
+        if (outOfResourcesIndicatorRenderer != null)
+        {
+            outOfResourcesIndicatorRenderer.enabled = false;
+        }
 
         if (launchingItem != null)
         {
