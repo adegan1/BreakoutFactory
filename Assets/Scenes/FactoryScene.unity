@@ -7569,6 +7569,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PauseMenuController
   menuObject: {fileID: 1818096284}
+  resumeCountdownText: {fileID: 0}
+  breakoutResumeCountdownSeconds: 3
 --- !u!1 &1018312993
 GameObject:
   m_ObjectHideFlags: 0
@@ -9328,6 +9330,8 @@ MonoBehaviour:
   defaultBallType: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   fallbackSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   refreshOnEnable: 1
+  allowDragReorder: 1
+  dragReorderLerpSpeed: 18
 --- !u!114 &1266949052
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15077,6 +15081,8 @@ MonoBehaviour:
   defaultBallType: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   fallbackSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
   refreshOnEnable: 1
+  allowDragReorder: 1
+  dragReorderLerpSpeed: 18
 --- !u!1 &1995175671
 GameObject:
   m_ObjectHideFlags: 0
@@ -15125,8 +15131,6 @@ MonoBehaviour:
   - buildingDefinition: {fileID: 11400000, guid: 9ee3ce427af21a547a30648e8e8e5a21, type: 2}
     quantity: 10
   - buildingDefinition: {fileID: 11400000, guid: a163862e1e67beb41880159dba5f80d9, type: 2}
-    quantity: 3
-  - buildingDefinition: {fileID: 11400000, guid: fa46ecb9e6ac6c24d8d11ce263dcb1a5, type: 2}
     quantity: 3
   buildingInventory: []
   buildingHotbarSlots: []

@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Spark
   description: 
   icon: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  tint: {r: 0.46823567, g: 0.8113208, b: 0.2028302, a: 1}
+  tint: {r: 0.9245283, g: 0.4271647, b: 0.20496617, a: 1}
   baseValue: 1
   isFusion: 1
   isCompound: 0

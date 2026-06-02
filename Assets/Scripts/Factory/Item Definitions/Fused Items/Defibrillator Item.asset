@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Defibrillator
   description: 
   icon: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
-  tint: {r: 0.8773585, g: 0.26900145, b: 0.28601825, a: 1}
+  tint: {r: 0.8018868, g: 0.3215112, b: 0.333908, a: 1}
   baseValue: 1
   isFusion: 1
   isCompound: 0
