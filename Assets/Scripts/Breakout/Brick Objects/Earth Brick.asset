@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Earth Brick
   m_EditorClassIdentifier: Assembly-CSharp::BrickTypeData
   hitPoints: 3
-  displayColor: {r: 0.5943396, g: 0.36052793, b: 0.2270826, a: 1}
+  brickSprite: {fileID: 7616123654540854340, guid: 9c8d7126f281a4748b63aa212abbeb84, type: 3}
+  displayColor: {r: 1, g: 1, b: 1, a: 1}
   scoreValue: 10
   flammable: 0
   fireResistant: 0

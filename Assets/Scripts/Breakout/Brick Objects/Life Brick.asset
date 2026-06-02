@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Life Brick
   m_EditorClassIdentifier: Assembly-CSharp::BrickTypeData
   hitPoints: 3
-  displayColor: {r: 0.17598087, g: 0.6698113, b: 0.12953897, a: 1}
+  brickSprite: {fileID: 8343993599074239789, guid: ef4ab67004eca474d87a41fe29c55c04, type: 3}
+  displayColor: {r: 1, g: 1, b: 1, a: 1}
   scoreValue: 10
   flammable: 1
   fireResistant: 0
@@ -65,4 +66,12 @@ MonoBehaviour:
   lightningCrackFieldCrackRadius: 1.5
   lightningCrackFieldSearchRadius: 3
   lightningCrackFieldTargetCount: 2
+  lightningCrackFieldBoltColor: {r: 0.6, g: 0.85, b: 0.5, a: 1}
+  lightningCrackFieldBoltWidth: 0.06
+  lightningCrackFieldBoltLifetime: 0.3
+  lightningCrackFieldBoltSegments: 10
+  lightningCrackFieldBoltNoise: 0.18
+  earthLifeRootSearchRadius: 3
+  earthLifeRootDuration: 3
+  earthLifeRootSpeedMultiplier: 0.1
   type: 4

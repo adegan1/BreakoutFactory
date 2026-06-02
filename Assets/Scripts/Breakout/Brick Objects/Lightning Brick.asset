@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Lightning Brick
   m_EditorClassIdentifier: Assembly-CSharp::BrickTypeData
   hitPoints: 3
-  displayColor: {r: 0.990566, g: 0.88978994, b: 0.2663314, a: 1}
+  brickSprite: {fileID: -6895177800159859031, guid: f01c5f153b3cceb43aaf706e881c7f9f, type: 3}
+  displayColor: {r: 1, g: 1, b: 1, a: 1}
   scoreValue: 10
   flammable: 0
   fireResistant: 0

@@ -13,11 +13,65 @@ MonoBehaviour:
   m_Name: Base Brick
   m_EditorClassIdentifier: Assembly-CSharp::BrickTypeData
   hitPoints: 3
-  displayColor: {r: 0.764151, g: 0.764151, b: 0.764151, a: 1}
+  brickSprite: {fileID: -7976252710584792832, guid: 7f5ddf74b41680445873192723a3c10a, type: 3}
+  displayColor: {r: 1, g: 1, b: 1, a: 1}
   scoreValue: 10
   flammable: 0
   fireResistant: 0
   amplifiesLightning: 0
   lightningTargetBonus: 1
   damageToPlayer: 5
+  windFireBurstRadius: 2
+  windFireBurstDamage: 1
+  windFireBurstColor: {r: 1, g: 0.4, b: 0.05, a: 1}
+  windFireBurstWidth: 0.06
+  windFireBurstRayLength: 1.5
+  windFireBurstLifetime: 0.35
+  windFireBurstRayCount: 8
+  steamWeakenRadius: 2
+  steamWeakenDuration: 3
+  steamColor: {r: 0.75, g: 0.9, b: 1, a: 0.9}
+  steamWidth: 0.08
+  steamRingRadius: 1.8
+  steamLifetime: 0.8
+  lifeRootSearchRadius: 3
+  lifeRootDuration: 3
+  lifeRootSpeedMultiplier: 0.1
+  vineColor: {r: 0.2, g: 0.8, b: 0.25, a: 1}
+  vineWidth: 0.07
+  vineGrowDuration: 0.35
+  vineHoldDuration: 0.25
+  vineFadeDuration: 0.3
+  earthLightningStrikeRadius: 3
+  earthLightningStrikeDamage: 2
+  earthLightningStrikeBurnDamage: 1
+  earthLightningStrikeBurnInterval: 0.5
+  earthLightningStrikeBurnHitCount: 5
+  earthLightningBoltColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  earthLightningBoltWidth: 0.07
+  earthLightningBoltLifetime: 0.35
+  earthLightningBoltSegments: 12
+  earthLightningBoltNoise: 0.15
+  windChainLightningDuration: 5
+  windChainLightningDamage: 1
+  windChainLightningRadius: 3
+  windChainLightningBoltColor: {r: 0.7, g: 0.88, b: 1, a: 1}
+  windChainLightningBoltWidth: 0.05
+  windChainLightningBoltLifetime: 0.2
+  windChainLightningBoltSegments: 8
+  windChainLightningBoltNoise: 0.1
+  lightningCrackFieldDuration: 4
+  lightningCrackFieldTickInterval: 0.6
+  lightningCrackFieldCrackDamage: 1
+  lightningCrackFieldCrackRadius: 1.5
+  lightningCrackFieldSearchRadius: 3
+  lightningCrackFieldTargetCount: 2
+  lightningCrackFieldBoltColor: {r: 0.6, g: 0.85, b: 0.5, a: 1}
+  lightningCrackFieldBoltWidth: 0.06
+  lightningCrackFieldBoltLifetime: 0.3
+  lightningCrackFieldBoltSegments: 10
+  lightningCrackFieldBoltNoise: 0.18
+  earthLifeRootSearchRadius: 3
+  earthLifeRootDuration: 3
+  earthLifeRootSpeedMultiplier: 0.1
   type: 0

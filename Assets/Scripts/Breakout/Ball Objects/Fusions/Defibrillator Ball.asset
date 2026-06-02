@@ -19,8 +19,9 @@ MonoBehaviour:
   displayName: Defibrillator
   description: 'Has ability SHOCK THERAPY:
 
-    When bouncing off of any wall, a
-    random number of bricks are shocked and the player is healed some health.'
+    When bouncing off of the paddle or
+    any wall, a random number of bricks are shocked and the player is healed some
+    health.'
   trailColor: {r: 1, g: 1, b: 1, a: 1}
   trailColors:
   - {r: 0.9716981, g: 0.40792987, b: 0.40792987, a: 1}
@@ -153,7 +154,24 @@ MonoBehaviour:
   collapseRadius: 1.8
   collapseDuration: 3
   createsLinearProjectile: 0
-  linearProjectileType: {fileID: 0}
+  linearProjectileSprite: {fileID: 0}
+  linearProjectileAnimSprites: []
+  linearProjectileAnimFrameRate: 12
+  linearProjectileColor: {r: 1, g: 1, b: 1, a: 1}
+  linearProjectileSize: 0.5
+  linearProjectileSpeed: 6
+  linearProjectileDamage: 1
+  linearProjectileAppliesBurn: 0
+  linearProjectileBurnDamage: 1
+  linearProjectileBurnTickInterval: 0.5
+  linearProjectileBurnHitCount: 3
+  linearProjectileAppliesCrack: 0
+  linearProjectileCrackShatterDamage: 1
+  linearProjectileCrackShatterRadius: 1.5
+  linearProjectileAppliesRoot: 0
+  linearProjectileRootDuration: 2
+  linearProjectileRootSpeedMultiplier: 0.1
+  linearProjectileHitsBeforeDestroy: 1
   linearProjectileIncludesTopWall: 0
   createsBlackout: 0
   blackoutDamage: 1

@@ -10,11 +10,19 @@ public class SpriteStacker : MonoBehaviour
 
     private SpriteRenderer sourceRenderer;
     private SpriteRenderer[] layerRenderers;
+    private Sprite lastSprite;
+    private Color lastColor;
 
     private void Awake()
     {
         sourceRenderer = GetComponent<SpriteRenderer>();
         Build();
+        SyncLayersToSource(force: true);
+    }
+
+    private void LateUpdate()
+    {
+        SyncLayersToSource(force: false);
     }
 
     private void Build()
@@ -82,6 +90,9 @@ public class SpriteStacker : MonoBehaviour
             sr.sprite = sprite;
             sr.color = new Color(mainColor.r * edgeBrightness, mainColor.g * edgeBrightness, mainColor.b * edgeBrightness, mainColor.a);
         }
+
+        lastSprite = sprite;
+        lastColor = mainColor;
     }
 
     /// <summary>
@@ -98,6 +109,23 @@ public class SpriteStacker : MonoBehaviour
             Color paused = new Color(g, g, g, c.a * Mathf.Clamp01(alphaMultiplier));
             sr.color = Color.Lerp(c, paused, Mathf.Clamp01(grayscaleBlend));
         }
+    }
+
+    private void SyncLayersToSource(bool force)
+    {
+        if (sourceRenderer == null || layerRenderers == null)
+        {
+            return;
+        }
+
+        Sprite currentSprite = sourceRenderer.sprite;
+        Color currentColor = sourceRenderer.color;
+        if (!force && currentSprite == lastSprite && currentColor == lastColor)
+        {
+            return;
+        }
+
+        Refresh(currentSprite, currentColor);
     }
 
     private void OnDestroy()

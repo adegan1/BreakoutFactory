@@ -59,10 +59,6 @@ public class BrickController : MonoBehaviour
     [SerializeField, Min(0.01f)] private float damageFlashDuration = 0.12f;
     [SerializeField, Range(0f, 1f)] private float damageFlashStrength = 0.9f;
 
-    [Header("Texture Variation")]
-    [SerializeField] private Vector2 uvOffsetRangeX = new Vector2(0f, 1f);
-    [SerializeField] private Vector2 uvOffsetRangeY = new Vector2(0f, 1f);
-
     [Header("Effect Overlays")]
     [SerializeField] private Sprite crackedOverlaySprite;
     [SerializeField] private OverlayAnimation crackedOverlayAnimation;
@@ -85,15 +81,11 @@ public class BrickController : MonoBehaviour
     [SerializeField, Min(0.05f)] private float crackShatterEffectLifetime = 0.45f;
     [SerializeField, Range(3, 12)] private int crackShatterEffectCrackCount = 6;
 
-    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-    private static readonly int BaseMapSTId = Shader.PropertyToID("_BaseMap_ST");
-
     private int currentHitPoints;
     private int maxHitPoints;
     private int overrideHitPoints = -1;
     private SpriteRenderer spriteRenderer;
-    private MeshRenderer brickMeshRenderer;
-    private MaterialPropertyBlock propertyBlock;
+    private Sprite defaultBrickSprite;
     private Collider2D brickCollider;
     private Vector3 targetScale;
     private bool isGrowing;
@@ -182,15 +174,21 @@ public class BrickController : MonoBehaviour
         isGrowing = true;
 
         spriteRenderer = GetComponent<SpriteRenderer>();
-        brickMeshRenderer = GetComponentInChildren<MeshRenderer>();
-        propertyBlock = new MaterialPropertyBlock();
-        float offsetX = Random.Range(uvOffsetRangeX.x, uvOffsetRangeX.y);
-        float offsetY = Random.Range(uvOffsetRangeY.x, uvOffsetRangeY.y);
-        propertyBlock.SetVector(BaseMapSTId, new Vector4(1f, 1f, offsetX, offsetY));
-        if (brickMeshRenderer != null && spriteRenderer != null)
+        if (spriteRenderer != null)
         {
-            spriteRenderer.enabled = false;
+            defaultBrickSprite = spriteRenderer.sprite;
         }
+
+        // Force 2D brick visuals by disabling legacy mesh renderers.
+        MeshRenderer[] meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
+        for (int i = 0; i < meshRenderers.Length; i++)
+        {
+            if (meshRenderers[i] != null)
+            {
+                meshRenderers[i].enabled = false;
+            }
+        }
+
         brickCollider = GetComponent<Collider2D>();
         InitializeEffectOverlays();
         ApplyTypeData();
@@ -322,13 +320,10 @@ public class BrickController : MonoBehaviour
         ClearForestFire();
         ClearConductive();
 
-        if (brickMeshRenderer != null)
+        if (spriteRenderer != null)
         {
-            propertyBlock.SetColor(BaseColorId, typeData.DisplayColor);
-            brickMeshRenderer.SetPropertyBlock(propertyBlock);
-        }
-        else if (spriteRenderer != null)
-        {
+            spriteRenderer.sprite = typeData.BrickSprite != null ? typeData.BrickSprite : defaultBrickSprite;
+            spriteRenderer.enabled = true;
             spriteRenderer.color = typeData.DisplayColor;
         }
 
@@ -593,14 +588,7 @@ public class BrickController : MonoBehaviour
     private void UpdateHealthAlpha()
     {
         float ratio = Mathf.Clamp01((float)currentHitPoints / Mathf.Max(1, maxHitPoints));
-        if (brickMeshRenderer != null)
-        {
-            Color baseColor = typeData != null ? typeData.DisplayColor : Color.white;
-            baseColor.a = ratio;
-            propertyBlock.SetColor(BaseColorId, baseColor);
-            brickMeshRenderer.SetPropertyBlock(propertyBlock);
-        }
-        else if (spriteRenderer != null)
+        if (spriteRenderer != null)
         {
             Color color = spriteRenderer.color;
             color.a = ratio;
@@ -2034,7 +2022,7 @@ public class BrickController : MonoBehaviour
 
     private void TriggerDamageFlash()
     {
-        if (!enableDamageFlash || (brickMeshRenderer == null && spriteRenderer == null))
+        if (!enableDamageFlash || spriteRenderer == null)
         {
             return;
         }
@@ -2084,12 +2072,7 @@ public class BrickController : MonoBehaviour
         float weight = Mathf.Clamp01(damageFlashStrength) * Mathf.Clamp01(pulse01);
         Color result = Color.Lerp(baseColor, pulseColor, weight);
 
-        if (brickMeshRenderer != null)
-        {
-            propertyBlock.SetColor(BaseColorId, result);
-            brickMeshRenderer.SetPropertyBlock(propertyBlock);
-        }
-        else if (spriteRenderer != null)
+        if (spriteRenderer != null)
         {
             spriteRenderer.color = result;
         }
@@ -2098,12 +2081,7 @@ public class BrickController : MonoBehaviour
     private void SetBaseBrickColor()
     {
         Color baseColor = GetBaseBrickColor();
-        if (brickMeshRenderer != null)
-        {
-            propertyBlock.SetColor(BaseColorId, baseColor);
-            brickMeshRenderer.SetPropertyBlock(propertyBlock);
-        }
-        else if (spriteRenderer != null)
+        if (spriteRenderer != null)
         {
             spriteRenderer.color = baseColor;
         }
@@ -2111,7 +2089,9 @@ public class BrickController : MonoBehaviour
 
     private Color GetBaseBrickColor()
     {
-        Color baseColor = typeData != null ? typeData.DisplayColor : spriteRenderer.color;
+        Color baseColor = typeData != null
+            ? typeData.DisplayColor
+            : (spriteRenderer != null ? spriteRenderer.color : Color.white);
         float ratio = Mathf.Clamp01((float)currentHitPoints / Mathf.Max(1, maxHitPoints));
         baseColor.a = ratio;
         return baseColor;

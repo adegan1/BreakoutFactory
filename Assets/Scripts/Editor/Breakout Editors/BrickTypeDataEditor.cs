@@ -5,6 +5,7 @@ using UnityEngine;
 public class BrickTypeDataEditor : BreakoutDataEditorBase
 {
     private SerializedProperty hitPointsProperty;
+    private SerializedProperty brickSpriteProperty;
     private SerializedProperty displayColorProperty;
     private SerializedProperty scoreValueProperty;
     private SerializedProperty flammableProperty;
@@ -77,6 +78,7 @@ public class BrickTypeDataEditor : BreakoutDataEditorBase
     private void OnEnable()
     {
         hitPointsProperty = FindProperty("hitPoints");
+        brickSpriteProperty = FindProperty("brickSprite");
         displayColorProperty = FindProperty("displayColor");
         scoreValueProperty = FindProperty("scoreValue");
         flammableProperty = FindProperty("flammable");
@@ -149,7 +151,7 @@ public class BrickTypeDataEditor : BreakoutDataEditorBase
     {
         serializedObject.Update();
 
-        DrawSection("Core Properties", hitPointsProperty, displayColorProperty, scoreValueProperty, damageToPlayerProperty);
+        DrawSection("Core Properties", hitPointsProperty, brickSpriteProperty, displayColorProperty, scoreValueProperty, damageToPlayerProperty);
         DrawSection("Fire Interaction", flammableProperty, fireResistantProperty);
         DrawSection("Lightning Interaction", amplifiesLightningProperty);
         DrawConditionalGroup(amplifiesLightningProperty, lightningTargetBonusProperty);
