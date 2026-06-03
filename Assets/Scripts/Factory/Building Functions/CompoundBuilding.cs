@@ -404,17 +404,7 @@ public class CompoundBuilding : MonoBehaviour,
             return null;
         }
 
-        BuildCanonicalPair(
-            sourceItemA,
-            sourceItemB,
-            ballA,
-            ballB,
-            out ItemDefinition firstItem,
-            out ItemDefinition secondItem,
-            out BallTypeData firstBall,
-            out BallTypeData secondBall);
-
-        string key = BuildCompoundKey(firstItem, secondItem);
+        string key = BuildCompoundKey(sourceItemA, sourceItemB);
         if (CachedOutputsByKey.TryGetValue(key, out CachedCompoundOutput cachedOutput) &&
             cachedOutput != null &&
             cachedOutput.ItemDefinition != null &&
@@ -424,14 +414,17 @@ public class CompoundBuilding : MonoBehaviour,
         }
 
         BallTypeData compoundBall = ScriptableObject.CreateInstance<BallTypeData>();
-        compoundBall.InitializeAsCompound(firstBall, secondBall);
+        compoundBall.InitializeAsCompound(ballA, ballB);
         compoundBall.name = compoundBall.DisplayName;
 
         ItemDefinition compoundItem = ScriptableObject.CreateInstance<ItemDefinition>();
+        Color compoundItemTint = Color.Lerp(sourceItemA.Tint, sourceItemB.Tint, 0.5f);
         compoundItem.InitializeAsRuntimeCompound(
             compoundBall,
             $"item.compound.{key}",
-            firstItem.BaseValue + secondItem.BaseValue);
+            sourceItemA.BaseValue + sourceItemB.BaseValue,
+            sourceItemA.Icon,
+            compoundItemTint);
 
         CachedCompoundOutput newOutput = new CachedCompoundOutput
         {
@@ -444,39 +437,11 @@ public class CompoundBuilding : MonoBehaviour,
         return newOutput;
     }
 
-    private static string BuildCompoundKey(ItemDefinition firstItem, ItemDefinition secondItem)
+    private static string BuildCompoundKey(ItemDefinition inputItemA, ItemDefinition inputItemB)
     {
-        string firstId = string.IsNullOrWhiteSpace(firstItem.ItemId) ? firstItem.name : firstItem.ItemId;
-        string secondId = string.IsNullOrWhiteSpace(secondItem.ItemId) ? secondItem.name : secondItem.ItemId;
+        string firstId = string.IsNullOrWhiteSpace(inputItemA.ItemId) ? inputItemA.name : inputItemA.ItemId;
+        string secondId = string.IsNullOrWhiteSpace(inputItemB.ItemId) ? inputItemB.name : inputItemB.ItemId;
         return $"{firstId}__{secondId}".ToLowerInvariant().Replace(" ", ".");
-    }
-
-    private static void BuildCanonicalPair(
-        ItemDefinition itemA,
-        ItemDefinition itemB,
-        BallTypeData ballA,
-        BallTypeData ballB,
-        out ItemDefinition firstItem,
-        out ItemDefinition secondItem,
-        out BallTypeData firstBall,
-        out BallTypeData secondBall)
-    {
-        string keyA = string.IsNullOrWhiteSpace(itemA.ItemId) ? itemA.name : itemA.ItemId;
-        string keyB = string.IsNullOrWhiteSpace(itemB.ItemId) ? itemB.name : itemB.ItemId;
-
-        if (string.CompareOrdinal(keyA, keyB) <= 0)
-        {
-            firstItem = itemA;
-            secondItem = itemB;
-            firstBall = ballA;
-            secondBall = ballB;
-            return;
-        }
-
-        firstItem = itemB;
-        secondItem = itemA;
-        firstBall = ballB;
-        secondBall = ballA;
     }
 
     private bool TryReleasePendingOutput()

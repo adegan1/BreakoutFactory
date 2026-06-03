@@ -33,7 +33,12 @@ public class ItemDefinition : ScriptableObject
     public bool IsCompound => isCompound;
     public BallTypeData RuntimeBallType => runtimeBallType;
 
-    public void InitializeAsRuntimeCompound(BallTypeData compoundBallType, string compoundItemId, int compoundBaseValue)
+    public void InitializeAsRuntimeCompound(
+        BallTypeData compoundBallType,
+        string compoundItemId,
+        int compoundBaseValue,
+        Sprite iconOverride = null,
+        Color? tintOverride = null)
     {
         if (compoundBallType == null)
         {
@@ -44,8 +49,8 @@ public class ItemDefinition : ScriptableObject
         itemId = string.IsNullOrWhiteSpace(compoundItemId) ? fallbackId : compoundItemId.Trim();
         displayName = compoundBallType.DisplayName;
         description = compoundBallType.Description;
-        icon = compoundBallType.BallSprite;
-        tint = compoundBallType.TrailColor;
+        icon = iconOverride != null ? iconOverride : compoundBallType.BallSprite;
+        tint = tintOverride ?? compoundBallType.TrailColor;
         baseValue = Mathf.Max(0, compoundBaseValue);
         isFusion = false;
         isCompound = true;

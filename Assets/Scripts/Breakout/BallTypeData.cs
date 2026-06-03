@@ -524,10 +524,13 @@ public class BallTypeData : ScriptableObject
         string descA = !string.IsNullOrWhiteSpace(a.Description) ? $"{a.DisplayName} - {a.Description}" : a.DisplayName;
         string descB = !string.IsNullOrWhiteSpace(b.Description) ? $"{b.DisplayName} - {b.Description}" : b.DisplayName;
         description = $"{descA}\n+\n{descB}";
-        trailColor = Color.Lerp(a.TrailColor, b.TrailColor, 0.5f);
-        trailColors = a.TrailColors != null ? (Color[])a.TrailColors.Clone() : new Color[] { Color.white };
-        trailColorCycleRate = a.TrailColorCycleRate;
-        trailColorMode = a.TrailColorSampling;
+        // Directional compounding visuals:
+        // - Input 1 (A): sprite/material/animation profile
+        // - Input 2 (B): color profile
+        trailColor = b.TrailColor;
+        trailColors = b.TrailColors != null ? (Color[])b.TrailColors.Clone() : new Color[] { b.TrailColor };
+        trailColorCycleRate = b.TrailColorCycleRate;
+        trailColorMode = b.TrailColorSampling;
         ballSprite = a.BallSprite;
         ballMaterial = a.BallMaterial;
         animateTexture = a.AnimateTexture;

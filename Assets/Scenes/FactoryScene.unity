@@ -9348,7 +9348,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1266949050
 RectTransform:
   m_ObjectHideFlags: 0
@@ -15218,6 +15218,7 @@ MonoBehaviour:
   startingItems: []
   itemInventory: []
   craftedBalls: []
+  defaultCraftedBallType: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
 --- !u!1 &2023612168
 GameObject:
   m_ObjectHideFlags: 0

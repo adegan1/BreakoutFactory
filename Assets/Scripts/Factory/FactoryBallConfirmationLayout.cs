@@ -225,7 +225,7 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         }
 
         iconImage.sprite = ResolveSprite(ballType);
-        iconImage.color = Color.white;
+        iconImage.color = ballType != null ? ballType.TrailColor : Color.white;
         iconImage.gameObject.SetActive(iconImage.sprite != null);
 
         IconDragHandle dragHandle = EnsureDragHandle(iconImage);

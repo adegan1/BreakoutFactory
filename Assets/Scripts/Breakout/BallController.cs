@@ -908,6 +908,12 @@ public class BallController : MonoBehaviour
             && typeData.TrailColors != null && typeData.TrailColors.Length > 0)
             ? typeData.TrailColors[0]
             : typeData.TrailColor;
+        if (ballMeshRenderer != null)
+        {
+            currentBallColor = new Color(resolvedTrailColor.r, resolvedTrailColor.g, resolvedTrailColor.b, currentBallColor.a);
+            propertyBlock.SetColor(BaseColorId, currentBallColor);
+            ballMeshRenderer.SetPropertyBlock(propertyBlock);
+        }
         ApplyTrailColor(resolvedTrailColor);
 
         float sizeMultiplier = Mathf.Clamp(typeData.Size, 0.25f, 3f);

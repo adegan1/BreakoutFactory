@@ -504,7 +504,9 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         }
 
         ItemDefinition previewItem = acceptedResourceDefinition;
-        BallTypeData previewBallType = ResolvePreviewBallType(previewItem);
+        BallTypeData previewBallType = isMoldCompleted && lastCreatedBallType != null
+            ? lastCreatedBallType
+            : ResolvePreviewBallType(previewItem);
         bool shouldShow = previewBallType != null && (!hidePreviewWhenEmpty || visualFill > 0.001f);
         ballPreviewRenderer.enabled = shouldShow;
         if (!shouldShow)
@@ -513,7 +515,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         }
 
         ballPreviewRenderer.sprite = previewBallType.BallSprite;
-        ballPreviewRenderer.color = Color.white;
+        ballPreviewRenderer.color = previewBallType.TrailColor;
 
         // Keep the sprite unsquished and reveal fill using a vertically resized mask.
         ballPreviewRenderer.transform.localPosition = previewBaseLocalPosition;
