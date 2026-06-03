@@ -23,12 +23,16 @@ public class FactorySoundController : MonoBehaviour
     {
         [SerializeField] private AudioClip clip;
         [SerializeField, Min(1)] private int minimumBuildingCount = 1;
+        [SerializeField, Min(1)] private int buildingsForFullVolume = 4;
+        [SerializeField] private bool excludeBelts;
         [SerializeField, Range(0f, 1f)] private float volume = 0.25f;
         [SerializeField, Min(0.01f)] private float fadeInSpeed = 1.5f;
         [SerializeField, Min(0.01f)] private float fadeOutSpeed = 1.5f;
 
         public AudioClip Clip => clip;
         public int MinimumBuildingCount => minimumBuildingCount;
+        public int BuildingsForFullVolume => Mathf.Max(minimumBuildingCount, buildingsForFullVolume);
+        public bool ExcludeBelts => excludeBelts;
         public float Volume => volume;
         public float FadeInSpeed => fadeInSpeed;
         public float FadeOutSpeed => fadeOutSpeed;
@@ -49,16 +53,20 @@ public class FactorySoundController : MonoBehaviour
     [SerializeField] private OneShotSoundEvent smallBuildingPlaced = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent mediumBuildingPlaced = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent largeBuildingPlaced = new OneShotSoundEvent();
-    [SerializeField] private OneShotSoundEvent buildingRemoved = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent smallBuildingRemoved = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent mediumBuildingRemoved = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent largeBuildingRemoved = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent uiClick = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent ballCreated = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent pauseMenuOpen = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent factoryCleared = new OneShotSoundEvent();
 
     [Header("Ambient Layers")]
     [SerializeField] private AmbientLayer[] ambientLayers;
 
     private readonly List<AudioSource> sourcePool = new List<AudioSource>();
     private readonly List<AudioSource> ambientSourcePool = new List<AudioSource>();
+    private bool isFactoryClearFadeActive;
 
     public static FactorySoundController Instance
     {
@@ -115,9 +123,20 @@ public class FactorySoundController : MonoBehaviour
         }
     }
 
-    public static void PlayBuildingRemovedSfx()
+    public static void PlayBuildingRemovedSfx(BuildingDefinition.PlacementSoundSize placementSize)
     {
-        Instance.PlayEvent(Instance.buildingRemoved);
+        switch (placementSize)
+        {
+            case BuildingDefinition.PlacementSoundSize.Small:
+                Instance.PlayEvent(Instance.smallBuildingRemoved);
+                break;
+            case BuildingDefinition.PlacementSoundSize.Medium:
+                Instance.PlayEvent(Instance.mediumBuildingRemoved);
+                break;
+            default:
+                Instance.PlayEvent(Instance.largeBuildingRemoved);
+                break;
+        }
     }
 
     public static void PlayUiClickSfx()
@@ -133,6 +152,16 @@ public class FactorySoundController : MonoBehaviour
     public static void PlayPauseMenuOpenSfx()
     {
         Instance.PlayEvent(Instance.pauseMenuOpen);
+    }
+
+    public static void PlayFactoryClearedSfx()
+    {
+        Instance.PlayEvent(Instance.factoryCleared);
+    }
+
+    public static void BeginFactoryClearAmbientFade()
+    {
+        Instance.isFactoryClearFadeActive = true;
     }
 
     private void Awake()
@@ -161,10 +190,13 @@ public class FactorySoundController : MonoBehaviour
         CollectClips(uniqueClips, smallBuildingPlaced);
         CollectClips(uniqueClips, mediumBuildingPlaced);
         CollectClips(uniqueClips, largeBuildingPlaced);
-        CollectClips(uniqueClips, buildingRemoved);
+        CollectClips(uniqueClips, smallBuildingRemoved);
+        CollectClips(uniqueClips, mediumBuildingRemoved);
+        CollectClips(uniqueClips, largeBuildingRemoved);
         CollectClips(uniqueClips, uiClick);
         CollectClips(uniqueClips, ballCreated);
         CollectClips(uniqueClips, pauseMenuOpen);
+        CollectClips(uniqueClips, factoryCleared);
         CollectAmbientClips(uniqueClips);
 
         foreach (AudioClip clip in uniqueClips)
@@ -335,7 +367,6 @@ public class FactorySoundController : MonoBehaviour
     {
         EnsureAmbientSourcesInitialized();
 
-        int buildingCount = GetActiveBuildingCount();
         float globalAmbientVolume = Mathf.Clamp01(masterVolume) * Mathf.Clamp01(ambientVolume);
 
         for (int i = 0; i < ambientSourcePool.Count; i++)
@@ -347,15 +378,23 @@ public class FactorySoundController : MonoBehaviour
                 continue;
             }
 
+            int buildingCount = isFactoryClearFadeActive ? 0 : GetActiveBuildingCount(layer.ExcludeBelts);
+
             AudioClip clip = layer.Clip;
             if (clip != null && source.clip != clip)
             {
                 source.clip = clip;
                 source.time = Random.Range(0f, clip.length);
+                source.volume = 0f;
             }
 
             bool shouldBeAudible = clip != null && buildingCount >= layer.MinimumBuildingCount;
-            float targetVolume = shouldBeAudible ? Mathf.Clamp01(layer.Volume) * globalAmbientVolume : 0f;
+            float countVolumeMultiplier = shouldBeAudible
+                ? Mathf.InverseLerp(layer.MinimumBuildingCount, layer.BuildingsForFullVolume, buildingCount)
+                : 0f;
+            float targetVolume = shouldBeAudible
+                ? Mathf.Clamp01(layer.Volume) * globalAmbientVolume * Mathf.Clamp01(countVolumeMultiplier)
+                : 0f;
             float fadeSpeed = shouldBeAudible ? Mathf.Max(0.01f, layer.FadeInSpeed) : Mathf.Max(0.01f, layer.FadeOutSpeed);
             source.volume = Mathf.MoveTowards(source.volume, targetVolume, fadeSpeed * Time.deltaTime);
 
@@ -368,18 +407,50 @@ public class FactorySoundController : MonoBehaviour
                 source.Stop();
             }
         }
+
+        if (isFactoryClearFadeActive && AreAllAmbientSourcesSilent())
+        {
+            isFactoryClearFadeActive = false;
+        }
     }
 
-    private static int GetActiveBuildingCount()
+    private bool AreAllAmbientSourcesSilent()
+    {
+        for (int i = 0; i < ambientSourcePool.Count; i++)
+        {
+            AudioSource source = ambientSourcePool[i];
+            if (source == null)
+            {
+                continue;
+            }
+
+            if (source.isPlaying || source.volume > 0.0001f)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static int GetActiveBuildingCount(bool excludeBelts)
     {
         BuildingInstance[] buildings = BuildingInstanceSceneQuery.GetBuildings();
         int count = 0;
         for (int i = 0; i < buildings.Length; i++)
         {
-            if (buildings[i] != null)
+            BuildingInstance building = buildings[i];
+            if (building == null)
             {
-                count++;
+                continue;
             }
+
+            if (excludeBelts && building.BuildingDefinition != null && building.BuildingDefinition.IsConveyor)
+            {
+                continue;
+            }
+
+            count++;
         }
 
         return count;

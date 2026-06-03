@@ -284,9 +284,11 @@ MonoBehaviour:
   defaultShowInfo: 0
   defaultShowControls: 1
   defaultFactorySpeedIsDouble: 0
+  defaultFactoryAutoPause: 1
   showInfo: 0
   showControls: 1
   factorySpeedIsDouble: 0
+  factoryAutoPause: 1
 --- !u!4 &192587645
 Transform:
   m_ObjectHideFlags: 0
@@ -916,7 +918,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1125758897
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1122,6 +1124,7 @@ MonoBehaviour:
   factoryBuildingPlacer: {fileID: 0}
   levelSettings: {fileID: 0}
   playerStats: {fileID: 0}
+  gameSettings: {fileID: 0}
   clearLooseFactoryItems: 1
 --- !u!4 &1287376265
 Transform:
@@ -1358,6 +1361,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 1287376264}
+        m_TargetAssemblyTypeName: RetainedDataResetter, Assembly-CSharp
+        m_MethodName: ResetAllRetainedData
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 1240484048}
         m_TargetAssemblyTypeName: SceneLoader, Assembly-CSharp
         m_MethodName: LoadSceneByName

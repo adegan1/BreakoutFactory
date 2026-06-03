@@ -2141,7 +2141,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
             ConveyorBuilding existingConveyorBuilding = existingConveyor.SpawnedObject.GetComponent<ConveyorBuilding>();
             existingConveyorBuilding?.SuppressItemSnapOnDisable();
 
-            if (!RemovePlacedBuilding(existingConveyor, true))
+            if (!RemovePlacedBuilding(existingConveyor, true, playRemoveSound: false))
             {
                 inventoryManager.AddBuilding(selectedBuildingDefinition, 1);
                 return false;
@@ -2364,7 +2364,11 @@ public class FactoryBuildingPlacer : MonoBehaviour
         return false;
     }
 
-    private bool RemovePlacedBuilding(PlacedBuildingRecord record, bool refundToInventory, bool dropPendingItemToGround = true)
+    private bool RemovePlacedBuilding(
+        PlacedBuildingRecord record,
+        bool refundToInventory,
+        bool dropPendingItemToGround = true,
+        bool playRemoveSound = true)
     {
         if (!tileManager.ClearFootprint(record.TopLeftGridPosition, record.FootprintSize))
         {
@@ -2420,7 +2424,13 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         inventoryManager?.UnregisterPlacedBuilding(record.Definition);
-        FactorySoundController.PlayBuildingRemovedSfx();
+        if (playRemoveSound)
+        {
+            BuildingDefinition.PlacementSoundSize removalSoundSize = record.Definition != null
+                ? record.Definition.SoundSize
+                : BuildingDefinition.PlacementSoundSize.Small;
+            FactorySoundController.PlayBuildingRemovedSfx(removalSoundSize);
+        }
         return true;
     }
 
@@ -3690,6 +3700,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
     public void ClearFactoryAndRefundAll()
     {
+        FactorySoundController.BeginFactoryClearAmbientFade();
+        FactorySoundController.PlayFactoryClearedSfx();
         EnsureInventoryManagerAssigned();
         if (inventoryManager != null)
         {
