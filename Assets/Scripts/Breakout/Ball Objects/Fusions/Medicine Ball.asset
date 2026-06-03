@@ -185,7 +185,7 @@ MonoBehaviour:
   blackoutBoltNoise: 0.2
   blackoutBoltMaterial: {fileID: 0}
   createsFirstAid: 1
-  firstAidHealPerHit: 1
+  firstAidHealPerHit: 2
   firstAidHealThreshold: 5
   firstAidExplosionDamage: 2
   firstAidExplosionRadius: 1.25

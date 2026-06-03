@@ -164,6 +164,7 @@ public class BrickController : MonoBehaviour
 
     public static event System.Action<BrickController, int> BrickDestroyed;
     public static event System.Action<BrickController> BrickRemovedByDanger;
+    public static event System.Action<BrickController> SuperEffectiveHit;
 
     public int CurrentHitPoints => currentHitPoints;
     public BrickTypeData TypeData => typeData;
@@ -383,6 +384,7 @@ public class BrickController : MonoBehaviour
         ApplyDamage(damage, DamageSource.BallHit);
         if (isSuperEffectiveHit)
         {
+            SuperEffectiveHit?.Invoke(this);
             BreakoutSoundController.PlaySuperEffectiveBrickHitSfx();
             SuperEffectiveGleamEffect.Spawn(
                 transform.position,

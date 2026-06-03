@@ -57,6 +57,13 @@ public class BreakoutGameController : MonoBehaviour
     [SerializeField] private UnityEvent onAllBricksCleared;
     [SerializeField, Min(0f)] private float allBricksClearedDelaySeconds = 0.75f;
 
+    [Header("Score Popup")]
+    [SerializeField] private BreakoutScorePopup scorePopupPrefab;
+    [SerializeField] private Transform scorePopupParent;
+    [SerializeField] private Vector2 healingPopupOffset = new Vector2(0f, 0.9f);
+    [SerializeField] private Vector2 damagePopupOffset = new Vector2(0f, 0.9f);
+    [SerializeField, Min(0f)] private float popupAggregationWindowSeconds = 0.12f;
+
     [Header("Life Lost UI")]
     [SerializeField] private GameObject lifeLostTextObject;
 
@@ -85,7 +92,13 @@ public class BreakoutGameController : MonoBehaviour
     private Coroutine allBricksClearedRoutine;
     private Coroutine brickSlowStopRoutine;
     private Coroutine forceStopBallsRoutine;
+    private Coroutine healingPopupAggregationRoutine;
+    private Coroutine damagePopupAggregationRoutine;
     private PaddleController cachedPaddleController;
+    private int pendingHealingPopupAmount;
+    private int pendingDamagePopupAmount;
+    private float lastHealingPopupQueuedTime;
+    private float lastDamagePopupQueuedTime;
 
     public int BallsRemaining => Mathf.Max(0, ballsToDispense.Count - nextBallIndex);
     public int Score => score;
@@ -108,10 +121,13 @@ public class BreakoutGameController : MonoBehaviour
     {
         BrickController.BrickDestroyed += HandleBrickDestroyed;
         BrickController.BrickRemovedByDanger += HandleBrickRemovedByDanger;
+        BrickController.SuperEffectiveHit += HandleSuperEffectiveHit;
 
         if (PlayerStats.HasInstance)
         {
             PlayerStats.Instance.HealthChanged += HandlePlayerHealthChanged;
+            PlayerStats.Instance.HealAttempted += HandlePlayerHealAttempted;
+            PlayerStats.Instance.DamageTaken += HandlePlayerDamageTaken;
         }
     }
 
@@ -119,11 +135,19 @@ public class BreakoutGameController : MonoBehaviour
     {
         BrickController.BrickDestroyed -= HandleBrickDestroyed;
         BrickController.BrickRemovedByDanger -= HandleBrickRemovedByDanger;
+        BrickController.SuperEffectiveHit -= HandleSuperEffectiveHit;
 
         if (PlayerStats.HasInstance)
         {
             PlayerStats.Instance.HealthChanged -= HandlePlayerHealthChanged;
+            PlayerStats.Instance.HealAttempted -= HandlePlayerHealAttempted;
+            PlayerStats.Instance.DamageTaken -= HandlePlayerDamageTaken;
         }
+
+        StopAndClearCoroutine(ref healingPopupAggregationRoutine);
+        StopAndClearCoroutine(ref damagePopupAggregationRoutine);
+        pendingHealingPopupAmount = 0;
+        pendingDamagePopupAmount = 0;
     }
 
     private void Start()
@@ -199,6 +223,8 @@ public class BreakoutGameController : MonoBehaviour
         StopAndClearCoroutine(ref allBricksClearedRoutine);
         StopAndClearCoroutine(ref brickSlowStopRoutine);
         StopAndClearCoroutine(ref forceStopBallsRoutine);
+        StopAndClearCoroutine(ref healingPopupAggregationRoutine);
+        StopAndClearCoroutine(ref damagePopupAggregationRoutine);
 
         foreach (BallController activeBall in activeBalls)
         {
@@ -292,6 +318,7 @@ public class BreakoutGameController : MonoBehaviour
         {
             score += awardedScore;
             NotifyScoreChanged();
+            SpawnScorePopup(destroyedBrick, awardedScore);
         }
 
         TrySpawnItemDropFromBrick(destroyedBrick, out bool buildingDropped);
@@ -300,6 +327,51 @@ public class BreakoutGameController : MonoBehaviour
             TrySpawnScrapDropFromBrick(destroyedBrick);
         }
         TryInvokeAllBricksCleared();
+    }
+
+    private void SpawnScorePopup(BrickController destroyedBrick, int awardedScore)
+    {
+        if (scorePopupPrefab == null || destroyedBrick == null || awardedScore <= 0)
+        {
+            return;
+        }
+
+        Transform parent = scorePopupParent;
+        BreakoutScorePopup popup = Instantiate(scorePopupPrefab, destroyedBrick.transform.position, Quaternion.identity, parent);
+        popup.InitializeScore(awardedScore, destroyedBrick.transform.position);
+    }
+
+    private void HandleSuperEffectiveHit(BrickController hitBrick)
+    {
+        SpawnSuperEffectivePopup(hitBrick);
+    }
+
+    private void SpawnSuperEffectivePopup(BrickController hitBrick)
+    {
+        if (scorePopupPrefab == null || hitBrick == null)
+        {
+            return;
+        }
+
+        Transform parent = scorePopupParent;
+        BreakoutScorePopup popup = Instantiate(scorePopupPrefab, hitBrick.transform.position, Quaternion.identity, parent);
+        popup.InitializeSuperEffective(hitBrick.transform.position);
+    }
+
+    private void SpawnHealingPopup(int healedAmount)
+    {
+        if (scorePopupPrefab == null || healedAmount <= 0)
+        {
+            return;
+        }
+
+        Vector3 sourcePosition = paddleTransform != null
+            ? paddleTransform.position + (Vector3)healingPopupOffset
+            : (Vector3)healingPopupOffset;
+
+        Transform parent = scorePopupParent;
+        BreakoutScorePopup popup = Instantiate(scorePopupPrefab, sourcePosition, Quaternion.identity, parent);
+        popup.InitializeHealing(healedAmount, sourcePosition);
     }
 
     private void HandleBrickRemovedByDanger(BrickController removedBrick)
@@ -573,6 +645,110 @@ public class BreakoutGameController : MonoBehaviour
 
         outOfHealthEndQueued = true;
         StartCoroutine(BeginLevelEndNextFrame(LevelEndReason.OutOfHealth));
+    }
+
+    private void HandlePlayerHealAttempted(int requestedAmount, int appliedAmount)
+    {
+        if (requestedAmount <= 0)
+        {
+            return;
+        }
+
+        QueueHealingPopup(requestedAmount);
+    }
+
+    private void HandlePlayerDamageTaken(int requestedAmount, int appliedAmount)
+    {
+        if (appliedAmount <= 0)
+        {
+            return;
+        }
+
+        QueueDamagePopup(appliedAmount);
+    }
+
+    private void QueueHealingPopup(int healedAmount)
+    {
+        if (scorePopupPrefab == null || healedAmount <= 0)
+        {
+            return;
+        }
+
+        pendingHealingPopupAmount += healedAmount;
+        lastHealingPopupQueuedTime = Time.unscaledTime;
+
+        if (healingPopupAggregationRoutine == null)
+        {
+            healingPopupAggregationRoutine = StartCoroutine(FlushHealingPopupWhenQuiet());
+        }
+    }
+
+    private void QueueDamagePopup(int damageAmount)
+    {
+        if (scorePopupPrefab == null || damageAmount <= 0)
+        {
+            return;
+        }
+
+        pendingDamagePopupAmount += damageAmount;
+        lastDamagePopupQueuedTime = Time.unscaledTime;
+
+        if (damagePopupAggregationRoutine == null)
+        {
+            damagePopupAggregationRoutine = StartCoroutine(FlushDamagePopupWhenQuiet());
+        }
+    }
+
+    private IEnumerator FlushHealingPopupWhenQuiet()
+    {
+        float windowSeconds = Mathf.Max(0f, popupAggregationWindowSeconds);
+        while (Time.unscaledTime - lastHealingPopupQueuedTime < windowSeconds)
+        {
+            yield return null;
+        }
+
+        int totalHealed = pendingHealingPopupAmount;
+        pendingHealingPopupAmount = 0;
+        healingPopupAggregationRoutine = null;
+
+        if (totalHealed > 0)
+        {
+            SpawnHealingPopup(totalHealed);
+        }
+    }
+
+    private IEnumerator FlushDamagePopupWhenQuiet()
+    {
+        float windowSeconds = Mathf.Max(0f, popupAggregationWindowSeconds);
+        while (Time.unscaledTime - lastDamagePopupQueuedTime < windowSeconds)
+        {
+            yield return null;
+        }
+
+        int totalDamage = pendingDamagePopupAmount;
+        pendingDamagePopupAmount = 0;
+        damagePopupAggregationRoutine = null;
+
+        if (totalDamage > 0)
+        {
+            SpawnDamagePopup(totalDamage);
+        }
+    }
+
+    private void SpawnDamagePopup(int damageAmount)
+    {
+        if (scorePopupPrefab == null || damageAmount <= 0)
+        {
+            return;
+        }
+
+        Vector3 sourcePosition = paddleTransform != null
+            ? paddleTransform.position + (Vector3)damagePopupOffset
+            : (Vector3)damagePopupOffset;
+
+        Transform parent = scorePopupParent;
+        BreakoutScorePopup popup = Instantiate(scorePopupPrefab, sourcePosition, Quaternion.identity, parent);
+        popup.InitializeDamage(damageAmount, sourcePosition);
     }
 
     private IEnumerator BeginLevelEndNextFrame(LevelEndReason reason)
@@ -936,7 +1112,7 @@ public class BreakoutGameController : MonoBehaviour
         return collectorTransform.CompareTag("Paddle");
     }
 
-    public void HandleItemDropCollected(BuildingDefinition buildingDefinition, int quantity)
+    public void HandleItemDropCollected(BuildingDefinition buildingDefinition, int quantity, Vector3 sourcePosition)
     {
         if (buildingDefinition == null || quantity <= 0)
         {
@@ -944,6 +1120,7 @@ public class BreakoutGameController : MonoBehaviour
         }
 
         InventoryManager.Instance.AddBuilding(buildingDefinition, quantity);
+        SpawnItemPickupPopup(buildingDefinition, quantity, sourcePosition);
 
         for (int i = 0; i < quantity; i++)
         {
@@ -951,6 +1128,56 @@ public class BreakoutGameController : MonoBehaviour
         }
 
         NotifyMachinesCollectedChanged();
+    }
+
+    public void HandleScrapDropCollected(int scrapAmount, Vector3 sourcePosition)
+    {
+        if (scrapAmount <= 0)
+        {
+            return;
+        }
+
+        SpawnScrapPickupPopup(scrapAmount, sourcePosition);
+    }
+
+    private void SpawnItemPickupPopup(BuildingDefinition buildingDefinition, int quantity, Vector3 sourcePosition)
+    {
+        if (scorePopupPrefab == null || buildingDefinition == null || quantity <= 0)
+        {
+            return;
+        }
+
+        Transform parent = scorePopupParent;
+        BreakoutScorePopup popup = Instantiate(scorePopupPrefab, sourcePosition, Quaternion.identity, parent);
+        popup.InitializeItemPickup(GetBuildingPickupName(buildingDefinition), quantity, buildingDefinition.BuildingColor, sourcePosition);
+    }
+
+    private void SpawnScrapPickupPopup(int scrapAmount, Vector3 sourcePosition)
+    {
+        if (scorePopupPrefab == null || scrapAmount <= 0)
+        {
+            return;
+        }
+
+        Transform parent = scorePopupParent;
+        BreakoutScorePopup popup = Instantiate(scorePopupPrefab, sourcePosition, Quaternion.identity, parent);
+        popup.InitializeScrapPickup(scrapAmount, sourcePosition);
+    }
+
+    private static string GetBuildingPickupName(BuildingDefinition buildingDefinition)
+    {
+        if (buildingDefinition == null)
+        {
+            return string.Empty;
+        }
+
+        string displayName = buildingDefinition.DisplayName;
+        if (!string.IsNullOrWhiteSpace(displayName))
+        {
+            return displayName.Trim();
+        }
+
+        return buildingDefinition.name;
     }
 
     private void NotifyScoreChanged()

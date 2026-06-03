@@ -297,7 +297,7 @@ public class BreakoutHudController : MonoBehaviour
 
     private static Color ResolveBallTint(BallTypeData ballType)
     {
-        if (ballType == null)
+        if (ballType == null || !ballType.IsCompound)
         {
             return Color.white;
         }

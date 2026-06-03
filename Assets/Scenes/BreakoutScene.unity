@@ -1854,6 +1854,7 @@ MonoBehaviour:
   startingItems: []
   itemInventory: []
   craftedBalls: []
+  defaultCraftedBallType: {fileID: 0}
 --- !u!4 &279415087
 Transform:
   m_ObjectHideFlags: 0
@@ -5637,6 +5638,7 @@ RectTransform:
   - {fileID: 1200252374}
   - {fileID: 2035297120}
   - {fileID: 549068619}
+  - {fileID: 2090100888}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -11043,8 +11045,8 @@ MonoBehaviour:
   ballPrefab: {fileID: 9021448586808601386, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   paddleTransform: {fileID: 1324807477}
   ballsToDispense:
-  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
-  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  - {fileID: 11400000, guid: db3872469b0e5284ba63b92387d858f6, type: 2}
+  - {fileID: 11400000, guid: bc199a281a7d3a94080764007a818f4c, type: 2}
   - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}
@@ -11106,6 +11108,11 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   allBricksClearedDelaySeconds: 0.75
+  scorePopupPrefab: {fileID: 2071445235586387010, guid: c4ea46c16735e95449a6697a20cdbbe4, type: 3}
+  scorePopupParent: {fileID: 2090100888}
+  healingPopupOffset: {x: 0, y: 0.2}
+  damagePopupOffset: {x: 0, y: 0.5}
+  popupAggregationWindowSeconds: 0.1
   lifeLostTextObject: {fileID: 1752487503}
   itemShop: {fileID: 1286865363}
   pauseGrayscaleBlend: 0.387
@@ -11332,7 +11339,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FactoryBallConfirmationLayout
   iconLayoutRoot: {fileID: 1524641060}
+  positionLayoutRoot: {fileID: 0}
   iconPrefab: {fileID: 2428960868800022688, guid: 11e8c07f0b374c743b1e4be74c09722f, type: 3}
+  positionSlotPrefab: {fileID: 0}
   unplacedMoldsText: {fileID: 0}
   defaultBallType: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   fallbackSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
@@ -11944,8 +11953,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelSettings
   nextLevelRowsToSpawn: 4
-  nextLevelBrickMoveSpeed: 0.075
-  nextLevelBrickHealth: 2
+  nextLevelBrickMoveSpeed: 1
+  nextLevelBrickHealth: 1
   nextLevelBrickOdds:
   - typeData: {fileID: 11400000, guid: 85e9b8c05e2b7214b819ed976f1dd770, type: 2}
     weight: 10
@@ -12163,6 +12172,41 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1 &2090100887
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2090100888}
+  m_Layer: 5
+  m_Name: Rising Text Parent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2090100888
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2090100887}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 777024712}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2093213892
 GameObject:
   m_ObjectHideFlags: 0

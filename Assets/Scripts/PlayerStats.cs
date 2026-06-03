@@ -44,6 +44,8 @@ public class PlayerStats : MonoBehaviour
     public event Action<int> CurrentLevelChanged;
     public event Action<int> ScrapChanged;
     public event Action<int> ScoreChanged;
+    public event Action<int, int> HealAttempted; // (requestedAmount, appliedAmount)
+    public event Action<int, int> DamageTaken; // (requestedAmount, appliedAmount)
     public event Action LifeLost;
     public event Action GameOver;
 
@@ -111,8 +113,11 @@ public class PlayerStats : MonoBehaviour
             return;
         }
 
+        int previousHealth = health;
         health = Mathf.Max(0, health - amount);
+        int appliedAmount = Mathf.Max(0, previousHealth - health);
         NotifyHealthChanged();
+        DamageTaken?.Invoke(amount, appliedAmount);
 
         if (health <= 0)
         {
@@ -127,8 +132,11 @@ public class PlayerStats : MonoBehaviour
             return;
         }
 
+        int previousHealth = health;
         health = Mathf.Min(maxHealth, health + amount);
+        int appliedAmount = Mathf.Max(0, health - previousHealth);
         NotifyHealthChanged();
+        HealAttempted?.Invoke(amount, appliedAmount);
     }
 
     public void SetMaxHealth(int newMaxHealth, bool refillHealth = false)

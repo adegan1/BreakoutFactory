@@ -127,6 +127,11 @@ public class BreakoutScrapDrop : MonoBehaviour
             PlayerStats.Instance.AddScrap(scrapAmount);
         }
 
+        if (owningController != null)
+        {
+            owningController.HandleScrapDropCollected(scrapAmount, transform.position);
+        }
+
         Destroy(gameObject);
     }
 

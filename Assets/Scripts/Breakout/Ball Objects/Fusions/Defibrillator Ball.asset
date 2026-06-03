@@ -211,7 +211,7 @@ MonoBehaviour:
   shockTherapyMinTargets: 1
   shockTherapyMaxTargets: 4
   shockTherapyDamage: 1
-  shockTherapyHealAmount: 1
+  shockTherapyHealAmount: 2
   shockTherapyBoltColor: {r: 0.2678517, g: 0.8867924, b: 0.1966002, a: 0.9}
   shockTherapyBoltWidth: 0.06
   shockTherapyBoltLifetime: 0.2

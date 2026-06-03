@@ -180,6 +180,7 @@ public class PaddleController : MonoBehaviour
         }
 
         observedPlayerStats.HealthChanged += HandleHealthChanged;
+        observedPlayerStats.HealAttempted += HandleHealAttempted;
         lastKnownHealth = observedPlayerStats.Health;
     }
 
@@ -191,6 +192,7 @@ public class PaddleController : MonoBehaviour
         }
 
         observedPlayerStats.HealthChanged -= HandleHealthChanged;
+        observedPlayerStats.HealAttempted -= HandleHealAttempted;
         observedPlayerStats = null;
         lastKnownHealth = -1;
     }
@@ -203,6 +205,14 @@ public class PaddleController : MonoBehaviour
         }
 
         lastKnownHealth = current;
+    }
+
+    private void HandleHealAttempted(int requestedAmount, int appliedAmount)
+    {
+        if (requestedAmount > 0 && appliedAmount <= 0)
+        {
+            TriggerHealFlash();
+        }
     }
 
     private void TriggerHealFlash()

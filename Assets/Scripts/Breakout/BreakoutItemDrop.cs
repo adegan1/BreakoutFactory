@@ -130,7 +130,7 @@ public class BreakoutItemDrop : MonoBehaviour
         }
 
         isCollected = true;
-        owningController.HandleItemDropCollected(buildingDefinition, quantity);
+        owningController.HandleItemDropCollected(buildingDefinition, quantity, transform.position);
         Destroy(gameObject);
     }
 

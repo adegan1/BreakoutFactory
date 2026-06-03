@@ -221,4 +221,4 @@ MonoBehaviour:
   splashDropletCount: 4
   isCompound: 0
   elements: 05000000
-  strongAgainst: 040000000300000000000000
+  strongAgainst: 0400000003000000

@@ -910,7 +910,8 @@ public class BallController : MonoBehaviour
             : typeData.TrailColor;
         if (ballMeshRenderer != null)
         {
-            currentBallColor = new Color(resolvedTrailColor.r, resolvedTrailColor.g, resolvedTrailColor.b, currentBallColor.a);
+            Color meshColor = typeData.IsCompound ? resolvedTrailColor : Color.white;
+            currentBallColor = new Color(meshColor.r, meshColor.g, meshColor.b, currentBallColor.a);
             propertyBlock.SetColor(BaseColorId, currentBallColor);
             ballMeshRenderer.SetPropertyBlock(propertyBlock);
         }
