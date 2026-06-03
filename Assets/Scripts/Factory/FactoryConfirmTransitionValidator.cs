@@ -9,6 +9,7 @@ public class FactoryConfirmTransitionValidator : MonoBehaviour
     [Header("References")]
     [SerializeField] private SceneLoader sceneLoader;
     [SerializeField] private TMP_Text errorText;
+    [SerializeField] private FactoryBallConfirmationLayout confirmationLayout;
 
     [Header("Validation")]
     [SerializeField, Min(1)] private int minimumBallsRequired = 1;
@@ -29,6 +30,11 @@ public class FactoryConfirmTransitionValidator : MonoBehaviour
         if (sceneLoader == null)
         {
             sceneLoader = GetComponent<SceneLoader>();
+        }
+
+        if (confirmationLayout == null)
+        {
+            confirmationLayout = GetComponent<FactoryBallConfirmationLayout>();
         }
 
         if (errorText != null)
@@ -72,6 +78,24 @@ public class FactoryConfirmTransitionValidator : MonoBehaviour
         }
 
         int moldCount = FindObjectsByType<BallMoldBuilding>(FindObjectsSortMode.None).Length;
+
+        if (confirmationLayout != null)
+        {
+            List<BallTypeData> displayedOrder = confirmationLayout.BuildDisplayedBallOrder(moldCount);
+            if (displayedOrder.Count > 0)
+            {
+                for (int i = 0; i < displayedOrder.Count; i++)
+                {
+                    BallTypeData ballType = displayedOrder[i];
+                    if (ballType != null)
+                    {
+                        queue.Add(ballType);
+                    }
+                }
+
+                return queue;
+            }
+        }
 
         IReadOnlyList<BallTypeData> craftedBalls = InventoryManager.Instance.CraftedBalls;
         for (int i = 0; i < craftedBalls.Count; i++)

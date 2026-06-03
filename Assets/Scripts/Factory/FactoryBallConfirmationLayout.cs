@@ -1,15 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 [DisallowMultipleComponent]
 public class FactoryBallConfirmationLayout : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Transform iconLayoutRoot;
+    [SerializeField] private Transform positionLayoutRoot;
     [SerializeField] private Image iconPrefab;
+    [SerializeField] private RectTransform positionSlotPrefab;
     [SerializeField] private GameObject unplacedMoldsText;
 
     [Header("Fallback")]
@@ -22,14 +24,17 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
     [SerializeField, Min(1f)] private float dragReorderLerpSpeed = 18f;
 
     private readonly List<Image> iconPool = new List<Image>();
+    private readonly List<RectTransform> positionSlotPool = new List<RectTransform>();
     private readonly Dictionary<Image, BallTypeData> craftedBallByIcon = new Dictionary<Image, BallTypeData>();
     private readonly HashSet<Image> craftedIconSet = new HashSet<Image>();
     private readonly List<IconDragHandle> dragSessionHandles = new List<IconDragHandle>();
     private readonly List<float> dragSessionSlotWorldXs = new List<float>();
-    private readonly Dictionary<IconDragHandle, int> dragSessionCurrentSlots = new Dictionary<IconDragHandle, int>();
+
+    private IconDragHandle activeDragHandle;
     private IconDragHandle fallbackDraggingHandle;
-    private bool dragSessionActive;
-    private IconDragHandle dragSessionPrimaryHandle;
+    private int activeDragOriginalIndex = -1;
+    private int activeDragTargetIndex = -1;
+    private RectTransform activeDragPlaceholder;
 
     private void OnEnable()
     {
@@ -60,12 +65,12 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
     private void Update()
     {
         HandleFallbackPointerDrag();
-        TickDragSessionSmoothing();
+        TickActiveDragSmoothing();
     }
 
     public void RefreshIcons()
     {
-        if (iconLayoutRoot == null || iconPrefab == null)
+        if (iconLayoutRoot == null || positionLayoutRoot == null || iconPrefab == null)
         {
             UpdateUnplacedMoldsTextVisibility();
             return;
@@ -76,14 +81,31 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
 
         int moldCount = FindObjectsByType<BallMoldBuilding>(FindObjectsSortMode.None).Length;
 
+        if (InventoryManager.HasInstance)
+        {
+            InventoryManager.Instance.EnsureCraftedBallDefaults(defaultBallType, moldCount);
+        }
+
         EnsureIconPool(moldCount);
+        EnsurePositionSlotPool(moldCount);
+
         for (int i = 0; i < iconPool.Count; i++)
         {
             iconPool[i].gameObject.SetActive(false);
         }
 
+        for (int i = 0; i < positionSlotPool.Count; i++)
+        {
+            positionSlotPool[i].gameObject.SetActive(i < moldCount);
+            if (i < moldCount)
+            {
+                positionSlotPool[i].SetSiblingIndex(i);
+            }
+        }
+
         if (moldCount <= 0)
         {
+            UpdateUnplacedMoldsTextVisibility();
             return;
         }
 
@@ -95,11 +117,23 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         for (int i = 0; i < craftedShown; i++)
         {
             ApplyIcon(iconPool[i], craftedBalls[i], isCraftedBall: true);
+            iconPool[i].rectTransform.SetSiblingIndex(i);
         }
 
         for (int i = craftedShown; i < moldCount; i++)
         {
             ApplyIcon(iconPool[i], defaultBallType, isCraftedBall: false);
+            iconPool[i].rectTransform.SetSiblingIndex(i);
+        }
+
+        if (iconLayoutRoot is RectTransform iconRootRect)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(iconRootRect);
+        }
+
+        if (positionLayoutRoot is RectTransform positionRootRect)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(positionRootRect);
         }
 
         UpdateUnplacedMoldsTextVisibility();
@@ -159,6 +193,30 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         }
     }
 
+    private void EnsurePositionSlotPool(int count)
+    {
+        for (int i = positionSlotPool.Count; i < count; i++)
+        {
+            RectTransform slotRect;
+            if (positionSlotPrefab != null)
+            {
+                slotRect = Instantiate(positionSlotPrefab, positionLayoutRoot);
+            }
+            else
+            {
+                GameObject slotObject = new GameObject("FactoryBallConfirmPositionSlot_" + i, typeof(RectTransform), typeof(LayoutElement));
+                slotObject.transform.SetParent(positionLayoutRoot, false);
+                slotRect = slotObject.GetComponent<RectTransform>();
+                LayoutElement slotLayout = slotObject.GetComponent<LayoutElement>();
+                slotLayout.preferredWidth = iconPrefab.rectTransform.rect.width;
+                slotLayout.preferredHeight = iconPrefab.rectTransform.rect.height;
+            }
+
+            slotRect.gameObject.SetActive(false);
+            positionSlotPool.Add(slotRect);
+        }
+    }
+
     private void ApplyIcon(Image iconImage, BallTypeData ballType, bool isCraftedBall)
     {
         if (iconImage == null)
@@ -172,17 +230,24 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
 
         IconDragHandle dragHandle = EnsureDragHandle(iconImage);
         bool canDrag = allowDragReorder && ballType != null;
-        dragHandle.Configure(this, iconImage, ballType, canDrag, BuildDragDisabledReason(iconImage, ballType));
+        dragHandle.Configure(this, iconImage, canDrag, BuildDragDisabledReason(iconImage, ballType, isCraftedBall));
+
+        if (ballType != null)
+        {
+            craftedBallByIcon[iconImage] = ballType;
+        }
+        else
+        {
+            craftedBallByIcon.Remove(iconImage);
+        }
 
         if (isCraftedBall && ballType != null)
         {
-            craftedBallByIcon[iconImage] = ballType;
             craftedIconSet.Add(iconImage);
         }
         else
         {
             craftedIconSet.Remove(iconImage);
-            craftedBallByIcon.Remove(iconImage);
         }
 
         TooltipTrigger tooltip = iconImage.GetComponent<TooltipTrigger>();
@@ -245,54 +310,24 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
 
         if (RectTransformUtility.ScreenPointToWorldPointInRectangle(rootRect, pointerScreenPosition, eventCamera, out Vector3 worldPoint))
         {
-            dragHandle.SetDraggedWorldX(worldPoint.x);
-        }
+            dragHandle.SetDraggedWorldPosition(worldPoint);
 
-        RepositionDraggedSiblingByPointer(dragHandle, pointerScreenPosition, eventCamera);
-    }
-
-    private void RepositionDraggedSiblingByPointer(IconDragHandle dragHandle, Vector2 pointerScreenPosition, Camera eventCamera)
-    {
-        if (dragHandle == null || iconLayoutRoot == null)
-        {
-            return;
-        }
-
-        RectTransform draggedRect = dragHandle.RectTransform;
-        if (draggedRect == null)
-        {
-            return;
-        }
-
-        UpdateDragSessionTargets(dragHandle);
-    }
-
-    private void HandleIconDragEnded(IconDragHandle dragHandle)
-    {
-        if (!InventoryManager.HasInstance || dragHandle == null)
-        {
-            return;
-        }
-
-        List<BallTypeData> reordered = new List<BallTypeData>();
-        for (int i = 0; i < iconLayoutRoot.childCount; i++)
-        {
-            Image childImage = iconLayoutRoot.GetChild(i).GetComponent<Image>();
-            if (childImage != null
-                && craftedIconSet.Contains(childImage)
-                && craftedBallByIcon.TryGetValue(childImage, out BallTypeData ballType)
-                && ballType != null)
+            if (dragHandle == activeDragHandle)
             {
-                reordered.Add(ballType);
+                int craftedCount = dragSessionHandles.Count + 1;
+                activeDragTargetIndex = FindClosestPositionSlotIndex(worldPoint.x, craftedCount);
             }
         }
-
-        InventoryManager.Instance.SetCraftedBalls(reordered);
     }
 
     private void HandleFallbackPointerDrag()
     {
         if (!allowDragReorder)
+        {
+            return;
+        }
+
+        if (activeDragHandle != null && activeDragHandle != fallbackDraggingHandle)
         {
             return;
         }
@@ -329,179 +364,263 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         if (mouse.leftButton.wasReleasedThisFrame)
         {
             fallbackDraggingHandle.EndDragFallback();
-            HandleIconDragEnded(fallbackDraggingHandle);
             fallbackDraggingHandle = null;
         }
     }
 
     private void BeginDragSession(IconDragHandle draggedHandle)
     {
-        if (draggedHandle == null || iconLayoutRoot == null)
+        if (draggedHandle == null || draggedHandle.RectTransform == null)
         {
             return;
         }
 
-        if (dragSessionActive && dragSessionPrimaryHandle == draggedHandle)
+        activeDragHandle = draggedHandle;
+
+        List<IconDragHandle> visibleOrder = new List<IconDragHandle>();
+        for (int i = 0; i < iconLayoutRoot.childCount; i++)
         {
+            Transform child = iconLayoutRoot.GetChild(i);
+            Image childImage = child != null ? child.GetComponent<Image>() : null;
+            if (childImage == null || !childImage.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            if (!craftedBallByIcon.TryGetValue(childImage, out BallTypeData ballType) || ballType == null)
+            {
+                continue;
+            }
+
+            IconDragHandle handle = child.GetComponent<IconDragHandle>();
+            if (handle != null && handle.IsDraggable)
+            {
+                visibleOrder.Add(handle);
+            }
+        }
+
+        activeDragOriginalIndex = visibleOrder.IndexOf(draggedHandle);
+        if (activeDragOriginalIndex < 0)
+        {
+            activeDragHandle = null;
             return;
         }
 
-        dragSessionActive = true;
-        dragSessionPrimaryHandle = draggedHandle;
+        activeDragTargetIndex = activeDragOriginalIndex;
         dragSessionHandles.Clear();
         dragSessionSlotWorldXs.Clear();
-        dragSessionCurrentSlots.Clear();
+        CreateActiveDragPlaceholder(draggedHandle, activeDragOriginalIndex);
 
-        for (int i = 0; i < iconPool.Count; i++)
+        for (int i = 0; i < visibleOrder.Count; i++)
         {
-            Image iconImage = iconPool[i];
-            if (iconImage == null || !iconImage.gameObject.activeInHierarchy)
+            IconDragHandle handle = visibleOrder[i];
+            if (handle == null || handle.RectTransform == null)
             {
+                dragSessionSlotWorldXs.Add(0f);
                 continue;
             }
 
-            IconDragHandle handle = iconImage.GetComponent<IconDragHandle>();
-            if (handle == null || !handle.IsDraggable)
-            {
-                continue;
-            }
-
-            dragSessionHandles.Add(handle);
-        }
-
-        dragSessionHandles.Sort((a, b) => a.RectTransform.position.x.CompareTo(b.RectTransform.position.x));
-
-        for (int i = 0; i < dragSessionHandles.Count; i++)
-        {
-            IconDragHandle handle = dragSessionHandles[i];
             dragSessionSlotWorldXs.Add(handle.RectTransform.position.x);
-            handle.SetLockedWorldYFromCurrent();
-            handle.SetLayoutIgnored(true);
-            handle.SetSmoothTargetWorldX(handle.RectTransform.position.x);
-            dragSessionCurrentSlots[handle] = i;
         }
 
-        UpdateDragSessionTargets(draggedHandle);
+        for (int i = 0; i < visibleOrder.Count; i++)
+        {
+            IconDragHandle handle = visibleOrder[i];
+            if (handle == null)
+            {
+                continue;
+            }
+
+            handle.LockWorldY();
+            handle.SetLayoutIgnored(true);
+            if (handle != draggedHandle)
+            {
+                dragSessionHandles.Add(handle);
+            }
+        }
+
+        draggedHandle.SetBlocksRaycasts(false);
+        draggedHandle.RectTransform.SetAsLastSibling();
+
+        if (iconLayoutRoot is RectTransform iconRootRect)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(iconRootRect);
+        }
+
+        if (positionLayoutRoot is RectTransform positionRootRect)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(positionRootRect);
+        }
     }
 
     private void EndDragSession(IconDragHandle draggedHandle)
     {
-        if (!dragSessionActive)
+        if (draggedHandle == null || draggedHandle.RectTransform == null || draggedHandle != activeDragHandle)
         {
             return;
         }
 
-        if (draggedHandle != null && draggedHandle.HasLastHoveredSlot)
+        int craftedCount = dragSessionHandles.Count + 1;
+        if (craftedCount <= 0)
         {
-            Debug.Log($"[FactoryBallConfirmationLayout] Drag end commit: handle={draggedHandle.name}, lastHoveredSlot={draggedHandle.LastHoveredSlot}");
-            dragSessionCurrentSlots[draggedHandle] = draggedHandle.LastHoveredSlot;
-            CommitDragSessionSiblingOrder();
+            draggedHandle.SetLayoutIgnored(false);
+            draggedHandle.SetBlocksRaycasts(true);
+            ClearActiveDragPlaceholder();
+            dragSessionHandles.Clear();
+            dragSessionSlotWorldXs.Clear();
+            activeDragHandle = null;
+            activeDragOriginalIndex = -1;
+            activeDragTargetIndex = -1;
+            return;
         }
 
-        for (int i = 0; i < dragSessionHandles.Count; i++)
+        if (Pointer.current != null)
         {
-            IconDragHandle handle = dragSessionHandles[i];
+            activeDragTargetIndex = FindClosestPositionSlotIndex(Pointer.current.position.ReadValue().x, craftedCount);
+        }
+
+        int originalIndex = Mathf.Clamp(activeDragOriginalIndex, 0, craftedCount - 1);
+        int targetIndex = Mathf.Clamp(activeDragTargetIndex, 0, craftedCount - 1);
+
+        List<IconDragHandle> finalOrder = new List<IconDragHandle>(dragSessionHandles);
+        finalOrder.Insert(Mathf.Clamp(targetIndex, 0, finalOrder.Count), draggedHandle);
+
+        for (int i = 0; i < finalOrder.Count; i++)
+        {
+            IconDragHandle handle = finalOrder[i];
+            if (handle?.RectTransform != null)
+            {
+                handle.RectTransform.SetSiblingIndex(i);
+            }
+        }
+
+        ClearActiveDragPlaceholder();
+
+        for (int i = 0; i < finalOrder.Count; i++)
+        {
+            IconDragHandle handle = finalOrder[i];
             if (handle == null)
             {
                 continue;
             }
 
-            if (!dragSessionCurrentSlots.TryGetValue(handle, out int slotIndex))
-            {
-                continue;
-            }
-
-            slotIndex = Mathf.Clamp(slotIndex, 0, dragSessionSlotWorldXs.Count - 1);
-            handle.SnapToWorldX(dragSessionSlotWorldXs[slotIndex]);
+            handle.SetLayoutIgnored(false);
+            handle.SetBlocksRaycasts(true);
         }
 
-        for (int i = 0; i < dragSessionHandles.Count; i++)
+        if (iconLayoutRoot is RectTransform iconRootRect)
         {
-            dragSessionHandles[i].SetLayoutIgnored(false);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(iconRootRect);
+        }
+
+        if (InventoryManager.HasInstance)
+        {
+            List<BallTypeData> displayedOrder = BuildDisplayedBallOrder(positionSlotPool.Count);
+            InventoryManager.Instance.SetCraftedBalls(displayedOrder);
         }
 
         dragSessionHandles.Clear();
         dragSessionSlotWorldXs.Clear();
-        dragSessionCurrentSlots.Clear();
-        dragSessionPrimaryHandle = null;
-        dragSessionActive = false;
+        activeDragHandle = null;
+        activeDragOriginalIndex = -1;
+        activeDragTargetIndex = -1;
+    }
 
-        if (iconLayoutRoot is RectTransform rootRect)
+    private void CreateActiveDragPlaceholder(IconDragHandle draggedHandle, int siblingIndex)
+    {
+        ClearActiveDragPlaceholder();
+
+        if (draggedHandle == null || draggedHandle.RectTransform == null || iconLayoutRoot == null)
         {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(rootRect);
+            return;
+        }
+
+        GameObject placeholderObject = new GameObject("FactoryBallConfirmDragPlaceholder", typeof(RectTransform), typeof(LayoutElement));
+        placeholderObject.transform.SetParent(iconLayoutRoot, false);
+
+        activeDragPlaceholder = placeholderObject.GetComponent<RectTransform>();
+        activeDragPlaceholder.SetSiblingIndex(Mathf.Clamp(siblingIndex, 0, iconLayoutRoot.childCount - 1));
+
+        LayoutElement placeholderLayout = placeholderObject.GetComponent<LayoutElement>();
+        LayoutElement sourceLayout = draggedHandle.GetComponent<LayoutElement>();
+
+        float preferredWidth = draggedHandle.RectTransform.rect.width;
+        float preferredHeight = draggedHandle.RectTransform.rect.height;
+        if (sourceLayout != null)
+        {
+            if (sourceLayout.preferredWidth > 0f)
+            {
+                preferredWidth = sourceLayout.preferredWidth;
+            }
+
+            if (sourceLayout.preferredHeight > 0f)
+            {
+                preferredHeight = sourceLayout.preferredHeight;
+            }
+
+            placeholderLayout.minWidth = sourceLayout.minWidth;
+            placeholderLayout.minHeight = sourceLayout.minHeight;
+            placeholderLayout.flexibleWidth = sourceLayout.flexibleWidth;
+            placeholderLayout.flexibleHeight = sourceLayout.flexibleHeight;
+        }
+
+        placeholderLayout.preferredWidth = preferredWidth;
+        placeholderLayout.preferredHeight = preferredHeight;
+    }
+
+    private void ClearActiveDragPlaceholder()
+    {
+        if (activeDragPlaceholder != null)
+        {
+            Destroy(activeDragPlaceholder.gameObject);
+            activeDragPlaceholder = null;
         }
     }
 
-    private void UpdateDragSessionTargets(IconDragHandle draggedHandle)
+    private void TickActiveDragSmoothing()
     {
-        if (!dragSessionActive || draggedHandle == null || dragSessionSlotWorldXs.Count == 0)
+        if (activeDragHandle == null || dragSessionHandles.Count == 0 || activeDragTargetIndex < 0 || dragSessionSlotWorldXs.Count == 0)
         {
             return;
-        }
-
-        if (!dragSessionCurrentSlots.TryGetValue(draggedHandle, out int draggedCurrentSlot))
-        {
-            return;
-        }
-
-        int targetSlot = FindClosestSlotIndex(draggedHandle.RectTransform.position.x);
-        targetSlot = Mathf.Clamp(targetSlot, 0, dragSessionSlotWorldXs.Count - 1);
-        draggedHandle.SetLastHoveredSlot(targetSlot);
-
-        if (targetSlot != draggedCurrentSlot)
-        {
-            IconDragHandle occupant = null;
-            for (int i = 0; i < dragSessionHandles.Count; i++)
-            {
-                IconDragHandle handle = dragSessionHandles[i];
-                if (handle == null || handle == draggedHandle)
-                {
-                    continue;
-                }
-
-                if (dragSessionCurrentSlots.TryGetValue(handle, out int slotIndex) && slotIndex == targetSlot)
-                {
-                    occupant = handle;
-                    break;
-                }
-            }
-
-            dragSessionCurrentSlots[draggedHandle] = targetSlot;
-            if (occupant != null)
-            {
-                dragSessionCurrentSlots[occupant] = draggedCurrentSlot;
-            }
-
-            Debug.Log($"[FactoryBallConfirmationLayout] Hover swap: dragged={draggedHandle.name}, fromSlot={draggedCurrentSlot}, toSlot={targetSlot}, occupant={(occupant != null ? occupant.name : "none")}");
-
-            CommitDragSessionSiblingOrder();
         }
 
         for (int i = 0; i < dragSessionHandles.Count; i++)
         {
             IconDragHandle handle = dragSessionHandles[i];
-            if (handle == null)
+            if (handle == null || handle.RectTransform == null)
             {
                 continue;
             }
 
-            if (!dragSessionCurrentSlots.TryGetValue(handle, out int assignedSlot))
+            int slotIndex = i >= activeDragTargetIndex ? i + 1 : i;
+            slotIndex = Mathf.Clamp(slotIndex, 0, dragSessionSlotWorldXs.Count - 1);
+            if (slotIndex < 0 || slotIndex >= dragSessionSlotWorldXs.Count)
             {
                 continue;
             }
 
-            handle.SetSmoothTargetWorldX(dragSessionSlotWorldXs[assignedSlot]);
+            handle.LerpToWorldX(dragSessionSlotWorldXs[slotIndex], dragReorderLerpSpeed);
         }
     }
 
-    private int FindClosestSlotIndex(float worldX)
+    private int FindClosestPositionSlotIndex(float worldX, int craftedCount)
     {
+        int usableCount = dragSessionSlotWorldXs.Count > 0
+            ? Mathf.Min(craftedCount, dragSessionSlotWorldXs.Count)
+            : Mathf.Min(craftedCount, positionSlotPool.Count);
+        if (usableCount <= 0)
+        {
+            return 0;
+        }
+
         int bestIndex = 0;
         float bestDistance = float.MaxValue;
-
-        for (int i = 0; i < dragSessionSlotWorldXs.Count; i++)
+        for (int i = 0; i < usableCount; i++)
         {
-            float distance = Mathf.Abs(worldX - dragSessionSlotWorldXs[i]);
+            float slotWorldX = dragSessionSlotWorldXs.Count > 0
+                ? dragSessionSlotWorldXs[i]
+                : (positionSlotPool[i] != null ? positionSlotPool[i].position.x : 0f);
+            float distance = Mathf.Abs(worldX - slotWorldX);
             if (distance < bestDistance)
             {
                 bestDistance = distance;
@@ -512,48 +631,56 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         return bestIndex;
     }
 
-    private void CommitDragSessionSiblingOrder()
+    private List<BallTypeData> BuildCraftedBallOrderFromHandleOrder(List<IconDragHandle> orderedHandles)
     {
-        if (dragSessionHandles.Count == 0)
+        List<BallTypeData> reordered = new List<BallTypeData>();
+        if (orderedHandles == null)
         {
-            return;
+            return reordered;
         }
 
-        dragSessionHandles.Sort((a, b) =>
+        for (int i = 0; i < orderedHandles.Count; i++)
         {
-            int aIndex = dragSessionCurrentSlots.TryGetValue(a, out int ai) ? ai : int.MaxValue;
-            int bIndex = dragSessionCurrentSlots.TryGetValue(b, out int bi) ? bi : int.MaxValue;
-            return aIndex.CompareTo(bIndex);
-        });
-
-        for (int i = 0; i < dragSessionHandles.Count; i++)
-        {
-            RectTransform rect = dragSessionHandles[i] != null ? dragSessionHandles[i].RectTransform : null;
-            if (rect != null)
-            {
-                rect.SetSiblingIndex(i);
-            }
-        }
-    }
-
-    private void TickDragSessionSmoothing()
-    {
-        if (!dragSessionActive)
-        {
-            return;
-        }
-
-        float deltaTime = Time.unscaledDeltaTime;
-        for (int i = 0; i < dragSessionHandles.Count; i++)
-        {
-            IconDragHandle handle = dragSessionHandles[i];
-            if (handle == null)
+            IconDragHandle handle = orderedHandles[i];
+            Image image = handle != null ? handle.Image : null;
+            if (image == null || !craftedIconSet.Contains(image))
             {
                 continue;
             }
 
-            handle.TickSmoothMove(deltaTime, dragReorderLerpSpeed);
+            if (craftedBallByIcon.TryGetValue(image, out BallTypeData ballType) && ballType != null)
+            {
+                reordered.Add(ballType);
+            }
         }
+
+        return reordered;
+    }
+
+    public List<BallTypeData> BuildDisplayedBallOrder(int maxCount)
+    {
+        List<BallTypeData> ordered = new List<BallTypeData>();
+        if (iconLayoutRoot == null || maxCount <= 0)
+        {
+            return ordered;
+        }
+
+        for (int i = 0; i < iconLayoutRoot.childCount && ordered.Count < maxCount; i++)
+        {
+            Transform child = iconLayoutRoot.GetChild(i);
+            Image childImage = child != null ? child.GetComponent<Image>() : null;
+            if (childImage == null || !childImage.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            if (craftedBallByIcon.TryGetValue(childImage, out BallTypeData ballType) && ballType != null)
+            {
+                ordered.Add(ballType);
+            }
+        }
+
+        return ordered;
     }
 
     private bool TryGetDraggableHandleAtPointer(Vector2 pointerScreenPosition, Camera eventCamera, out IconDragHandle handle, out string blockedReason)
@@ -598,23 +725,7 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         return false;
     }
 
-    private Camera ResolveEventCamera()
-    {
-        if (iconLayoutRoot == null)
-        {
-            return null;
-        }
-
-        Canvas canvas = iconLayoutRoot.GetComponentInParent<Canvas>();
-        if (canvas == null)
-        {
-            return null;
-        }
-
-        return canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
-    }
-
-    private string BuildDragDisabledReason(Image iconImage, BallTypeData ballType)
+    private string BuildDragDisabledReason(Image iconImage, BallTypeData ballType, bool isCraftedBall)
     {
         if (!allowDragReorder)
         {
@@ -644,6 +755,22 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         return string.Empty;
     }
 
+    private Camera ResolveEventCamera()
+    {
+        if (iconLayoutRoot == null)
+        {
+            return null;
+        }
+
+        Canvas canvas = iconLayoutRoot.GetComponentInParent<Canvas>();
+        if (canvas == null)
+        {
+            return null;
+        }
+
+        return canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+    }
+
     private sealed class IconDragHandle : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         private FactoryBallConfirmationLayout owner;
@@ -653,17 +780,14 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         private LayoutElement layoutElement;
         private CanvasGroup canvasGroup;
         private float lockedWorldY;
-        private float smoothTargetWorldX;
         private float currentWorldX;
-        private int lastHoveredSlot = -1;
 
         public RectTransform RectTransform => transform as RectTransform;
+        public Image Image => iconImage;
         public bool IsDraggable => canDrag && owner != null && RectTransform != null;
         public string DisabledReason => dragDisabledReason;
-        public int LastHoveredSlot => lastHoveredSlot;
-        public bool HasLastHoveredSlot => lastHoveredSlot >= 0;
 
-        public void Configure(FactoryBallConfirmationLayout layoutOwner, Image image, BallTypeData ballType, bool draggable, string disabledReason)
+        public void Configure(FactoryBallConfirmationLayout layoutOwner, Image image, bool draggable, string disabledReason)
         {
             owner = layoutOwner;
             iconImage = image;
@@ -720,7 +844,6 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
             }
 
             EndDragFallback();
-            owner.HandleIconDragEnded(this);
         }
 
         public void BeginDragFallback()
@@ -730,64 +853,55 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
                 return;
             }
 
-            lockedWorldY = RectTransform.position.y;
-            currentWorldX = RectTransform.position.x;
-
-            layoutElement.ignoreLayout = true;
-            canvasGroup.blocksRaycasts = false;
-
             owner.BeginDragSession(this);
-            transform.SetAsLastSibling();
-
-            if (owner.iconLayoutRoot is RectTransform rootRect)
-            {
-                LayoutRebuilder.ForceRebuildLayoutImmediate(rootRect);
-            }
-        }
-
-        public void SetLastHoveredSlot(int slotIndex)
-        {
-            lastHoveredSlot = slotIndex;
         }
 
         public void EndDragFallback()
         {
-            canvasGroup.blocksRaycasts = true;
-
             owner.EndDragSession(this);
-
-            lastHoveredSlot = -1;
-
-            if (owner != null && owner.iconLayoutRoot is RectTransform rootRect)
-            {
-                LayoutRebuilder.ForceRebuildLayoutImmediate(rootRect);
-            }
         }
 
-        public void SetDraggedWorldX(float worldX)
+        public void LockWorldY()
         {
             if (RectTransform == null)
+            {
+                return;
+            }
+
+            lockedWorldY = RectTransform.position.y;
+            currentWorldX = RectTransform.position.x;
+        }
+
+        public void SetDraggedWorldPosition(Vector3 worldPosition)
+        {
+            if (RectTransform == null || owner == null)
             {
                 return;
             }
 
             float t = 1f - Mathf.Exp(-Mathf.Max(1f, owner.dragReorderLerpSpeed) * Time.unscaledDeltaTime);
-            currentWorldX = Mathf.Lerp(currentWorldX, worldX, t);
+            currentWorldX = Mathf.Lerp(currentWorldX, worldPosition.x, t);
 
-            Vector3 worldPosition = RectTransform.position;
-            worldPosition.x = currentWorldX;
-            worldPosition.y = lockedWorldY;
-            RectTransform.position = worldPosition;
+            Vector3 next = RectTransform.position;
+            next.x = currentWorldX;
+            next.y = lockedWorldY;
+            RectTransform.position = next;
         }
 
-        public void SetLockedWorldYFromCurrent()
+        public void LerpToWorldX(float worldX, float lerpSpeed)
         {
             if (RectTransform == null)
             {
                 return;
             }
 
-            lockedWorldY = RectTransform.position.y;
+            float t = 1f - Mathf.Exp(-Mathf.Max(1f, lerpSpeed) * Time.unscaledDeltaTime);
+            currentWorldX = Mathf.Lerp(currentWorldX, worldX, t);
+
+            Vector3 next = RectTransform.position;
+            next.x = currentWorldX;
+            next.y = lockedWorldY;
+            RectTransform.position = next;
         }
 
         public void SetLayoutIgnored(bool ignore)
@@ -798,39 +912,12 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
             }
         }
 
-        public void SetSmoothTargetWorldX(float targetWorldX)
+        public void SetBlocksRaycasts(bool blocksRaycasts)
         {
-            smoothTargetWorldX = targetWorldX;
-        }
-
-        public void TickSmoothMove(float deltaTime, float lerpSpeed)
-        {
-            if (RectTransform == null)
+            if (canvasGroup != null)
             {
-                return;
+                canvasGroup.blocksRaycasts = blocksRaycasts;
             }
-
-            float t = 1f - Mathf.Exp(-Mathf.Max(1f, lerpSpeed) * deltaTime);
-            Vector3 worldPosition = RectTransform.position;
-            worldPosition.x = Mathf.Lerp(worldPosition.x, smoothTargetWorldX, t);
-            worldPosition.y = lockedWorldY;
-            RectTransform.position = worldPosition;
         }
-
-        public void SnapToWorldX(float worldX)
-        {
-            if (RectTransform == null)
-            {
-                return;
-            }
-
-            currentWorldX = worldX;
-            Vector3 worldPosition = RectTransform.position;
-            worldPosition.x = worldX;
-            worldPosition.y = lockedWorldY;
-            RectTransform.position = worldPosition;
-        }
-
     }
-
 }

@@ -105,6 +105,7 @@ public class InventoryManager : MonoBehaviour
 
     [Header("Crafted Balls")]
     [SerializeField] private List<BallTypeData> craftedBalls = new();
+    [SerializeField] private BallTypeData defaultCraftedBallType;
 
     private readonly Dictionary<BuildingDefinition, InventoryEntry> buildingsByDefinition = new();
     private readonly Dictionary<ItemDefinition, ItemInventoryEntry> itemsByDefinition = new();
@@ -451,8 +452,51 @@ public class InventoryManager : MonoBehaviour
         }
 
         EnsureInitialized();
+
+        if (defaultCraftedBallType != null)
+        {
+            for (int i = 0; i < craftedBalls.Count; i++)
+            {
+                if (craftedBalls[i] == defaultCraftedBallType)
+                {
+                    craftedBalls[i] = ballType;
+                    InventoryChanged?.Invoke();
+                    return;
+                }
+            }
+        }
+
         craftedBalls.Add(ballType);
         InventoryChanged?.Invoke();
+    }
+
+    public void EnsureCraftedBallDefaults(BallTypeData defaultBallType, int targetCount)
+    {
+        EnsureInitialized();
+
+        defaultCraftedBallType = defaultBallType;
+        int clampedCount = Mathf.Max(0, targetCount);
+        bool changed = false;
+
+        if (craftedBalls.Count > clampedCount)
+        {
+            craftedBalls.RemoveRange(clampedCount, craftedBalls.Count - clampedCount);
+            changed = true;
+        }
+
+        if (defaultBallType != null)
+        {
+            while (craftedBalls.Count < clampedCount)
+            {
+                craftedBalls.Add(defaultBallType);
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            InventoryChanged?.Invoke();
+        }
     }
 
     public bool TryRemoveCraftedBall(BallTypeData ballType)

@@ -7460,7 +7460,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -30.113}
-  m_SizeDelta: {x: 335.0965, y: 60.2254}
+  m_SizeDelta: {x: 400, y: 60.2254}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1013164136
 MonoBehaviour:
@@ -7549,6 +7549,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FactoryConfirmTransitionValidator
   sceneLoader: {fileID: 1017599119}
   errorText: {fileID: 1193697074}
+  confirmationLayout: {fileID: 0}
   minimumBallsRequired: 1
   noBallsMessage: Must have at least one ball to continue.
   defaultBallType: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
@@ -8002,6 +8003,68 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1069821454}
   m_CullTransparentMesh: 1
+--- !u!1 &1076145352
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1076145353}
+  - component: {fileID: 1076145354}
+  m_Layer: 5
+  m_Name: Position Layout Group
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1076145353
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1076145352}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1266949050}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: -30.113}
+  m_SizeDelta: {x: 400, y: 60.2254}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1076145354
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1076145352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 2
+  m_Spacing: 5
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 1
+  m_ChildScaleHeight: 1
+  m_ReverseArrangement: 0
 --- !u!1 &1101833682
 GameObject:
   m_ObjectHideFlags: 0
@@ -9285,7 +9348,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1266949050
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9302,6 +9365,7 @@ RectTransform:
   - {fileID: 607512369}
   - {fileID: 1069821455}
   - {fileID: 1013164135}
+  - {fileID: 1076145353}
   - {fileID: 854828355}
   - {fileID: 389302335}
   - {fileID: 1372941120}
@@ -9325,7 +9389,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FactoryBallConfirmationLayout
   iconLayoutRoot: {fileID: 1013164135}
+  positionLayoutRoot: {fileID: 1076145353}
   iconPrefab: {fileID: 2428960868800022688, guid: 11e8c07f0b374c743b1e4be74c09722f, type: 3}
+  positionSlotPrefab: {fileID: 0}
   unplacedMoldsText: {fileID: 1372941119}
   defaultBallType: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   fallbackSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
@@ -15076,7 +15142,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FactoryBallConfirmationLayout
   iconLayoutRoot: {fileID: 0}
+  positionLayoutRoot: {fileID: 0}
   iconPrefab: {fileID: 2428960868800022688, guid: 11e8c07f0b374c743b1e4be74c09722f, type: 3}
+  positionSlotPrefab: {fileID: 0}
   unplacedMoldsText: {fileID: 0}
   defaultBallType: {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   fallbackSprite: {fileID: -2413806693520163455, guid: 9f800843c88177247a1fc06fcd2b6a7e, type: 3}
@@ -15131,6 +15199,18 @@ MonoBehaviour:
   - buildingDefinition: {fileID: 11400000, guid: 9ee3ce427af21a547a30648e8e8e5a21, type: 2}
     quantity: 10
   - buildingDefinition: {fileID: 11400000, guid: a163862e1e67beb41880159dba5f80d9, type: 2}
+    quantity: 3
+  - buildingDefinition: {fileID: 11400000, guid: af82f016ca79a914eac8da8b08de15ab, type: 2}
+    quantity: 3
+  - buildingDefinition: {fileID: 11400000, guid: 6e1d22f1e9eae6e42b88d58539de63b6, type: 2}
+    quantity: 3
+  - buildingDefinition: {fileID: 11400000, guid: 1427acf08a3412a408a64d6967785b77, type: 2}
+    quantity: 3
+  - buildingDefinition: {fileID: 11400000, guid: 0a925421f591623439df52242c47b281, type: 2}
+    quantity: 3
+  - buildingDefinition: {fileID: 11400000, guid: ef800fcd4d6ec5740bd5b340b8e28091, type: 2}
+    quantity: 3
+  - buildingDefinition: {fileID: 11400000, guid: fa46ecb9e6ac6c24d8d11ce263dcb1a5, type: 2}
     quantity: 3
   buildingInventory: []
   buildingHotbarSlots: []
