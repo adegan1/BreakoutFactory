@@ -130,6 +130,7 @@ public class BreakoutItemDrop : MonoBehaviour
         }
 
         isCollected = true;
+        BreakoutSoundController.PlayItemPickupSfx();
         owningController.HandleItemDropCollected(buildingDefinition, quantity, transform.position);
         Destroy(gameObject);
     }

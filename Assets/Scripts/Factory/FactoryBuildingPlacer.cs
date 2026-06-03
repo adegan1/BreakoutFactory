@@ -2186,6 +2186,8 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
         RefreshConveyorVisualsAround(optimalTopLeft, footprintSize);
 
+        FactorySoundController.PlayBuildingPlacedSfx(selectedBuildingDefinition.SoundSize);
+
         if (inventoryManager != null && !inventoryManager.HasBuilding(selectedBuildingDefinition, 1))
         {
         }
@@ -2418,6 +2420,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         }
 
         inventoryManager?.UnregisterPlacedBuilding(record.Definition);
+        FactorySoundController.PlayBuildingRemovedSfx();
         return true;
     }
 
@@ -3288,6 +3291,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
         selectedBuildingIndex = index;
         hasSelectedBuilding = true;
         suppressHoverUntilTileChange = false;
+        FactorySoundController.PlayUiClickSfx();
         RefreshSelectedBuildingHighlights();
         return true;
     }

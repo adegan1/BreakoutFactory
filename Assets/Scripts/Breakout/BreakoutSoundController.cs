@@ -34,6 +34,16 @@ public class BreakoutSoundController : MonoBehaviour
     [SerializeField] private OneShotSoundEvent wallHit = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent paddleHit = new OneShotSoundEvent();
 
+    [Header("Pickup Sounds")]
+    [SerializeField] private OneShotSoundEvent itemPickup = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent scrapPickup = new OneShotSoundEvent();
+
+    [Header("Gameplay Sounds")]
+    [SerializeField] private OneShotSoundEvent ballDispense = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent levelWin = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent damageTaken = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent healed = new OneShotSoundEvent();
+
     private readonly List<AudioSource> sourcePool = new List<AudioSource>();
 
     public static BreakoutSoundController Instance
@@ -89,6 +99,36 @@ public class BreakoutSoundController : MonoBehaviour
         Instance.PlayEvent(Instance.paddleHit);
     }
 
+    public static void PlayItemPickupSfx()
+    {
+        Instance.PlayEvent(Instance.itemPickup);
+    }
+
+    public static void PlayScrapPickupSfx()
+    {
+        Instance.PlayEvent(Instance.scrapPickup);
+    }
+
+    public static void PlayBallDispenseSfx()
+    {
+        Instance.PlayEvent(Instance.ballDispense);
+    }
+
+    public static void PlayLevelWinSfx()
+    {
+        Instance.PlayEvent(Instance.levelWin);
+    }
+
+    public static void PlayDamageTakenSfx()
+    {
+        Instance.PlayEvent(Instance.damageTaken);
+    }
+
+    public static void PlayHealedSfx()
+    {
+        Instance.PlayEvent(Instance.healed);
+    }
+
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -100,6 +140,49 @@ public class BreakoutSoundController : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
         EnsurePoolInitialized();
+        PreloadReferencedClips();
+    }
+
+    private void PreloadReferencedClips()
+    {
+        HashSet<AudioClip> uniqueClips = new HashSet<AudioClip>();
+        CollectClips(uniqueClips, basicBrickHit);
+        CollectClips(uniqueClips, superEffectiveBrickHit);
+        CollectClips(uniqueClips, wallHit);
+        CollectClips(uniqueClips, paddleHit);
+        CollectClips(uniqueClips, itemPickup);
+        CollectClips(uniqueClips, scrapPickup);
+        CollectClips(uniqueClips, ballDispense);
+        CollectClips(uniqueClips, levelWin);
+        CollectClips(uniqueClips, damageTaken);
+        CollectClips(uniqueClips, healed);
+
+        foreach (AudioClip clip in uniqueClips)
+        {
+            if (clip == null || clip.loadState == AudioDataLoadState.Loaded || clip.loadState == AudioDataLoadState.Loading)
+            {
+                continue;
+            }
+
+            clip.LoadAudioData();
+        }
+    }
+
+    private static void CollectClips(HashSet<AudioClip> uniqueClips, OneShotSoundEvent soundEvent)
+    {
+        if (uniqueClips == null || soundEvent == null || soundEvent.Clips == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < soundEvent.Clips.Length; i++)
+        {
+            AudioClip clip = soundEvent.Clips[i];
+            if (clip != null)
+            {
+                uniqueClips.Add(clip);
+            }
+        }
     }
 
     private void EnsurePoolInitialized()

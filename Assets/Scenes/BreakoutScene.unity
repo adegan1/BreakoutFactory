@@ -5997,6 +5997,104 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 896343758}
   m_CullTransparentMesh: 1
+--- !u!1 &896537288
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 896537290}
+  - component: {fileID: 896537289}
+  m_Layer: 0
+  m_Name: Breakout Sound Controller
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &896537289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 896537288}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee4378d62370da64e9e6983d546bc8a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BreakoutSoundController
+  masterVolume: 1
+  sfxVolume: 1
+  initialSourcePoolSize: 6
+  maxSimultaneousSfx: 20
+  basicBrickHit:
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+  superEffectiveBrickHit:
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+  wallHit:
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+  paddleHit:
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+  itemPickup:
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+  scrapPickup:
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+  ballDispense:
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+  levelWin:
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+  damageTaken:
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+  healed:
+    clips: []
+    volume: 1
+    pitchMin: 0.95
+    pitchMax: 1.05
+--- !u!4 &896537290
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 896537288}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.07809, y: -0, z: 69.35099}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &897729991
 GameObject:
   m_ObjectHideFlags: 0
@@ -11110,8 +11208,8 @@ MonoBehaviour:
   allBricksClearedDelaySeconds: 0.75
   scorePopupPrefab: {fileID: 2071445235586387010, guid: c4ea46c16735e95449a6697a20cdbbe4, type: 3}
   scorePopupParent: {fileID: 2090100888}
-  healingPopupOffset: {x: 0, y: 0.2}
-  damagePopupOffset: {x: 0, y: 0.5}
+  healingPopupOffset: {x: 0, y: 0.3}
+  damagePopupOffset: {x: 0, y: 0.7}
   popupAggregationWindowSeconds: 0.1
   lifeLostTextObject: {fileID: 1752487503}
   itemShop: {fileID: 1286865363}
@@ -11953,7 +12051,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelSettings
   nextLevelRowsToSpawn: 4
-  nextLevelBrickMoveSpeed: 1
+  nextLevelBrickMoveSpeed: 0.075
   nextLevelBrickHealth: 1
   nextLevelBrickOdds:
   - typeData: {fileID: 11400000, guid: 85e9b8c05e2b7214b819ed976f1dd770, type: 2}
@@ -12805,6 +12903,7 @@ SceneRoots:
   - {fileID: 1061997462}
   - {fileID: 1286865364}
   - {fileID: 600042919}
+  - {fileID: 896537290}
   - {fileID: 279415087}
   - {fileID: 392664724}
   - {fileID: 2017643839}

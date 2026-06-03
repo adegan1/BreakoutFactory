@@ -121,6 +121,7 @@ public class BreakoutScrapDrop : MonoBehaviour
         }
 
         isCollected = true;
+        BreakoutSoundController.PlayScrapPickupSfx();
 
         if (PlayerStats.HasInstance)
         {

@@ -282,6 +282,7 @@ public class BreakoutGameController : MonoBehaviour
         }
 
         spawnedBall.Launch(initialLaunchDirection);
+        BreakoutSoundController.PlayBallDispenseSfx();
 
         TryInvokeOutOfBalls();
     }
@@ -555,6 +556,11 @@ public class BreakoutGameController : MonoBehaviour
         LastLevelEndReason = reason;
         SetLifeLostTextActive(reason == LevelEndReason.OutOfBalls || reason == LevelEndReason.OutOfHealth);
 
+        if (reason == LevelEndReason.LevelComplete)
+        {
+            BreakoutSoundController.PlayLevelWinSfx();
+        }
+
         if (reason == LevelEndReason.OutOfBalls)
         {
             ConsumeLifeFromOutOfBalls();
@@ -654,6 +660,11 @@ public class BreakoutGameController : MonoBehaviour
             return;
         }
 
+        if (appliedAmount > 0)
+        {
+            BreakoutSoundController.PlayHealedSfx();
+        }
+
         QueueHealingPopup(requestedAmount);
     }
 
@@ -663,6 +674,8 @@ public class BreakoutGameController : MonoBehaviour
         {
             return;
         }
+
+        BreakoutSoundController.PlayDamageTakenSfx();
 
         QueueDamagePopup(appliedAmount);
     }

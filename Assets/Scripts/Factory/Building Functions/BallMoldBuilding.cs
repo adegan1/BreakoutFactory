@@ -296,6 +296,7 @@ public class BallMoldBuilding : MonoBehaviour, IItemInputReceiver, IBuildingInpu
         {
             lastCreatedBallType = createdBallType;
             isMoldCompleted = true;
+            FactorySoundController.PlayBallCreatedSfx();
         }
 
         int remainingAmount = storedAmount - createdCount * maxResources;

@@ -10,6 +10,7 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
     private SerializedProperty buildingColorProperty;
     private SerializedProperty footprintWidthProperty;
     private SerializedProperty footprintHeightProperty;
+    private SerializedProperty placementSoundSizeProperty;
     private SerializedProperty behaviorPrefabProperty;
     private SerializedProperty generatorSettingsProperty;
     private SerializedProperty isConveyorProperty;
@@ -35,6 +36,7 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
         buildingColorProperty = FindProperty("buildingColor");
         footprintWidthProperty = FindProperty("footprintWidth");
         footprintHeightProperty = FindProperty("footprintHeight");
+        placementSoundSizeProperty = FindProperty("placementSoundSize");
         behaviorPrefabProperty = FindProperty("behaviorPrefab");
         generatorSettingsProperty = FindProperty("generatorSettings");
         isConveyorProperty = FindProperty("isConveyor");
@@ -58,7 +60,7 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
         serializedObject.Update();
 
         DrawSection("Display", displayNameProperty, descriptionProperty, buildingSpriteProperty, buildingColorProperty);
-        DrawSection("Placement", footprintWidthProperty, footprintHeightProperty);
+        DrawSection("Placement", footprintWidthProperty, footprintHeightProperty, placementSoundSizeProperty);
         DrawSection("Behavior", behaviorPrefabProperty);
 
         if (ShouldDrawGeneratorSettings())

@@ -3,6 +3,13 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Building Definition", menuName = "Factory/Building Definition")]
 public class BuildingDefinition : ScriptableObject
 {
+    public enum PlacementSoundSize
+    {
+        Small,
+        Medium,
+        Large
+    }
+
     public enum SpriteScaleMode
     {
         Footprint,
@@ -19,6 +26,7 @@ public class BuildingDefinition : ScriptableObject
     // Placement
     [SerializeField, Min(1)] private int footprintWidth = 1;
     [SerializeField, Min(1)] private int footprintHeight = 1;
+    [SerializeField] private PlacementSoundSize placementSoundSize = PlacementSoundSize.Small;
 
     // Behavior
     [SerializeField] private GameObject behaviorPrefab;
@@ -51,6 +59,7 @@ public class BuildingDefinition : ScriptableObject
     public Color BuildingColor => buildingColor;
     public int FootprintWidth => footprintWidth;
     public int FootprintHeight => footprintHeight;
+    public PlacementSoundSize SoundSize => placementSoundSize;
     public GameObject BehaviorPrefab => behaviorPrefab;
     public GeneratorBuildingSettings GeneratorSettings => generatorSettings;
     public bool IsConveyor => isConveyor;
