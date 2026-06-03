@@ -51,7 +51,13 @@ public class BreakoutSoundController : MonoBehaviour
     [SerializeField] private OneShotSoundEvent shopReroll = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent lifeLost = new OneShotSoundEvent();
 
+    [Header("Pause Muffle")]
+    [SerializeField, Range(0f, 1f)] private float pausedSfxVolumeMultiplier = 0.45f;
+    [SerializeField, Min(10f)] private float pausedLowPassCutoff = 900f;
+    [SerializeField, Min(10f)] private float normalLowPassCutoff = 22000f;
+
     private readonly List<AudioSource> sourcePool = new List<AudioSource>();
+    private bool isPauseMuffled;
 
     public static BreakoutSoundController Instance
     {
@@ -171,6 +177,18 @@ public class BreakoutSoundController : MonoBehaviour
         Instance.PlayEvent(Instance.lifeLost);
     }
 
+    public static void SetPauseMuffled(bool isMuffled)
+    {
+        BreakoutSoundController existingInstance = TryGetExistingInstance();
+        if (existingInstance == null)
+        {
+            return;
+        }
+
+        existingInstance.isPauseMuffled = isMuffled;
+        existingInstance.ApplyPauseMuffleToAllSources();
+    }
+
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -259,6 +277,9 @@ public class BreakoutSoundController : MonoBehaviour
         source.spatialBlend = 0f;
         source.dopplerLevel = 0f;
         source.rolloffMode = AudioRolloffMode.Linear;
+
+        AudioLowPassFilter lowPassFilter = child.AddComponent<AudioLowPassFilter>();
+        lowPassFilter.cutoffFrequency = isPauseMuffled ? pausedLowPassCutoff : normalLowPassCutoff;
         return source;
     }
 
@@ -308,9 +329,40 @@ public class BreakoutSoundController : MonoBehaviour
         float maxPitch = Mathf.Max(minPitch, soundEvent.PitchMax);
 
         source.pitch = Random.Range(minPitch, maxPitch);
-        source.volume = Mathf.Clamp01(masterVolume) * Mathf.Clamp01(sfxVolume) * Mathf.Clamp01(soundEvent.Volume);
+        float pauseVolumeMultiplier = isPauseMuffled ? Mathf.Clamp01(pausedSfxVolumeMultiplier) : 1f;
+        source.volume = Mathf.Clamp01(masterVolume) * Mathf.Clamp01(sfxVolume) * Mathf.Clamp01(soundEvent.Volume) * pauseVolumeMultiplier;
         source.clip = clip;
         source.Play();
+    }
+
+    private static BreakoutSoundController TryGetExistingInstance()
+    {
+        if (instance != null)
+        {
+            return instance;
+        }
+
+        instance = FindFirstObjectByType<BreakoutSoundController>();
+        return instance;
+    }
+
+    private void ApplyPauseMuffleToAllSources()
+    {
+        float cutoff = isPauseMuffled ? pausedLowPassCutoff : normalLowPassCutoff;
+        for (int i = 0; i < sourcePool.Count; i++)
+        {
+            AudioSource source = sourcePool[i];
+            if (source == null)
+            {
+                continue;
+            }
+
+            AudioLowPassFilter lowPassFilter = source.GetComponent<AudioLowPassFilter>();
+            if (lowPassFilter != null)
+            {
+                lowPassFilter.cutoffFrequency = cutoff;
+            }
+        }
     }
 
     private static AudioClip PickRandomClip(AudioClip[] clips)

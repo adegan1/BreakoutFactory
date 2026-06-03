@@ -491,6 +491,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 1017599122}
         m_TargetAssemblyTypeName: PauseMenuController, Assembly-CSharp
         m_MethodName: CloseMenu
@@ -1104,6 +1116,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 1891409979}
         m_TargetAssemblyTypeName: FactorySettingsPanelController, Assembly-CSharp
         m_MethodName: ToggleExpanded
@@ -1603,6 +1627,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 1025983501}
         m_TargetAssemblyTypeName: FactoryBuildingPlacer, Assembly-CSharp
         m_MethodName: ClearFactoryAndRefundAll
@@ -3233,6 +3269,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 1017599121}
         m_TargetAssemblyTypeName: FactoryConfirmTransitionValidator, Assembly-CSharp
         m_MethodName: OnConfirmPressed
@@ -4383,7 +4431,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 633063396}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &633063396
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5948,7 +6008,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 854828358}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &854828358
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9584,7 +9656,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1269278576}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1269278576
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10219,6 +10303,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_IsOn: 0
 --- !u!1 &1332879924
 GameObject:
@@ -10233,6 +10329,7 @@ GameObject:
   - component: {fileID: 1332879925}
   - component: {fileID: 1332879928}
   - component: {fileID: 1332879929}
+  - component: {fileID: 1332879930}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -10378,6 +10475,103 @@ MonoBehaviour:
   clampToBounds: 1
   minBounds: {x: 5, y: 2.5}
   maxBounds: {x: 45, y: 47.5}
+--- !u!82 &1332879930
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1332879924}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1347726495
 GameObject:
   m_ObjectHideFlags: 0
@@ -12768,7 +12962,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1662435241}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1662435241
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13037,6 +13243,18 @@ MonoBehaviour:
         m_TargetAssemblyTypeName: FactoryBuildingPlacer, Assembly-CSharp
         m_MethodName: SetFactoryPaused
         m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -13673,6 +13891,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1740727680}
   - component: {fileID: 1740727679}
+  - component: {fileID: 1740727681}
+  - component: {fileID: 1740727682}
   m_Layer: 0
   m_Name: Factory Sound Controller
   m_TagString: Untagged
@@ -13698,36 +13918,91 @@ MonoBehaviour:
   initialSourcePoolSize: 6
   maxSimultaneousSfx: 20
   smallBuildingPlaced:
-    clips: []
-    volume: 1
-    pitchMin: 0.95
-    pitchMax: 1.05
+    clips:
+    - {fileID: 8300000, guid: f9a518dbae17dd841ab8d8284b9d165f, type: 3}
+    volume: 0.05
+    pitchMin: 0.75
+    pitchMax: 1.25
   mediumBuildingPlaced:
-    clips: []
-    volume: 1
-    pitchMin: 0.95
-    pitchMax: 1.05
+    clips:
+    - {fileID: 8300000, guid: 22e36b6837d040f49b76465d35029c4e, type: 3}
+    volume: 0.3
+    pitchMin: 0.85
+    pitchMax: 1.15
   largeBuildingPlaced:
-    clips: []
-    volume: 1
-    pitchMin: 0.95
-    pitchMax: 1.05
-  buildingRemoved:
-    clips: []
-    volume: 1
-    pitchMin: 0.95
-    pitchMax: 1.05
+    clips:
+    - {fileID: 8300000, guid: dad79aa28c502de439d4e4c71631905c, type: 3}
+    volume: 0.15
+    pitchMin: 0.75
+    pitchMax: 1.2
+  smallBuildingRemoved:
+    clips:
+    - {fileID: 8300000, guid: 7e270fe897ccfc8409d7984bc7e48522, type: 3}
+    volume: 0.05
+    pitchMin: 0.75
+    pitchMax: 1.25
+  mediumBuildingRemoved:
+    clips:
+    - {fileID: 8300000, guid: 2a0bc05b9cad8a741bb4c4ec53853865, type: 3}
+    volume: 0.3
+    pitchMin: 0.85
+    pitchMax: 1.15
+  largeBuildingRemoved:
+    clips:
+    - {fileID: 8300000, guid: 7a533a3adbc944e42860a769466c642b, type: 3}
+    volume: 0.15
+    pitchMin: 0.75
+    pitchMax: 1.2
   uiClick:
-    clips: []
-    volume: 1
-    pitchMin: 0.95
-    pitchMax: 1.05
+    clips:
+    - {fileID: 8300000, guid: 4f90c213180264843a2ec78f033b4a61, type: 3}
+    volume: 0.35
+    pitchMin: 0.75
+    pitchMax: 1.25
   ballCreated:
-    clips: []
-    volume: 1
+    clips:
+    - {fileID: 8300000, guid: 31a0127cc81977b42b445978649c8b53, type: 3}
+    volume: 0.45
+    pitchMin: 0.85
+    pitchMax: 1.15
+  pauseMenuOpen:
+    clips:
+    - {fileID: 8300000, guid: 19dee3188d3100c4e856718b952978e6, type: 3}
+    volume: 0.7
     pitchMin: 0.95
     pitchMax: 1.05
-  ambientLayers: []
+  factoryCleared:
+    clips:
+    - {fileID: 8300000, guid: d2773851396d62f4e85d2fcf6479ba71, type: 3}
+    volume: 0.3
+    pitchMin: 0.9
+    pitchMax: 1.1
+  ambientLayers:
+  - clip: {fileID: 8300000, guid: 4f78358c238343c4c9e1973622491eaa, type: 3}
+    minimumBuildingCount: 1
+    buildingsForFullVolume: 25
+    excludeBelts: 0
+    volume: 0.2
+    fadeInSpeed: 100
+    fadeOutSpeed: 100
+  - clip: {fileID: 8300000, guid: a49a40c89f3c38c4ba50d97d89287b9d, type: 3}
+    minimumBuildingCount: 3
+    buildingsForFullVolume: 7
+    excludeBelts: 1
+    volume: 0.1
+    fadeInSpeed: 100
+    fadeOutSpeed: 100
+  - clip: {fileID: 8300000, guid: 4406bba9ff102114e8c723c3eb4f694e, type: 3}
+    minimumBuildingCount: 8
+    buildingsForFullVolume: 15
+    excludeBelts: 1
+    volume: 0.2
+    fadeInSpeed: 100
+    fadeOutSpeed: 100
+  pausedSfxVolumeMultiplier: 0.45
+  pausedAmbientVolumeMultiplier: 0.35
+  pausedLowPassCutoff: 900
+  normalLowPassCutoff: 22000
 --- !u!4 &1740727680
 Transform:
   m_ObjectHideFlags: 0
@@ -13743,6 +14018,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1740727681
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1740727678}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6918d82953e2f444aa81d8093b648ab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UISoundController
+  masterVolume: 1
+  sfxVolume: 1
+  initialSourcePoolSize: 4
+  maxSimultaneousSfx: 12
+  buttonClick:
+    clips:
+    - {fileID: 8300000, guid: 7382a3d69a6e44a4ab597d4ce9df69ff, type: 3}
+    volume: 0.6
+    pitchMin: 0.9
+    pitchMax: 1.1
+--- !u!114 &1740727682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1740727678}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26cd0e121822010499b5dd76a061c98c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MusicController
+  musicSource: {fileID: 1332879930}
+  musicClip: {fileID: 8300000, guid: 987e190556469d14f85d5de041afde3a, type: 3}
+  playOnStart: 1
+  loop: 1
+  targetVolume: 0.15
+  fadeInDuration: 1
+  fadeOutDuration: 0.25
+  persistAcrossScenes: 0
+  enablePauseMuffle: 1
+  pauseMuffleLowPassCutoff: 1200
 --- !u!1 &1786555496
 GameObject:
   m_ObjectHideFlags: 0
@@ -14502,6 +14821,18 @@ MonoBehaviour:
         m_TargetAssemblyTypeName: FactoryBuildingPlacer, Assembly-CSharp
         m_MethodName: SetFactorySpeedTo1x
         m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -15280,18 +15611,6 @@ MonoBehaviour:
     quantity: 10
   - buildingDefinition: {fileID: 11400000, guid: a163862e1e67beb41880159dba5f80d9, type: 2}
     quantity: 3
-  - buildingDefinition: {fileID: 11400000, guid: af82f016ca79a914eac8da8b08de15ab, type: 2}
-    quantity: 3
-  - buildingDefinition: {fileID: 11400000, guid: 6e1d22f1e9eae6e42b88d58539de63b6, type: 2}
-    quantity: 3
-  - buildingDefinition: {fileID: 11400000, guid: 1427acf08a3412a408a64d6967785b77, type: 2}
-    quantity: 3
-  - buildingDefinition: {fileID: 11400000, guid: 0a925421f591623439df52242c47b281, type: 2}
-    quantity: 3
-  - buildingDefinition: {fileID: 11400000, guid: ef800fcd4d6ec5740bd5b340b8e28091, type: 2}
-    quantity: 3
-  - buildingDefinition: {fileID: 11400000, guid: fa46ecb9e6ac6c24d8d11ce263dcb1a5, type: 2}
-    quantity: 3
   buildingInventory: []
   buildingHotbarSlots: []
   buildingStoredResourceStacks: []
@@ -15934,6 +16253,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 1017599119}
         m_TargetAssemblyTypeName: SceneLoader, Assembly-CSharp
         m_MethodName: LoadSceneByName

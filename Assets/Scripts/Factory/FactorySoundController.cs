@@ -64,9 +64,16 @@ public class FactorySoundController : MonoBehaviour
     [Header("Ambient Layers")]
     [SerializeField] private AmbientLayer[] ambientLayers;
 
+    [Header("Pause Muffle")]
+    [SerializeField, Range(0f, 1f)] private float pausedSfxVolumeMultiplier = 0.45f;
+    [SerializeField, Range(0f, 1f)] private float pausedAmbientVolumeMultiplier = 0.35f;
+    [SerializeField, Min(10f)] private float pausedLowPassCutoff = 900f;
+    [SerializeField, Min(10f)] private float normalLowPassCutoff = 22000f;
+
     private readonly List<AudioSource> sourcePool = new List<AudioSource>();
     private readonly List<AudioSource> ambientSourcePool = new List<AudioSource>();
     private bool isFactoryClearFadeActive;
+    private bool isPauseMuffled;
 
     public static FactorySoundController Instance
     {
@@ -141,7 +148,7 @@ public class FactorySoundController : MonoBehaviour
 
     public static void PlayUiClickSfx()
     {
-        Instance.PlayEvent(Instance.uiClick);
+        Instance.PlayEvent(Instance.uiClick, ignorePauseMuffle: true);
     }
 
     public static void PlayBallCreatedSfx()
@@ -162,6 +169,18 @@ public class FactorySoundController : MonoBehaviour
     public static void BeginFactoryClearAmbientFade()
     {
         Instance.isFactoryClearFadeActive = true;
+    }
+
+    public static void SetPauseMuffled(bool isMuffled)
+    {
+        FactorySoundController existingInstance = TryGetExistingInstance();
+        if (existingInstance == null)
+        {
+            return;
+        }
+
+        existingInstance.isPauseMuffled = isMuffled;
+        existingInstance.ApplyPauseMuffleToSources();
     }
 
     private void Awake()
@@ -294,6 +313,9 @@ public class FactorySoundController : MonoBehaviour
         source.spatialBlend = 0f;
         source.dopplerLevel = 0f;
         source.rolloffMode = AudioRolloffMode.Linear;
+
+        AudioLowPassFilter lowPassFilter = child.AddComponent<AudioLowPassFilter>();
+        lowPassFilter.cutoffFrequency = isPauseMuffled ? pausedLowPassCutoff : normalLowPassCutoff;
         return source;
     }
 
@@ -309,6 +331,9 @@ public class FactorySoundController : MonoBehaviour
         source.dopplerLevel = 0f;
         source.rolloffMode = AudioRolloffMode.Linear;
         source.volume = 0f;
+
+        AudioLowPassFilter lowPassFilter = child.AddComponent<AudioLowPassFilter>();
+        lowPassFilter.cutoffFrequency = isPauseMuffled ? pausedLowPassCutoff : normalLowPassCutoff;
         return source;
     }
 
@@ -335,7 +360,7 @@ public class FactorySoundController : MonoBehaviour
         return null;
     }
 
-    private void PlayEvent(OneShotSoundEvent soundEvent)
+    private void PlayEvent(OneShotSoundEvent soundEvent, bool ignorePauseMuffle = false)
     {
         if (soundEvent == null)
         {
@@ -358,7 +383,8 @@ public class FactorySoundController : MonoBehaviour
         float maxPitch = Mathf.Max(minPitch, soundEvent.PitchMax);
 
         source.pitch = Random.Range(minPitch, maxPitch);
-        source.volume = Mathf.Clamp01(masterVolume) * Mathf.Clamp01(sfxVolume) * Mathf.Clamp01(soundEvent.Volume);
+        float pauseVolumeMultiplier = (isPauseMuffled && !ignorePauseMuffle) ? Mathf.Clamp01(pausedSfxVolumeMultiplier) : 1f;
+        source.volume = Mathf.Clamp01(masterVolume) * Mathf.Clamp01(sfxVolume) * Mathf.Clamp01(soundEvent.Volume) * pauseVolumeMultiplier;
         source.clip = clip;
         source.Play();
     }
@@ -367,7 +393,8 @@ public class FactorySoundController : MonoBehaviour
     {
         EnsureAmbientSourcesInitialized();
 
-        float globalAmbientVolume = Mathf.Clamp01(masterVolume) * Mathf.Clamp01(ambientVolume);
+        float pauseAmbientMultiplier = isPauseMuffled ? Mathf.Clamp01(pausedAmbientVolumeMultiplier) : 1f;
+        float globalAmbientVolume = Mathf.Clamp01(masterVolume) * Mathf.Clamp01(ambientVolume) * pauseAmbientMultiplier;
 
         for (int i = 0; i < ambientSourcePool.Count; i++)
         {
@@ -431,6 +458,52 @@ public class FactorySoundController : MonoBehaviour
         }
 
         return true;
+    }
+
+    private static FactorySoundController TryGetExistingInstance()
+    {
+        if (instance != null)
+        {
+            return instance;
+        }
+
+        instance = FindFirstObjectByType<FactorySoundController>();
+        return instance;
+    }
+
+    private void ApplyPauseMuffleToSources()
+    {
+        float cutoff = isPauseMuffled ? pausedLowPassCutoff : normalLowPassCutoff;
+
+        for (int i = 0; i < sourcePool.Count; i++)
+        {
+            AudioSource source = sourcePool[i];
+            if (source == null)
+            {
+                continue;
+            }
+
+            AudioLowPassFilter lowPassFilter = source.GetComponent<AudioLowPassFilter>();
+            if (lowPassFilter != null)
+            {
+                lowPassFilter.cutoffFrequency = cutoff;
+            }
+        }
+
+        for (int i = 0; i < ambientSourcePool.Count; i++)
+        {
+            AudioSource source = ambientSourcePool[i];
+            if (source == null)
+            {
+                continue;
+            }
+
+            AudioLowPassFilter lowPassFilter = source.GetComponent<AudioLowPassFilter>();
+            if (lowPassFilter != null)
+            {
+                lowPassFilter.cutoffFrequency = cutoff;
+            }
+        }
     }
 
     private static int GetActiveBuildingCount(bool excludeBelts)

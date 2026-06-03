@@ -337,6 +337,7 @@ GameObject:
   - component: {fileID: 1077246983901418730}
   - component: {fileID: 419102232475064984}
   - component: {fileID: 2046971611333223414}
+  - component: {fileID: 6594931535706485910}
   m_Layer: 5
   m_Name: Shop Item
   m_TagString: Untagged
@@ -428,6 +429,28 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+--- !u!114 &6594931535706485910
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4840405033757444136}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6918d82953e2f444aa81d8093b648ab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UISoundController
+  masterVolume: 1
+  sfxVolume: 1
+  initialSourcePoolSize: 4
+  maxSimultaneousSfx: 12
+  buttonClick:
+    clips:
+    - {fileID: 8300000, guid: 7382a3d69a6e44a4ab597d4ce9df69ff, type: 3}
+    volume: 0.6
+    pitchMin: 0.9
+    pitchMax: 1.1
 --- !u!1 &4923201827473780788
 GameObject:
   m_ObjectHideFlags: 0
@@ -899,7 +922,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4156955295861609977}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 6594931535706485910}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &8935662112207407195
 GameObject:
   m_ObjectHideFlags: 0

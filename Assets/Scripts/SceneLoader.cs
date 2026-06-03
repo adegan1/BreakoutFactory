@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 public class SceneLoader : MonoBehaviour
 {
     [SerializeField] private string targetSceneName = "Breakout";
+    private bool isSceneLoadInProgress;
 
     public void LoadTargetScene()
     {
@@ -13,12 +14,19 @@ public class SceneLoader : MonoBehaviour
 
     public void LoadSceneByName(string sceneName)
     {
+        if (isSceneLoadInProgress)
+        {
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(sceneName))
         {
             Debug.LogWarning("SceneLoader cannot load an empty scene name.", this);
             return;
         }
 
-        SceneManager.LoadScene(sceneName.Trim());
+        string trimmedSceneName = sceneName.Trim();
+        isSceneLoadInProgress = true;
+        MusicController.FadeOutBeforeSceneChange(() => SceneManager.LoadScene(trimmedSceneName));
     }
 }

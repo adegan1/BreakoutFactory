@@ -48,6 +48,7 @@ public class PauseMenuController : MonoBehaviour
     private void OpenMenu()
     {
         isPaused = true;
+        ApplyPauseMuffle(isMuffled: true);
         if (isBreakoutLevel)
         {
             BreakoutSoundController.PlayPauseMenuOpenSfx();
@@ -120,6 +121,7 @@ public class PauseMenuController : MonoBehaviour
     private void ResumeImmediately()
     {
         isPaused = false;
+        ApplyPauseMuffle(isMuffled: false);
         if (menuObject != null)
         {
             menuObject.SetActive(false);
@@ -141,6 +143,14 @@ public class PauseMenuController : MonoBehaviour
             resumeCountdownText.gameObject.SetActive(false);
         }
 
+        ApplyPauseMuffle(isMuffled: false);
         Time.timeScale = 1f;
+    }
+
+    private static void ApplyPauseMuffle(bool isMuffled)
+    {
+        MusicController.SetPauseMuffled(isMuffled);
+        BreakoutSoundController.SetPauseMuffled(isMuffled);
+        FactorySoundController.SetPauseMuffled(isMuffled);
     }
 }

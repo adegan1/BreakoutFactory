@@ -261,7 +261,8 @@ public class PlayerStats : MonoBehaviour
             return;
         }
 
-        SceneManager.LoadScene(gameOverSceneName.Trim());
+        string trimmedSceneName = gameOverSceneName.Trim();
+        MusicController.FadeOutBeforeSceneChange(() => SceneManager.LoadScene(trimmedSceneName));
     }
 
     private void NotifyLivesChanged()

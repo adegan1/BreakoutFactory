@@ -223,6 +223,7 @@ GameObject:
   m_Component:
   - component: {fileID: 914668354071854370}
   - component: {fileID: 4032492015532203029}
+  - component: {fileID: 7772232530073955914}
   m_Layer: 5
   m_Name: Shop Inventory Object
   m_TagString: Untagged
@@ -275,6 +276,28 @@ MonoBehaviour:
   decrementButton: {fileID: 1785014945540787911}
   incrementButton: {fileID: 7668949774564406627}
   sellQuantityText: {fileID: 6395245065518283246}
+--- !u!114 &7772232530073955914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1296827972294221524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6918d82953e2f444aa81d8093b648ab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UISoundController
+  masterVolume: 1
+  sfxVolume: 1
+  initialSourcePoolSize: 4
+  maxSimultaneousSfx: 12
+  buttonClick:
+    clips:
+    - {fileID: 8300000, guid: 7382a3d69a6e44a4ab597d4ce9df69ff, type: 3}
+    volume: 0.6
+    pitchMin: 0.9
+    pitchMax: 1.1
 --- !u!1 &1410240879061978288
 GameObject:
   m_ObjectHideFlags: 0
@@ -358,7 +381,19 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 7772232530073955914}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_IsOn: 1
 --- !u!1 &1488812450470579328
 GameObject:
@@ -480,7 +515,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4593809195847474658}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 7772232530073955914}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &2634695527479699688
 GameObject:
   m_ObjectHideFlags: 0
@@ -988,7 +1035,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 5226627060049095614}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 7772232530073955914}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &7183385878724631375
 GameObject:
   m_ObjectHideFlags: 0
