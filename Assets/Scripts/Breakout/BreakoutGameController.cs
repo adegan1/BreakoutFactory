@@ -640,6 +640,7 @@ public class BreakoutGameController : MonoBehaviour
 
         int remainingLives = Mathf.Max(0, PlayerStats.Instance.Lives - 1);
         PlayerStats.Instance.SetLives(remainingLives);
+        BreakoutSoundController.PlayLifeLostSfx();
     }
 
     private void HandlePlayerHealthChanged(int current, int max)
@@ -649,6 +650,7 @@ public class BreakoutGameController : MonoBehaviour
             return;
         }
 
+        BreakoutSoundController.PlayLifeLostSfx();
         outOfHealthEndQueued = true;
         StartCoroutine(BeginLevelEndNextFrame(LevelEndReason.OutOfHealth));
     }
@@ -660,10 +662,7 @@ public class BreakoutGameController : MonoBehaviour
             return;
         }
 
-        if (appliedAmount > 0)
-        {
-            BreakoutSoundController.PlayHealedSfx();
-        }
+        BreakoutSoundController.PlayHealedSfx();
 
         QueueHealingPopup(requestedAmount);
     }

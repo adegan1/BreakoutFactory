@@ -167,6 +167,8 @@ public class BreakoutInventoryPanel : MonoBehaviour
             PlayerStats.Instance.AddScrap(Mathf.CeilToInt(totalScrap));
         }
 
+        BreakoutSoundController.PlayItemSoldSfx();
+
         Refresh();
         SubscribeToInventory();
     }

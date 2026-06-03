@@ -52,6 +52,7 @@ public class FactorySoundController : MonoBehaviour
     [SerializeField] private OneShotSoundEvent buildingRemoved = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent uiClick = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent ballCreated = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent pauseMenuOpen = new OneShotSoundEvent();
 
     [Header("Ambient Layers")]
     [SerializeField] private AmbientLayer[] ambientLayers;
@@ -129,6 +130,11 @@ public class FactorySoundController : MonoBehaviour
         Instance.PlayEvent(Instance.ballCreated);
     }
 
+    public static void PlayPauseMenuOpenSfx()
+    {
+        Instance.PlayEvent(Instance.pauseMenuOpen);
+    }
+
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -158,6 +164,7 @@ public class FactorySoundController : MonoBehaviour
         CollectClips(uniqueClips, buildingRemoved);
         CollectClips(uniqueClips, uiClick);
         CollectClips(uniqueClips, ballCreated);
+        CollectClips(uniqueClips, pauseMenuOpen);
         CollectAmbientClips(uniqueClips);
 
         foreach (AudioClip clip in uniqueClips)

@@ -146,14 +146,13 @@ public class ItemShop : MonoBehaviour
             InventoryManager.Instance.AddBuilding(definition, quantity);
         }
 
+        BreakoutSoundController.PlayItemBoughtSfx();
         HideInsufficientScrapMessage();
 
         spawnedCards.Remove(card);
-        card?.Hide();
-
-        if (spawnedCards.Count == 0)
+        if (card != null)
         {
-            Close();
+            Destroy(card.gameObject);
         }
     }
 
@@ -268,6 +267,7 @@ public class ItemShop : MonoBehaviour
         rerollCount++;
         List<BuildingDefinition> offers = PickOffers();
         BuildCards(offers);
+        BreakoutSoundController.PlayShopRerollSfx();
         HideInsufficientScrapMessage();
         UpdateRerollPriceText();
     }

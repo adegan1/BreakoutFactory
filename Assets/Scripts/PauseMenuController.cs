@@ -48,6 +48,15 @@ public class PauseMenuController : MonoBehaviour
     private void OpenMenu()
     {
         isPaused = true;
+        if (isBreakoutLevel)
+        {
+            BreakoutSoundController.PlayPauseMenuOpenSfx();
+        }
+        else
+        {
+            FactorySoundController.PlayPauseMenuOpenSfx();
+        }
+
         if (menuObject != null)
         {
             menuObject.SetActive(true);
@@ -92,6 +101,8 @@ public class PauseMenuController : MonoBehaviour
             {
                 resumeCountdownText.text = i.ToString();
             }
+
+            BreakoutSoundController.PlayPauseResumeCountdownTickSfx();
 
             yield return new WaitForSecondsRealtime(1f);
         }

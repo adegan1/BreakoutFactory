@@ -381,8 +381,10 @@ public class BrickController : MonoBehaviour
         bool isSuperEffectiveHit = IsSuperEffectiveHit(ball);
 
         int damage = GetDamageFromBall(ball);
+        int finalDamage = isWeakened ? damage * 2 : damage;
+        bool willDestroyBrick = currentHitPoints - finalDamage <= 0;
         ApplyDamage(damage, DamageSource.BallHit);
-        if (isSuperEffectiveHit)
+        if (!willDestroyBrick && isSuperEffectiveHit)
         {
             SuperEffectiveHit?.Invoke(this);
             BreakoutSoundController.PlaySuperEffectiveBrickHitSfx();
@@ -393,7 +395,7 @@ public class BrickController : MonoBehaviour
                 superEffectiveGleamWidth,
                 superEffectiveGleamLifetime);
         }
-        else if (typeData != null && typeData.Type == BallTypeData.BallElement.Basic)
+        else if (!willDestroyBrick)
         {
             BreakoutSoundController.PlayBasicBrickHitSfx();
         }
@@ -515,6 +517,7 @@ public class BrickController : MonoBehaviour
             TryTriggerPressureBurstOnDestroyed();
             TrySpreadForestFireOnDestroyed();
             OnBrickDestroyed();
+            BreakoutSoundController.PlayBrickDestroyedSfx();
             Destroy(gameObject);
         }
     }

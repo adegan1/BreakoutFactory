@@ -69,8 +69,8 @@ MonoBehaviour:
     horizontalDriftRange: 4
   superEffectiveStyle:
     useScoreValue: 0
-    staticText: Strong!
-    color: {r: 0.99634784, g: 1, b: 0.7877358, a: 0.84313726}
+    staticText: STRONG!
+    color: {r: 1, g: 0.76341707, b: 0.18396229, a: 0.79607844}
     fontSize: 12
     lifetimeSeconds: 0.65
     riseDistance: 12

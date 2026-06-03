@@ -31,6 +31,7 @@ public class BreakoutSoundController : MonoBehaviour
     [Header("Hit Sounds")]
     [SerializeField] private OneShotSoundEvent basicBrickHit = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent superEffectiveBrickHit = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent brickDestroyed = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent wallHit = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent paddleHit = new OneShotSoundEvent();
 
@@ -43,6 +44,12 @@ public class BreakoutSoundController : MonoBehaviour
     [SerializeField] private OneShotSoundEvent levelWin = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent damageTaken = new OneShotSoundEvent();
     [SerializeField] private OneShotSoundEvent healed = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent pauseMenuOpen = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent pauseResumeCountdownTick = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent itemSold = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent itemBought = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent shopReroll = new OneShotSoundEvent();
+    [SerializeField] private OneShotSoundEvent lifeLost = new OneShotSoundEvent();
 
     private readonly List<AudioSource> sourcePool = new List<AudioSource>();
 
@@ -89,6 +96,11 @@ public class BreakoutSoundController : MonoBehaviour
         Instance.PlayEvent(Instance.superEffectiveBrickHit);
     }
 
+    public static void PlayBrickDestroyedSfx()
+    {
+        Instance.PlayEvent(Instance.brickDestroyed);
+    }
+
     public static void PlayWallHitSfx()
     {
         Instance.PlayEvent(Instance.wallHit);
@@ -129,6 +141,36 @@ public class BreakoutSoundController : MonoBehaviour
         Instance.PlayEvent(Instance.healed);
     }
 
+    public static void PlayPauseMenuOpenSfx()
+    {
+        Instance.PlayEvent(Instance.pauseMenuOpen);
+    }
+
+    public static void PlayPauseResumeCountdownTickSfx()
+    {
+        Instance.PlayEvent(Instance.pauseResumeCountdownTick);
+    }
+
+    public static void PlayItemSoldSfx()
+    {
+        Instance.PlayEvent(Instance.itemSold);
+    }
+
+    public static void PlayItemBoughtSfx()
+    {
+        Instance.PlayEvent(Instance.itemBought);
+    }
+
+    public static void PlayShopRerollSfx()
+    {
+        Instance.PlayEvent(Instance.shopReroll);
+    }
+
+    public static void PlayLifeLostSfx()
+    {
+        Instance.PlayEvent(Instance.lifeLost);
+    }
+
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -148,6 +190,7 @@ public class BreakoutSoundController : MonoBehaviour
         HashSet<AudioClip> uniqueClips = new HashSet<AudioClip>();
         CollectClips(uniqueClips, basicBrickHit);
         CollectClips(uniqueClips, superEffectiveBrickHit);
+        CollectClips(uniqueClips, brickDestroyed);
         CollectClips(uniqueClips, wallHit);
         CollectClips(uniqueClips, paddleHit);
         CollectClips(uniqueClips, itemPickup);
@@ -156,6 +199,12 @@ public class BreakoutSoundController : MonoBehaviour
         CollectClips(uniqueClips, levelWin);
         CollectClips(uniqueClips, damageTaken);
         CollectClips(uniqueClips, healed);
+        CollectClips(uniqueClips, pauseMenuOpen);
+        CollectClips(uniqueClips, pauseResumeCountdownTick);
+        CollectClips(uniqueClips, itemSold);
+        CollectClips(uniqueClips, itemBought);
+        CollectClips(uniqueClips, shopReroll);
+        CollectClips(uniqueClips, lifeLost);
 
         foreach (AudioClip clip in uniqueClips)
         {

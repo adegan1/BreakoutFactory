@@ -21,6 +21,7 @@ MonoBehaviour:
   buildingColor: {r: 0.93362963, g: 0.7122642, b: 1, a: 1}
   footprintWidth: 2
   footprintHeight: 3
+  placementSoundSize: 2
   behaviorPrefab: {fileID: 1276502763047268258, guid: 6afaf2a12e596c04a9558618590967f7, type: 3}
   generatorSettings: {fileID: 0}
   isConveyor: 0
@@ -29,5 +30,11 @@ MonoBehaviour:
   conveyorStraightSprite: {fileID: 0}
   conveyorTurnLeftSprite: {fileID: 0}
   conveyorTurnRightSprite: {fileID: 0}
+  conveyorStraightAnimationSprites: []
+  conveyorTurnLeftAnimationSprites: []
+  conveyorTurnRightAnimationSprites: []
+  conveyorAnimationFrameRate: 8
   scrapDropAmount: 7
   maxOwnedQuantityFromBreakoutDrops: 7
+  minShopBuyAmount: 1
+  maxShopBuyAmount: 1

@@ -6031,55 +6031,123 @@ MonoBehaviour:
   initialSourcePoolSize: 6
   maxSimultaneousSfx: 20
   basicBrickHit:
-    clips: []
-    volume: 1
-    pitchMin: 0.95
-    pitchMax: 1.05
+    clips:
+    - {fileID: 8300000, guid: ec76ecce4ee715a4882a902e1e4c39b2, type: 3}
+    - {fileID: 8300000, guid: 4e81cf8aff7831f4b922838b838a2b6d, type: 3}
+    - {fileID: 8300000, guid: ff95130fc31f17a4f9f7d41402249b68, type: 3}
+    - {fileID: 8300000, guid: 8c0ae653c6b1e884e88867928ed0697e, type: 3}
+    volume: 0.7
+    pitchMin: 0.8
+    pitchMax: 1.2
   superEffectiveBrickHit:
-    clips: []
-    volume: 1
+    clips:
+    - {fileID: 8300000, guid: 694692021224de948810a3786e1b2cfc, type: 3}
+    - {fileID: 8300000, guid: 122528142950ef6469bda7aa5634b971, type: 3}
+    - {fileID: 8300000, guid: 738e96795abe36b43b6557a6b5a1a811, type: 3}
+    volume: 0.65
     pitchMin: 0.95
-    pitchMax: 1.05
+    pitchMax: 1.15
+  brickDestroyed:
+    clips:
+    - {fileID: 8300000, guid: b7e0ab6115d4260469051702fa52e788, type: 3}
+    - {fileID: 8300000, guid: 6a83ef9ffd9706c4e861af90a57711d4, type: 3}
+    volume: 0.35
+    pitchMin: 0.85
+    pitchMax: 1.15
   wallHit:
-    clips: []
-    volume: 1
-    pitchMin: 0.95
-    pitchMax: 1.05
+    clips:
+    - {fileID: 8300000, guid: cef3262acb0efe14aba6bd5368312567, type: 3}
+    - {fileID: 8300000, guid: 90012914b9b34ed4dbc63791563c9311, type: 3}
+    volume: 0.1
+    pitchMin: 0.8
+    pitchMax: 1.15
   paddleHit:
-    clips: []
-    volume: 1
-    pitchMin: 0.95
-    pitchMax: 1.05
+    clips:
+    - {fileID: 8300000, guid: 5f4b3ec1e2cb57e44bca9591eb006abf, type: 3}
+    - {fileID: 8300000, guid: 764874d1b4af3c44aa42e3b2cff6874b, type: 3}
+    - {fileID: 8300000, guid: 33074834f91f135419b5783c7a7eed47, type: 3}
+    volume: 0.8
+    pitchMin: 0.8
+    pitchMax: 1.15
   itemPickup:
-    clips: []
-    volume: 1
-    pitchMin: 0.95
-    pitchMax: 1.05
+    clips:
+    - {fileID: 8300000, guid: 31f0d3bd411d52344a8466e3fc7cc6c5, type: 3}
+    volume: 0.7
+    pitchMin: 0.85
+    pitchMax: 1.1
   scrapPickup:
-    clips: []
-    volume: 1
-    pitchMin: 0.95
-    pitchMax: 1.05
+    clips:
+    - {fileID: 8300000, guid: fc5c91faf57ffd942ae90df607317b43, type: 3}
+    - {fileID: 8300000, guid: 9511faaa5d65ec44f8ea9ac3fe91f427, type: 3}
+    - {fileID: 8300000, guid: 890ee5f328c6d3c43b1a711bb82b2765, type: 3}
+    volume: 0.7
+    pitchMin: 0.9
+    pitchMax: 1.1
   ballDispense:
-    clips: []
-    volume: 1
+    clips:
+    - {fileID: 8300000, guid: 79896e6b6084b0d4294d243ecf10a15a, type: 3}
+    - {fileID: 8300000, guid: b1e01f178a11cc4478555df9160ae72b, type: 3}
+    - {fileID: 8300000, guid: 55cb007f42805c147a643742068d9c8d, type: 3}
+    volume: 0.55
     pitchMin: 0.95
     pitchMax: 1.05
   levelWin:
-    clips: []
-    volume: 1
-    pitchMin: 0.95
-    pitchMax: 1.05
+    clips:
+    - {fileID: 8300000, guid: 2fd4cccede8f3fe4494a57319e79888a, type: 3}
+    volume: 0.7
+    pitchMin: 1
+    pitchMax: 1
   damageTaken:
-    clips: []
-    volume: 1
-    pitchMin: 0.95
-    pitchMax: 1.05
+    clips:
+    - {fileID: 8300000, guid: 94cddee6bc1897e4780a1c3392928c3f, type: 3}
+    - {fileID: 8300000, guid: 81c3f4913c382e945b15d6f32125fd67, type: 3}
+    - {fileID: 8300000, guid: 4c461957edaccae4f8002b1496d6fc59, type: 3}
+    volume: 0.15
+    pitchMin: 0.85
+    pitchMax: 1.1
   healed:
-    clips: []
-    volume: 1
+    clips:
+    - {fileID: 8300000, guid: 1d765af55943aed478360dc018b34d3d, type: 3}
+    volume: 0.4
+    pitchMin: 0.8
+    pitchMax: 1.2
+  pauseMenuOpen:
+    clips:
+    - {fileID: 8300000, guid: 19dee3188d3100c4e856718b952978e6, type: 3}
+    volume: 0.7
     pitchMin: 0.95
     pitchMax: 1.05
+  pauseResumeCountdownTick:
+    clips:
+    - {fileID: 8300000, guid: 949d6cf6cef06ec42ab144ff5dc49bc3, type: 3}
+    - {fileID: 8300000, guid: e985811713937d24aa6ee1505644745e, type: 3}
+    volume: 0.6
+    pitchMin: 0.95
+    pitchMax: 1.05
+  itemSold:
+    clips:
+    - {fileID: 8300000, guid: 3d4ef4b93a96836418679c23e35af5e7, type: 3}
+    volume: 0.65
+    pitchMin: 0.85
+    pitchMax: 1.15
+  itemBought:
+    clips:
+    - {fileID: 8300000, guid: 249387af591e0a8429ff6d2e9d9dbb35, type: 3}
+    volume: 0.45
+    pitchMin: 0.85
+    pitchMax: 1.1
+  shopReroll:
+    clips:
+    - {fileID: 8300000, guid: c1588f1277cdae046a6df11fb608c252, type: 3}
+    volume: 0.5
+    pitchMin: 0.85
+    pitchMax: 1.1
+  lifeLost:
+    clips:
+    - {fileID: 8300000, guid: f970b4e1611c1484c94285c35cb16c63, type: 3}
+    volume: 0.4
+    pitchMin: 1
+    pitchMax: 1
 --- !u!4 &896537290
 Transform:
   m_ObjectHideFlags: 0
@@ -11143,8 +11211,8 @@ MonoBehaviour:
   ballPrefab: {fileID: 9021448586808601386, guid: 20b2cc512d25edc45b7e56871cf382db, type: 3}
   paddleTransform: {fileID: 1324807477}
   ballsToDispense:
-  - {fileID: 11400000, guid: db3872469b0e5284ba63b92387d858f6, type: 2}
-  - {fileID: 11400000, guid: bc199a281a7d3a94080764007a818f4c, type: 2}
+  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
+  - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   - {fileID: 11400000, guid: e5c16f1eaecda8843878c428df28f1a0, type: 2}
   initialLaunchDirection: {x: 0, y: 1}
   spawnOffset: {x: 0, y: 0.6}
