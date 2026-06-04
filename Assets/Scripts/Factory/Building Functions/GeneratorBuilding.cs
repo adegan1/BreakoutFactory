@@ -35,6 +35,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
     [Header("Out Of Resources Indicator")]
     [SerializeField] private bool showOutOfResourcesIndicator = true;
     [SerializeField] private SpriteRenderer outOfResourcesIndicatorRenderer;
+    [SerializeField] private bool keepOutOfResourcesIndicatorDefaultRotation = true;
 
     private float spawnTimer;
     private int spawnedItemCount;
@@ -42,6 +43,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
     private float launchMoveTimer;
     private Vector3 launchStartWorldPosition;
     private Vector3 launchTargetWorldPosition;
+    private Quaternion outOfResourcesIndicatorDefaultWorldRotation = Quaternion.identity;
 
     public ItemDefinition ItemDefinition => GetGeneratorSettings()?.ItemDefinition;
     public int MaxItemsToSpawn => GetGeneratorSettings()?.MaxItemsToSpawn ?? 0;
@@ -69,6 +71,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
     private void Awake()
     {
         ResolveDependenciesIfNeeded();
+        CacheOutOfResourcesIndicatorBaseTransform();
         EnsureMachineStateIdAssigned();
         RegisterMachineStateIdIfValid();
         RefreshOutOfResourcesIndicatorVisual();
@@ -78,6 +81,7 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
     {
         TickLaunchMovement();
         RefreshOutOfResourcesIndicatorVisual();
+        UpdateOutOfResourcesIndicatorTransform();
 
         if (launchingItem != null)
         {
@@ -422,6 +426,29 @@ public class GeneratorBuilding : MonoBehaviour, IMachineResourceProgressProvider
         {
             outOfResourcesIndicatorRenderer.enabled = shouldShow;
         }
+
+        UpdateOutOfResourcesIndicatorTransform();
+    }
+
+    private void CacheOutOfResourcesIndicatorBaseTransform()
+    {
+        if (outOfResourcesIndicatorRenderer == null)
+        {
+            return;
+        }
+
+        outOfResourcesIndicatorDefaultWorldRotation = FactoryGridDirectionUtility.CalculateUnrotatedWorldRotation(
+            outOfResourcesIndicatorRenderer.transform);
+    }
+
+    private void UpdateOutOfResourcesIndicatorTransform()
+    {
+        if (!keepOutOfResourcesIndicatorDefaultRotation || outOfResourcesIndicatorRenderer == null)
+        {
+            return;
+        }
+
+        outOfResourcesIndicatorRenderer.transform.rotation = outOfResourcesIndicatorDefaultWorldRotation;
     }
 
     private void RegisterMachineStateIdIfValid()

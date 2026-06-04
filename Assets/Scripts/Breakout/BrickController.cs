@@ -384,7 +384,7 @@ public class BrickController : MonoBehaviour
         int finalDamage = isWeakened ? damage * 2 : damage;
         bool willDestroyBrick = currentHitPoints - finalDamage <= 0;
         ApplyDamage(damage, DamageSource.BallHit);
-        if (!willDestroyBrick && isSuperEffectiveHit)
+        if (isSuperEffectiveHit)
         {
             SuperEffectiveHit?.Invoke(this);
             BreakoutSoundController.PlaySuperEffectiveBrickHitSfx();

@@ -87,18 +87,8 @@ public class LocalizationManager : MonoBehaviour
         { "- Speed Up", "- 速度アップ" },
         { "- Play/Pause", "- 再生/一時停止" },
         { "Error Text", "エラーテキスト" },
-
+        { "STRONG!", "強い！" },
         { "Scrap", "スクラップ" },
-        /*{ "Conveyor", "コンベア" },
-        { "Ball Mold", "ボールモールド" },
-        { "Fusion Reactor", "融合炉" },
-        { "Compounder", "コンパウンダー" },
-        { "Aero-Turbine", "エアロタービン" },
-        { "Deep Drill", "ディープドリル" },
-        { "Glacial Melter", "グレイシャルメルター" },
-        { "Greenhouse", "温室" },
-        { "Tesla Coil", "テスラコイル" },
-        { "Thermal Condenser", "サーマルコンデンサー" },*/
     };
 
     private static readonly Dictionary<string, string> EnglishByJapaneseTranslations = BuildEnglishByJapaneseMap();
