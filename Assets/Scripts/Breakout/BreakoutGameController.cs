@@ -1183,7 +1183,7 @@ public class BreakoutGameController : MonoBehaviour
             return string.Empty;
         }
 
-        string displayName = buildingDefinition.DisplayName;
+        string displayName = buildingDefinition.LocalizedDisplayName;
         if (!string.IsNullOrWhiteSpace(displayName))
         {
             return displayName.Trim();

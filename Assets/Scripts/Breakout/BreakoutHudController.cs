@@ -268,8 +268,8 @@ public class BreakoutHudController : MonoBehaviour
             if (tooltip != null)
             {
                 tooltip.SetContent(
-                    ballType != null ? ballType.DisplayName : string.Empty,
-                    ballType != null ? ballType.Description : string.Empty);
+                    ballType != null ? ballType.LocalizedDisplayName : string.Empty,
+                    ballType != null ? ballType.LocalizedDescription : string.Empty);
             }
         }
     }
@@ -398,8 +398,8 @@ public class BreakoutHudController : MonoBehaviour
             if (tooltip != null)
             {
                 tooltip.SetContent(
-                    entry.Definition != null ? entry.Definition.DisplayName : string.Empty,
-                    entry.Definition != null ? entry.Definition.Description : string.Empty);
+                    entry.Definition != null ? entry.Definition.LocalizedDisplayName : string.Empty,
+                    entry.Definition != null ? entry.Definition.LocalizedDescription : string.Empty);
             }
 
             TextMeshProUGUI countLabel = labelPool[i];

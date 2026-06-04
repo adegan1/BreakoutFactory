@@ -254,8 +254,8 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         if (tooltip != null)
         {
             tooltip.SetContent(
-                ballType != null ? ballType.DisplayName : string.Empty,
-                ballType != null ? ballType.Description : string.Empty);
+                ballType != null ? ballType.LocalizedDisplayName : string.Empty,
+                ballType != null ? ballType.LocalizedDescription : string.Empty);
         }
     }
 

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 [DisallowMultipleComponent]
 public class SettingsVisualUpdater : MonoBehaviour
@@ -28,11 +29,17 @@ public class SettingsVisualUpdater : MonoBehaviour
     [SerializeField] private Color selectedLanguageColor = Color.white;
     [SerializeField] private Color unselectedLanguageColor = Color.gray;
 
+    [Header("Localization Fonts")]
+    [SerializeField] private TMP_FontAsset englishFont;
+    [SerializeField] private TMP_FontAsset japaneseFont;
+    [SerializeField] private bool keepOriginalEnglishFont = true;
+
     private readonly List<(Button button, UnityAction action)> wiredButtonListeners = new List<(Button, UnityAction)>();
     private bool listenersWired;
 
     private void Start()
     {
+        ApplyLocalizationFontSettings();
         WireListeners();
         SyncUiFromSettings();
     }
@@ -41,6 +48,7 @@ public class SettingsVisualUpdater : MonoBehaviour
     {
         SceneManager.sceneLoaded += HandleSceneLoaded;
         GameSettings.LanguageChanged += HandleLanguageChanged;
+        ApplyLocalizationFontSettings();
         SyncUiFromSettings();
     }
 
@@ -201,6 +209,16 @@ public class SettingsVisualUpdater : MonoBehaviour
     private void SyncLanguageVisualsFromSettings()
     {
         SyncLanguageButtonColorsFromSettings();
+    }
+
+    private void ApplyLocalizationFontSettings()
+    {
+        if (englishFont == null && japaneseFont == null)
+        {
+            return;
+        }
+
+        LocalizationManager.ConfigureFonts(englishFont, japaneseFont, keepOriginalEnglishFont);
     }
 
     private void SyncLanguageButtonColorsFromSettings()

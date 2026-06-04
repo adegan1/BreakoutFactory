@@ -10,6 +10,10 @@ public class ItemDefinition : ScriptableObject
     [SerializeField] private string displayName;
     [SerializeField, TextArea(2, 5)] private string description;
 
+    [Header("Localization Overrides")]
+    [SerializeField] private string japaneseDisplayName;
+    [SerializeField, TextArea(2, 5)] private string japaneseDescription;
+
     // Visual
     [SerializeField] private Sprite icon;
     [SerializeField] private Color tint = Color.white;
@@ -26,6 +30,8 @@ public class ItemDefinition : ScriptableObject
     public string ItemId => itemId;
     public string DisplayName => displayName;
     public string Description => description;
+    public string LocalizedDisplayName => LocalizationManager.Localize(displayName, japaneseDisplayName);
+    public string LocalizedDescription => LocalizationManager.Localize(description, japaneseDescription);
     public Sprite Icon => icon;
     public Color Tint => tint;
     public int BaseValue => baseValue;

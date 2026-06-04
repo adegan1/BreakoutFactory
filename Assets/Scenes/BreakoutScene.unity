@@ -412,7 +412,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 896537291}
         m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
         m_MethodName: PlayButtonClickSfx
         m_Mode: 1
@@ -2010,6 +2010,7 @@ GameObject:
   - component: {fileID: 171458625}
   - component: {fileID: 171458627}
   - component: {fileID: 171458626}
+  - component: {fileID: 171458628}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -2138,6 +2139,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 171458624}
   m_CullTransparentMesh: 1
+--- !u!114 &171458628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 171458624}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &176315949
 GameObject:
   m_ObjectHideFlags: 0
@@ -2397,7 +2412,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -8.2}
+  m_AnchoredPosition: {x: 0, y: -29.3}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &219664030
@@ -4947,7 +4962,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 896537291}
         m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
         m_MethodName: PlayButtonClickSfx
         m_Mode: 1
@@ -7072,6 +7087,7 @@ GameObject:
   - component: {fileID: 763956946}
   - component: {fileID: 763956948}
   - component: {fileID: 763956947}
+  - component: {fileID: 763956949}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -7198,6 +7214,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 763956945}
   m_CullTransparentMesh: 1
+--- !u!114 &763956949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 763956945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &768323480
 GameObject:
   m_ObjectHideFlags: 0
@@ -7572,6 +7602,7 @@ GameObject:
   - component: {fileID: 841039255}
   - component: {fileID: 841039257}
   - component: {fileID: 841039256}
+  - component: {fileID: 841039258}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -7700,6 +7731,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 841039254}
   m_CullTransparentMesh: 1
+--- !u!114 &841039258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 841039254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &852190079
 GameObject:
   m_ObjectHideFlags: 0
@@ -9393,6 +9438,9 @@ MonoBehaviour:
     targetGraphic: {fileID: 1998177432}
   selectedLanguageColor: {r: 0.22745098, g: 0.48235294, b: 0.27058825, a: 1}
   unselectedLanguageColor: {r: 0.4745098, g: 0.8784314, b: 0.54509807, a: 1}
+  englishFont: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  japaneseFont: {fileID: 11400000, guid: 759ea2e917ddbd748bbae914312e50db, type: 2}
+  keepOriginalEnglishFont: 1
 --- !u!1 &1090127411
 GameObject:
   m_ObjectHideFlags: 0
@@ -10086,6 +10134,7 @@ GameObject:
   - component: {fileID: 1212153359}
   - component: {fileID: 1212153361}
   - component: {fileID: 1212153360}
+  - component: {fileID: 1212153362}
   m_Layer: 5
   m_Name: English Text
   m_TagString: Untagged
@@ -10136,7 +10185,7 @@ MonoBehaviour:
 
 '
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fd396c92521cbcf4fbe4b44cc4d44994, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: -2066376072139983954, guid: fd396c92521cbcf4fbe4b44cc4d44994, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -10144,7 +10193,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -10203,7 +10252,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1212153361
@@ -10214,6 +10263,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1212153358}
   m_CullTransparentMesh: 1
+--- !u!114 &1212153362
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1212153358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &1223055082
 GameObject:
   m_ObjectHideFlags: 0
@@ -10679,7 +10742,7 @@ MonoBehaviour:
     colorMode: 0
   normalColor: {r: 0.4745098, g: 0.8784314, b: 0.54509807, a: 1}
   selectedColor: {r: 0.22745098, g: 0.48235294, b: 0.27058825, a: 1}
-  applyInitialColorOnAwake: 1
+  applyInitialColorOnAwake: 0
 --- !u!114 &1290771055
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10736,9 +10799,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: GameSettings, Assembly-CSharp
-        m_MethodName: SetLanguageEnglish
+      - m_Target: {fileID: 896537291}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -13595,7 +13658,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Score:'
+  m_text: 'Score:
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -13622,8 +13687,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 26
-  m_fontSizeBase: 26
+  m_fontSize: 22
+  m_fontSizeBase: 22
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -14410,6 +14475,7 @@ GameObject:
   - component: {fileID: 1635712738}
   - component: {fileID: 1635712740}
   - component: {fileID: 1635712739}
+  - component: {fileID: 1635712741}
   m_Layer: 5
   m_Name: Japanese Text
   m_TagString: Untagged
@@ -14466,7 +14532,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -14536,6 +14602,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1635712737}
   m_CullTransparentMesh: 1
+--- !u!114 &1635712741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635712737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &1651778314
 GameObject:
   m_ObjectHideFlags: 0
@@ -16658,7 +16738,7 @@ MonoBehaviour:
     colorMode: 1
   normalColor: {r: 0.4745098, g: 0.8784314, b: 0.54509807, a: 1}
   selectedColor: {r: 0.22745098, g: 0.48235294, b: 0.27058825, a: 1}
-  applyInitialColorOnAwake: 1
+  applyInitialColorOnAwake: 0
 --- !u!114 &1998177431
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16715,9 +16795,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: GameSettings, Assembly-CSharp
-        m_MethodName: SetLanguageJapanese
+      - m_Target: {fileID: 896537291}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

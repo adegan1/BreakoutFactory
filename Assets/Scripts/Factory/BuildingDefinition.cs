@@ -20,6 +20,8 @@ public class BuildingDefinition : ScriptableObject
     // Display
     [SerializeField] private string displayName;
     [SerializeField, TextArea(2, 5)] private string description;
+    [SerializeField] private string japaneseDisplayName;
+    [SerializeField, TextArea(2, 5)] private string japaneseDescription;
     [SerializeField] private Sprite buildingSprite;
     [SerializeField] private Color buildingColor = Color.white;
 
@@ -55,6 +57,8 @@ public class BuildingDefinition : ScriptableObject
 
     public string DisplayName => displayName;
     public string Description => description;
+    public string LocalizedDisplayName => LocalizationManager.Localize(displayName, japaneseDisplayName);
+    public string LocalizedDescription => LocalizationManager.Localize(description, japaneseDescription);
     public Sprite BuildingSprite => buildingSprite;
     public Color BuildingColor => buildingColor;
     public int FootprintWidth => footprintWidth;

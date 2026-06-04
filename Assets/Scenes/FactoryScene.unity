@@ -1060,7 +1060,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1740727681}
         m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
         m_MethodName: PlayButtonClickSfx
         m_Mode: 1
@@ -1072,7 +1072,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1017599119}
         m_TargetAssemblyTypeName: SceneLoader, Assembly-CSharp
         m_MethodName: LoadSceneByName
         m_Mode: 5
@@ -2489,6 +2489,7 @@ GameObject:
   - component: {fileID: 268078022}
   - component: {fileID: 268078024}
   - component: {fileID: 268078023}
+  - component: {fileID: 268078025}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -2615,6 +2616,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 268078021}
   m_CullTransparentMesh: 1
+--- !u!114 &268078025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 268078021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &274698121
 GameObject:
   m_ObjectHideFlags: 0
@@ -3043,7 +3058,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1740727681}
         m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
         m_MethodName: PlayButtonClickSfx
         m_Mode: 1
@@ -3277,7 +3292,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1740727681}
         m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
         m_MethodName: PlayButtonClickSfx
         m_Mode: 1
@@ -3350,6 +3365,7 @@ GameObject:
   - component: {fileID: 382560567}
   - component: {fileID: 382560569}
   - component: {fileID: 382560568}
+  - component: {fileID: 382560570}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -3478,6 +3494,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 382560566}
   m_CullTransparentMesh: 1
+--- !u!114 &382560570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 382560566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &387747833
 GameObject:
   m_ObjectHideFlags: 0
@@ -4890,7 +4920,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1740727681}
         m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
         m_MethodName: PlayButtonClickSfx
         m_Mode: 1
@@ -6849,7 +6879,7 @@ MonoBehaviour:
   m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 1
-  m_fontSizeMin: 10
+  m_fontSizeMin: 8
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
@@ -9344,6 +9374,9 @@ MonoBehaviour:
     targetGraphic: {fileID: 1544729666}
   selectedLanguageColor: {r: 0.22745098, g: 0.48235294, b: 0.27058825, a: 1}
   unselectedLanguageColor: {r: 0.4745098, g: 0.8784314, b: 0.54509807, a: 1}
+  englishFont: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  japaneseFont: {fileID: 11400000, guid: 759ea2e917ddbd748bbae914312e50db, type: 2}
+  keepOriginalEnglishFont: 1
 --- !u!1 &1018312993
 GameObject:
   m_ObjectHideFlags: 0
@@ -9432,7 +9465,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.3773585, g: 0.3773585, b: 0.3773585, a: 0.42745098}
+  m_Color: {r: 0.3773585, g: 0.3773585, b: 0.3773585, a: 0.78039217}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -11060,9 +11093,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1740727678}
+      - m_Target: {fileID: 1740727681}
         m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
-        m_MethodName: 
+        m_MethodName: PlayButtonClickSfx
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -11072,9 +11105,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1017599118}
+      - m_Target: {fileID: 1017599122}
         m_TargetAssemblyTypeName: PauseMenuController, Assembly-CSharp
-        m_MethodName: 
+        m_MethodName: CloseMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -14026,6 +14059,7 @@ GameObject:
   - component: {fileID: 1450211014}
   - component: {fileID: 1450211016}
   - component: {fileID: 1450211015}
+  - component: {fileID: 1450211017}
   m_Layer: 5
   m_Name: English Text
   m_TagString: Untagged
@@ -14076,7 +14110,7 @@ MonoBehaviour:
 
 '
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fd396c92521cbcf4fbe4b44cc4d44994, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: -2066376072139983954, guid: fd396c92521cbcf4fbe4b44cc4d44994, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -14084,7 +14118,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -14143,7 +14177,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1450211016
@@ -14154,6 +14188,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1450211013}
   m_CullTransparentMesh: 1
+--- !u!114 &1450211017
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1450211013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &1460487082
 GameObject:
   m_ObjectHideFlags: 0
@@ -14438,7 +14486,7 @@ MonoBehaviour:
   m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 1
-  m_fontSizeMin: 10
+  m_fontSizeMin: 8
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
@@ -15060,6 +15108,7 @@ GameObject:
   - component: {fileID: 1487664921}
   - component: {fileID: 1487664923}
   - component: {fileID: 1487664922}
+  - component: {fileID: 1487664924}
   m_Layer: 5
   m_Name: Japanese Text
   m_TagString: Untagged
@@ -15116,7 +15165,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -15186,6 +15235,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1487664920}
   m_CullTransparentMesh: 1
+--- !u!114 &1487664924
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1487664920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &1488158331
 GameObject:
   m_ObjectHideFlags: 0
@@ -15629,6 +15692,7 @@ GameObject:
   - component: {fileID: 1519674631}
   - component: {fileID: 1519674633}
   - component: {fileID: 1519674632}
+  - component: {fileID: 1519674634}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -15757,6 +15821,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1519674630}
   m_CullTransparentMesh: 1
+--- !u!114 &1519674634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1519674630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &1525017459
 GameObject:
   m_ObjectHideFlags: 0
@@ -16186,7 +16264,7 @@ MonoBehaviour:
     colorMode: 1
   normalColor: {r: 0.4745098, g: 0.8784314, b: 0.54509807, a: 1}
   selectedColor: {r: 0.22745098, g: 0.48235294, b: 0.27058825, a: 1}
-  applyInitialColorOnAwake: 1
+  applyInitialColorOnAwake: 0
 --- !u!114 &1544729668
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16243,9 +16321,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: GameSettings, Assembly-CSharp
-        m_MethodName: SetLanguageJapanese
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -19034,7 +19112,7 @@ MonoBehaviour:
     colorMode: 0
   normalColor: {r: 0.4745098, g: 0.8784314, b: 0.54509807, a: 1}
   selectedColor: {r: 0.22745098, g: 0.48235294, b: 0.27058825, a: 1}
-  applyInitialColorOnAwake: 1
+  applyInitialColorOnAwake: 0
 --- !u!114 &1884900707
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19091,9 +19169,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: GameSettings, Assembly-CSharp
-        m_MethodName: SetLanguageEnglish
+      - m_Target: {fileID: 1740727681}
+        m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
+        m_MethodName: PlayButtonClickSfx
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -20622,6 +20700,7 @@ GameObject:
   - component: {fileID: 2071930798}
   - component: {fileID: 2071930797}
   - component: {fileID: 2071930796}
+  - component: {fileID: 2071930800}
   m_Layer: 5
   m_Name: Back Button
   m_TagString: Untagged
@@ -20734,7 +20813,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1740727681}
         m_TargetAssemblyTypeName: UISoundController, Assembly-CSharp
         m_MethodName: PlayButtonClickSfx
         m_Mode: 1
@@ -20784,6 +20863,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2071930794}
   m_CullTransparentMesh: 1
+--- !u!114 &2071930800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2071930794}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &2080277607
 GameObject:
   m_ObjectHideFlags: 0
@@ -21215,7 +21308,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2138085635
 RectTransform:
   m_ObjectHideFlags: 0

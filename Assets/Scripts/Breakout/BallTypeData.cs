@@ -61,6 +61,8 @@ public class BallTypeData : ScriptableObject
     // Display
     [SerializeField] private string displayName;
     [SerializeField, TextArea(2, 4)] private string description;
+    [SerializeField] private string japaneseDisplayName;
+    [SerializeField, TextArea(2, 4)] private string japaneseDescription;
     [SerializeField] private Color trailColor = Color.white;
     [SerializeField] private Color[] trailColors = new Color[] { Color.white, Color.cyan };
     [SerializeField, Min(0.1f)] private float trailColorCycleRate = 16f;
@@ -292,6 +294,8 @@ public class BallTypeData : ScriptableObject
     public ComboEffectProfile SecondaryEffectProfile => secondaryEffectProfile;
     public string DisplayName => displayName;
     public string Description => description;
+    public string LocalizedDisplayName => LocalizationManager.Localize(displayName, japaneseDisplayName);
+    public string LocalizedDescription => LocalizationManager.Localize(description, japaneseDescription);
     public Color TrailColor => trailColorMode == TrailColorMode.ManualCycle && trailColors != null && trailColors.Length > 0
         ? trailColors[0]
         : trailColor;
