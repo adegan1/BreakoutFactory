@@ -55,6 +55,8 @@ public class ItemDefinition : ScriptableObject
         itemId = string.IsNullOrWhiteSpace(compoundItemId) ? fallbackId : compoundItemId.Trim();
         displayName = compoundBallType.DisplayName;
         description = compoundBallType.Description;
+        japaneseDisplayName = LocalizationManager.LocalizeToJapanese(displayName, compoundBallType.JapaneseDisplayName);
+        japaneseDescription = LocalizationManager.LocalizeToJapanese(description, compoundBallType.JapaneseDescription);
         icon = iconOverride != null ? iconOverride : compoundBallType.BallSprite;
         tint = tintOverride ?? compoundBallType.TrailColor;
         baseValue = Mathf.Max(0, compoundBaseValue);

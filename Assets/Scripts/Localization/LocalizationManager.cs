@@ -21,13 +21,8 @@ public class LocalizationManager : MonoBehaviour
     [SerializeField] private TMP_FontAsset japaneseFont;
     [SerializeField] private bool keepOriginalEnglishFont = true;
 
-    [Header("Diagnostics")]
-    [SerializeField] private bool logMissingJapaneseTranslations;
-
     [Header("Refresh Timing")]
     [SerializeField, Min(0)] private int delayedRefreshFrames = 2;
-
-    private readonly HashSet<string> missingJapaneseLogs = new HashSet<string>(StringComparer.Ordinal);
 
     private static readonly Dictionary<string, string> JapaneseTranslations = new Dictionary<string, string>(StringComparer.Ordinal)
     {
@@ -127,9 +122,6 @@ public class LocalizationManager : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
 
-    #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        logMissingJapaneseTranslations = true;
-    #endif
     }
 
     public static void ConfigureFonts(TMP_FontAsset english, TMP_FontAsset japanese, bool preserveOriginalEnglishFont = true)
@@ -168,6 +160,26 @@ public class LocalizationManager : MonoBehaviour
         }
 
         return LocalizeEnglishString(englishText, currentLanguage);
+    }
+
+    public static string LocalizeToJapanese(string englishText, string japaneseOverride = null)
+    {
+        if (!string.IsNullOrWhiteSpace(japaneseOverride))
+        {
+            if (Application.isPlaying)
+            {
+                RegisterTranslationOverride(englishText, japaneseOverride);
+            }
+
+            return japaneseOverride.Trim();
+        }
+
+        if (!Application.isPlaying)
+        {
+            return englishText;
+        }
+
+        return LocalizeEnglishString(englishText, GameSettings.Language.Japanese);
     }
 
     public static void RegisterTranslationOverride(string englishText, string japaneseText)
@@ -415,11 +427,6 @@ public class LocalizationManager : MonoBehaviour
         if (TryLocalizeTrailingQuantity(lookupText, out string localizedWithQuantity))
         {
             return ReapplyOuterWhitespace(english, localizedWithQuantity);
-        }
-
-        if (logMissing && instance != null)
-        {
-            instance.LogMissingJapaneseTranslation(lookupText);
         }
 
         return english;
@@ -679,18 +686,4 @@ public class LocalizationManager : MonoBehaviour
             .Trim();
     }
 
-    private void LogMissingJapaneseTranslation(string untranslatedText)
-    {
-        if (!logMissingJapaneseTranslations || string.IsNullOrEmpty(untranslatedText))
-        {
-            return;
-        }
-
-        if (!missingJapaneseLogs.Add(untranslatedText))
-        {
-            return;
-        }
-
-        Debug.Log($"[Localization] Missing Japanese translation for: \"{untranslatedText}\"");
-    }
 }

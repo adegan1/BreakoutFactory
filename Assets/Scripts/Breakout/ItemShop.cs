@@ -54,6 +54,8 @@ public class ItemShop : MonoBehaviour
             shopPanel.SetActive(false);
         }
 
+        ConfigureDynamicTextLocalizationExclusions();
+
         if (rerollButton != null)
         {
             rerollButton.onClick.AddListener(OnRerollClicked);
@@ -304,6 +306,30 @@ public class ItemShop : MonoBehaviour
         {
             insufficientScrapMessage.SetActive(true);
         }
+    }
+
+    private void ConfigureDynamicTextLocalizationExclusions()
+    {
+        ConfigureTextExclusion(scrapValueText);
+        ConfigureTextExclusion(rerollPriceText);
+    }
+
+    private static void ConfigureTextExclusion(TextMeshProUGUI text)
+    {
+        if (text == null)
+        {
+            return;
+        }
+
+        LocalizationTextExclusion exclusion = text.GetComponent<LocalizationTextExclusion>();
+        if (exclusion == null)
+        {
+            exclusion = text.gameObject.AddComponent<LocalizationTextExclusion>();
+        }
+
+        // Dynamic numeric labels are assigned directly at runtime.
+        // Keep translation disabled while still allowing language-based font swap.
+        exclusion.Configure(excludeTranslationValue: true, excludeFontSwapValue: false);
     }
 }
 

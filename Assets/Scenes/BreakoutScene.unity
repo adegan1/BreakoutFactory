@@ -7087,7 +7087,6 @@ GameObject:
   - component: {fileID: 763956946}
   - component: {fileID: 763956948}
   - component: {fileID: 763956947}
-  - component: {fileID: 763956949}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -7214,20 +7213,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 763956945}
   m_CullTransparentMesh: 1
---- !u!114 &763956949
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 763956945}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
-  excludeTranslation: 1
-  excludeFontSwap: 1
 --- !u!1 &768323480
 GameObject:
   m_ObjectHideFlags: 0
@@ -11615,6 +11600,7 @@ MonoBehaviour:
   defaultDescriptionContainerWidth: 200
   expandedDescriptionContainerWidth: 320
   heightThresholdForExpansion: 80
+  cjkCharacterThresholdForExpansion: 20
 --- !u!1 &1405321810
 GameObject:
   m_ObjectHideFlags: 0

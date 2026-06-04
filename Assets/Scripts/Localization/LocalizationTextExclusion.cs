@@ -8,4 +8,10 @@ public class LocalizationTextExclusion : MonoBehaviour
 
     public bool ExcludeTranslation => excludeTranslation;
     public bool ExcludeFontSwap => excludeFontSwap;
+
+    public void Configure(bool excludeTranslationValue, bool excludeFontSwapValue)
+    {
+        excludeTranslation = excludeTranslationValue;
+        excludeFontSwap = excludeFontSwapValue;
+    }
 }

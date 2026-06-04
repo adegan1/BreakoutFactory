@@ -294,6 +294,8 @@ public class BallTypeData : ScriptableObject
     public ComboEffectProfile SecondaryEffectProfile => secondaryEffectProfile;
     public string DisplayName => ResolveDisplayName(displayName, name);
     public string Description => ResolveDescription(description);
+    public string JapaneseDisplayName => ResolveOverride(japaneseDisplayName);
+    public string JapaneseDescription => ResolveOverride(japaneseDescription);
     public string LocalizedDisplayName => LocalizationManager.Localize(DisplayName, ResolveOverride(japaneseDisplayName));
     public string LocalizedDescription => LocalizationManager.Localize(Description, ResolveOverride(japaneseDescription));
     public Color TrailColor => trailColorMode == TrailColorMode.ManualCycle && trailColors != null && trailColors.Length > 0
@@ -528,6 +530,19 @@ public class BallTypeData : ScriptableObject
         string descA = !string.IsNullOrWhiteSpace(a.Description) ? $"{a.DisplayName} - {a.Description}" : a.DisplayName;
         string descB = !string.IsNullOrWhiteSpace(b.Description) ? $"{b.DisplayName} - {b.Description}" : b.DisplayName;
         description = $"{descA}\n+\n{descB}";
+
+        string japaneseNameA = ResolveJapaneseText(a.DisplayName, a.JapaneseDisplayName);
+        string japaneseNameB = ResolveJapaneseText(b.DisplayName, b.JapaneseDisplayName);
+        japaneseDisplayName = $"{japaneseNameA} + {japaneseNameB}";
+
+        string japaneseDescA = !string.IsNullOrWhiteSpace(a.Description)
+            ? $"{japaneseNameA} - {ResolveJapaneseText(a.Description, a.JapaneseDescription)}"
+            : japaneseNameA;
+        string japaneseDescB = !string.IsNullOrWhiteSpace(b.Description)
+            ? $"{japaneseNameB} - {ResolveJapaneseText(b.Description, b.JapaneseDescription)}"
+            : japaneseNameB;
+        japaneseDescription = $"{japaneseDescA}\n+\n{japaneseDescB}";
+
         // Directional compounding visuals:
         // - Input 1 (A): sprite/material/animation profile
         // - Input 2 (B): color profile
@@ -756,8 +771,16 @@ public class BallTypeData : ScriptableObject
         createsFlameTrail = a.CreatesFlameTrail || b.CreatesFlameTrail;
         if (createsFlameTrail)
         {
-            BallTypeData flameSource = a.CreatesFlameTrail ? a : b;
+            BallTypeData flameSource = ChooseEffectVisualSource(
+                a,
+                b,
+                a.CreatesFlameTrail,
+                b.CreatesFlameTrail,
+                a.FlameTrailAnimSprites,
+                b.FlameTrailAnimSprites);
             flameTrailSprite = flameSource.FlameTrailSprite != null ? flameSource.FlameTrailSprite : flameSource.BallSprite;
+            flameTrailAnimSprites = flameSource.FlameTrailAnimSprites;
+            flameTrailAnimFrameRate = flameSource.FlameTrailAnimFrameRate;
             flameTrailColor = Color.Lerp(a.FlameTrailColor, b.FlameTrailColor, 0.5f);
             flameTrailSizeMultiplier = Mathf.Max(
                 a.CreatesFlameTrail ? a.FlameTrailSizeMultiplier : 0f,
@@ -788,8 +811,16 @@ public class BallTypeData : ScriptableObject
         createsFertileLand = a.CreatesFertileLand || b.CreatesFertileLand;
         if (createsFertileLand)
         {
-            BallTypeData fertileSource = a.CreatesFertileLand ? a : b;
+            BallTypeData fertileSource = ChooseEffectVisualSource(
+                a,
+                b,
+                a.CreatesFertileLand,
+                b.CreatesFertileLand,
+                a.FertilePatchAnimSprites,
+                b.FertilePatchAnimSprites);
             fertilePatchSprite = fertileSource.FertilePatchSprite != null ? fertileSource.FertilePatchSprite : fertileSource.BallSprite;
+            fertilePatchAnimSprites = fertileSource.FertilePatchAnimSprites;
+            fertilePatchAnimFrameRate = fertileSource.FertilePatchAnimFrameRate;
             fertilePatchColor = Color.Lerp(a.FertilePatchColor, b.FertilePatchColor, 0.5f);
             fertilePatchSizeMultiplier = Mathf.Max(
                 a.CreatesFertileLand ? a.FertilePatchSizeMultiplier : 0f,
@@ -874,7 +905,13 @@ public class BallTypeData : ScriptableObject
         createsLinearProjectile = a.CreatesLinearProjectile || b.CreatesLinearProjectile;
         if (createsLinearProjectile)
         {
-            BallTypeData linearSource = a.CreatesLinearProjectile ? a : b;
+            BallTypeData linearSource = ChooseEffectVisualSource(
+                a,
+                b,
+                a.CreatesLinearProjectile,
+                b.CreatesLinearProjectile,
+                a.LinearProjectileAnimSprites,
+                b.LinearProjectileAnimSprites);
             linearProjectileSprite = linearSource.LinearProjectileSprite;
             linearProjectileAnimSprites = linearSource.LinearProjectileAnimSprites;
             linearProjectileAnimFrameRate = linearSource.LinearProjectileAnimFrameRate;
@@ -1077,5 +1114,40 @@ public class BallTypeData : ScriptableObject
             || string.Equals(value, "Building Description", System.StringComparison.OrdinalIgnoreCase)
             || string.Equals(value, "Ball Name", System.StringComparison.OrdinalIgnoreCase)
             || string.Equals(value, "Ball Description", System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ResolveJapaneseText(string englishText, string japaneseOverride)
+    {
+        string japaneseText = LocalizationManager.LocalizeToJapanese(englishText, japaneseOverride);
+        if (!string.IsNullOrWhiteSpace(japaneseText))
+        {
+            return japaneseText.Trim();
+        }
+
+        return englishText;
+    }
+
+    private static BallTypeData ChooseEffectVisualSource(
+        BallTypeData a,
+        BallTypeData b,
+        bool aHasEffect,
+        bool bHasEffect,
+        Sprite[] aAnimSprites,
+        Sprite[] bAnimSprites)
+    {
+        if (aHasEffect && bHasEffect)
+        {
+            bool aHasAnimation = aAnimSprites != null && aAnimSprites.Length > 1;
+            bool bHasAnimation = bAnimSprites != null && bAnimSprites.Length > 1;
+
+            if (bHasAnimation && !aHasAnimation)
+            {
+                return b;
+            }
+
+            return a;
+        }
+
+        return aHasEffect ? a : b;
     }
 }

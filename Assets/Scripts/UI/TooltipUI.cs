@@ -33,6 +33,7 @@ public class TooltipUI : MonoBehaviour
     [SerializeField] private float defaultDescriptionContainerWidth = 200f;
     [SerializeField] private float expandedDescriptionContainerWidth = 320f;
     [SerializeField] private float heightThresholdForExpansion = 80f;
+    [SerializeField, Min(1)] private int cjkCharacterThresholdForExpansion = 20;
 
     private Canvas parentCanvas;
     private RectTransform canvasRect;
@@ -48,6 +49,7 @@ public class TooltipUI : MonoBehaviour
         }
 
         instance = this;
+        EnsureLocalizationExclusions();
     }
 
     private void OnDestroy()
@@ -99,17 +101,10 @@ public class TooltipUI : MonoBehaviour
         {
             panelRoot.gameObject.SetActive(true);
 
-            // Pre-check how tall the description would be at the default width.
-            // If it exceeds the threshold, widen the description container before rebuilding so
-            // TMP can reflow to fewer lines in a single layout pass.
-            float targetWidth = defaultDescriptionContainerWidth;
-            if (descriptionText != null && !string.IsNullOrEmpty(descriptionText.text))
-            {
-                Vector2 textSize = descriptionText.GetPreferredValues(
-                    descriptionText.text, defaultDescriptionContainerWidth, float.PositiveInfinity);
-                if (textSize.y > heightThresholdForExpansion)
-                    targetWidth = expandedDescriptionContainerWidth;
-            }
+            // Pre-check wrapped text so TMP can reflow in one pass.
+            float targetWidth = ShouldUseExpandedWidth(title, description)
+                ? expandedDescriptionContainerWidth
+                : defaultDescriptionContainerWidth;
 
             RectTransform widthTarget = descriptionContainer != null ? descriptionContainer : panelRoot;
             widthTarget.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, targetWidth);
@@ -235,6 +230,111 @@ public class TooltipUI : MonoBehaviour
 
             instance = candidate;
             return true;
+        }
+
+        return false;
+    }
+
+    private void EnsureLocalizationExclusions()
+    {
+        if (panelRoot != null)
+        {
+            EnsureLocalizationExclusionOn(panelRoot.gameObject);
+        }
+
+        if (titleText != null)
+        {
+            EnsureLocalizationExclusionOn(titleText.gameObject);
+        }
+
+        if (descriptionText != null)
+        {
+            EnsureLocalizationExclusionOn(descriptionText.gameObject);
+        }
+    }
+
+    private static void EnsureLocalizationExclusionOn(GameObject target)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        LocalizationTextExclusion exclusion = target.GetComponent<LocalizationTextExclusion>();
+        if (exclusion == null)
+        {
+            exclusion = target.AddComponent<LocalizationTextExclusion>();
+        }
+
+        // Tooltip content is already provided in localized form by TooltipTrigger.
+        // Keep translation excluded, but allow font swapping by language.
+        exclusion.Configure(excludeTranslationValue: true, excludeFontSwapValue: false);
+    }
+
+    private bool ShouldUseExpandedWidth(string title, string description)
+    {
+        if (ExceedsHeightThreshold(descriptionText, description)
+            || ExceedsHeightThreshold(titleText, title))
+        {
+            return true;
+        }
+
+        // Japanese/CJK strings often have fewer natural wrap points than English,
+        // so use a character-count fallback to avoid overly tall tooltips.
+        if (ContainsCjk(description) && CountVisibleCharacters(description) >= cjkCharacterThresholdForExpansion)
+        {
+            return true;
+        }
+
+        return ContainsCjk(title) && CountVisibleCharacters(title) >= cjkCharacterThresholdForExpansion;
+    }
+
+    private bool ExceedsHeightThreshold(TextMeshProUGUI textComponent, string value)
+    {
+        if (textComponent == null || string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        Vector2 textSize = textComponent.GetPreferredValues(value, defaultDescriptionContainerWidth, float.PositiveInfinity);
+        return textSize.y > heightThresholdForExpansion;
+    }
+
+    private static int CountVisibleCharacters(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return 0;
+        }
+
+        int count = 0;
+        for (int i = 0; i < value.Length; i++)
+        {
+            if (!char.IsWhiteSpace(value[i]))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static bool ContainsCjk(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        for (int i = 0; i < value.Length; i++)
+        {
+            char c = value[i];
+            if ((c >= '\u3040' && c <= '\u30FF')   // Hiragana + Katakana
+                || (c >= '\u4E00' && c <= '\u9FFF') // CJK Unified Ideographs
+                || (c >= '\uFF66' && c <= '\uFF9D')) // Half-width Katakana
+            {
+                return true;
+            }
         }
 
         return false;
