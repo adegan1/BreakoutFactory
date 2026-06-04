@@ -156,4 +156,5 @@ public class FactorySettingsPanelController : MonoBehaviour
         float arrowRotation = shouldPointRight == arrowPointsRightByDefault ? 0f : 180f;
         arrowImage.rectTransform.localRotation = Quaternion.Euler(0f, 0f, arrowRotation);
     }
+
 }

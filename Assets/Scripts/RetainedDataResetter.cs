@@ -43,7 +43,7 @@ public class RetainedDataResetter : MonoBehaviour
 
         if (gameSettings != null)
         {
-            gameSettings.ResetToDefaults();
+            gameSettings.ResetRetainedDataToDefaultsPreservingAudioAndLanguage();
         }
 
         CameraPanController.ClearSavedState();

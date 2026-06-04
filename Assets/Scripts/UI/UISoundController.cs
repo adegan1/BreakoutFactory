@@ -8,11 +8,13 @@ public class UISoundController : MonoBehaviour
     private class OneShotSoundEvent
     {
         [SerializeField] private AudioClip[] clips;
+        [SerializeField] private GameSettings.AudioBus volumeBus = GameSettings.AudioBus.Sfx;
         [SerializeField, Range(0f, 1f)] private float volume = 1f;
         [SerializeField, Min(0.01f)] private float pitchMin = 0.98f;
         [SerializeField, Min(0.01f)] private float pitchMax = 1.02f;
 
         public AudioClip[] Clips => clips;
+        public GameSettings.AudioBus VolumeBus => volumeBus;
         public float Volume => volume;
         public float PitchMin => pitchMin;
         public float PitchMax => pitchMax;
@@ -31,10 +33,6 @@ public class UISoundController : MonoBehaviour
 
     private static UISoundController instance;
 
-    [Header("Global Volume")]
-    [SerializeField, Range(0f, 1f)] private float masterVolume = 1f;
-    [SerializeField, Range(0f, 1f)] private float sfxVolume = 1f;
-
     [Header("Audio Sources")]
     [SerializeField, Min(1)] private int initialSourcePoolSize = 4;
     [SerializeField, Min(1)] private int maxSimultaneousSfx = 12;
@@ -45,18 +43,6 @@ public class UISoundController : MonoBehaviour
     private readonly List<AudioSource> sourcePool = new List<AudioSource>();
 
     public static UISoundController Instance => TryGetExistingInstance();
-
-    public float MasterVolume
-    {
-        get => masterVolume;
-        set => masterVolume = Mathf.Clamp01(value);
-    }
-
-    public float SfxVolume
-    {
-        get => sfxVolume;
-        set => sfxVolume = Mathf.Clamp01(value);
-    }
 
     public static void PlayButtonClickSfx()
     {
@@ -189,7 +175,8 @@ public class UISoundController : MonoBehaviour
         float maxPitch = Mathf.Max(minPitch, soundEvent.PitchMax);
 
         source.pitch = Random.Range(minPitch, maxPitch);
-        source.volume = Mathf.Clamp01(masterVolume) * Mathf.Clamp01(sfxVolume) * Mathf.Clamp01(soundEvent.Volume);
+        float globalVolumeMultiplier = GameSettings.GetCombinedVolumeMultiplier(soundEvent.VolumeBus);
+        source.volume = Mathf.Clamp01(soundEvent.Volume) * globalVolumeMultiplier;
         source.clip = clip;
         source.Play();
     }

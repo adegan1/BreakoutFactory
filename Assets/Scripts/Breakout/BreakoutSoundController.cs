@@ -8,11 +8,13 @@ public class BreakoutSoundController : MonoBehaviour
     private class OneShotSoundEvent
     {
         [SerializeField] private AudioClip[] clips;
+        [SerializeField] private GameSettings.AudioBus volumeBus = GameSettings.AudioBus.Sfx;
         [SerializeField, Range(0f, 1f)] private float volume = 1f;
         [SerializeField, Min(0.01f)] private float pitchMin = 0.95f;
         [SerializeField, Min(0.01f)] private float pitchMax = 1.05f;
 
         public AudioClip[] Clips => clips;
+        public GameSettings.AudioBus VolumeBus => volumeBus;
         public float Volume => volume;
         public float PitchMin => pitchMin;
         public float PitchMax => pitchMax;
@@ -20,10 +22,6 @@ public class BreakoutSoundController : MonoBehaviour
     }
 
     private static BreakoutSoundController instance;
-
-    [Header("Global Volume")]
-    [SerializeField, Range(0f, 1f)] private float masterVolume = 1f;
-    [SerializeField, Range(0f, 1f)] private float sfxVolume = 1f;
 
     [Header("Audio Sources")]
     [SerializeField, Min(1)] private int initialSourcePoolSize = 6;
@@ -61,18 +59,6 @@ public class BreakoutSoundController : MonoBehaviour
     private bool isPauseMuffled;
 
     public static BreakoutSoundController Instance => TryGetExistingInstance();
-
-    public float MasterVolume
-    {
-        get => masterVolume;
-        set => masterVolume = Mathf.Clamp01(value);
-    }
-
-    public float SfxVolume
-    {
-        get => sfxVolume;
-        set => sfxVolume = Mathf.Clamp01(value);
-    }
 
     public static void PlayBasicBrickHitSfx()
     {
@@ -319,7 +305,8 @@ public class BreakoutSoundController : MonoBehaviour
 
         source.pitch = Random.Range(minPitch, maxPitch);
         float pauseVolumeMultiplier = isPauseMuffled ? Mathf.Clamp01(pausedSfxVolumeMultiplier) : 1f;
-        source.volume = Mathf.Clamp01(masterVolume) * Mathf.Clamp01(sfxVolume) * Mathf.Clamp01(soundEvent.Volume) * pauseVolumeMultiplier;
+        float globalVolumeMultiplier = GameSettings.GetCombinedVolumeMultiplier(soundEvent.VolumeBus);
+        source.volume = Mathf.Clamp01(soundEvent.Volume) * globalVolumeMultiplier * pauseVolumeMultiplier;
         source.clip = clip;
         source.Play();
     }

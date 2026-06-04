@@ -17,6 +17,7 @@ public class MusicController : MonoBehaviour
 
     [Header("Volume")]
     [SerializeField, Range(0f, 1f)] private float targetVolume = 1f;
+    [SerializeField] private GameSettings.AudioBus musicVolumeBus = GameSettings.AudioBus.Music;
     [SerializeField, Min(0f)] private float fadeInDuration = 1.5f;
     [SerializeField, Min(0f)] private float fadeOutDuration = 1f;
 
@@ -90,6 +91,7 @@ public class MusicController : MonoBehaviour
         playOnStart = other.playOnStart;
         loop = other.loop;
         targetVolume = other.targetVolume;
+        musicVolumeBus = other.musicVolumeBus;
         fadeInDuration = other.fadeInDuration;
         fadeOutDuration = other.fadeOutDuration;
         enablePauseMuffle = other.enablePauseMuffle;
@@ -129,6 +131,16 @@ public class MusicController : MonoBehaviour
         PlayWithFadeIn();
     }
 
+    private void Update()
+    {
+        if (fadeRoutine != null || musicSource == null || !musicSource.isPlaying)
+        {
+            return;
+        }
+
+        musicSource.volume = Mathf.Clamp01(targetVolume) * GameSettings.GetCombinedVolumeMultiplier(musicVolumeBus);
+    }
+
     private void OnDestroy()
     {
         if (instance == this)
@@ -157,10 +169,10 @@ public class MusicController : MonoBehaviour
             fadeRoutine = null;
         }
 
-        float clampedTargetVolume = Mathf.Clamp01(targetVolume);
+        float baseVolume = Mathf.Clamp01(targetVolume);
         if (fadeInDuration <= 0f)
         {
-            musicSource.volume = clampedTargetVolume;
+            musicSource.volume = baseVolume * GameSettings.GetCombinedVolumeMultiplier(musicVolumeBus);
             if (!musicSource.isPlaying)
             {
                 musicSource.Play();
@@ -169,7 +181,7 @@ public class MusicController : MonoBehaviour
             return;
         }
 
-        fadeRoutine = StartCoroutine(FadeInCoroutine(clampedTargetVolume, fadeInDuration));
+        fadeRoutine = StartCoroutine(FadeInCoroutine(baseVolume, fadeInDuration));
     }
 
     public static void FadeOutBeforeSceneChange(Action onComplete)
@@ -202,7 +214,7 @@ public class MusicController : MonoBehaviour
         fadeRoutine = StartCoroutine(FadeOutCoroutine(fadeOutDuration, onComplete));
     }
 
-    private IEnumerator FadeInCoroutine(float destinationVolume, float duration)
+    private IEnumerator FadeInCoroutine(float baseVolume, float duration)
     {
         if (!musicSource.isPlaying)
         {
@@ -216,11 +228,12 @@ public class MusicController : MonoBehaviour
         {
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
-            musicSource.volume = Mathf.Lerp(startVolume, destinationVolume, t);
+            float scaledDestination = Mathf.Clamp01(baseVolume) * GameSettings.GetCombinedVolumeMultiplier(musicVolumeBus);
+            musicSource.volume = Mathf.Lerp(startVolume, scaledDestination, t);
             yield return null;
         }
 
-        musicSource.volume = destinationVolume;
+        musicSource.volume = Mathf.Clamp01(baseVolume) * GameSettings.GetCombinedVolumeMultiplier(musicVolumeBus);
         fadeRoutine = null;
     }
 

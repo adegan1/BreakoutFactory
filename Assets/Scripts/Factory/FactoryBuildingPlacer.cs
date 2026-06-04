@@ -1040,7 +1040,7 @@ public class FactoryBuildingPlacer : MonoBehaviour
 
             previewHighlight.position = footprintCenter;
             Vector2 previewScale = entry.Definition != null
-                ? entry.Definition.GetVisualScale(entry.FootprintSize, entry.RotationQuarterTurns)
+                ? entry.Definition.GetVisualScale(entry.Definition.FootprintSize, entry.RotationQuarterTurns)
                 : new Vector2(entry.FootprintSize.x, entry.FootprintSize.y);
             previewHighlight.localScale = new Vector3(
                 previewScale.x * tileManager.TileSize,
