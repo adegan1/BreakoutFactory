@@ -16,6 +16,7 @@ public class BreakoutSoundController : MonoBehaviour
         public float Volume => volume;
         public float PitchMin => pitchMin;
         public float PitchMax => pitchMax;
+
     }
 
     private static BreakoutSoundController instance;
@@ -59,26 +60,7 @@ public class BreakoutSoundController : MonoBehaviour
     private readonly List<AudioSource> sourcePool = new List<AudioSource>();
     private bool isPauseMuffled;
 
-    public static BreakoutSoundController Instance
-    {
-        get
-        {
-            if (instance != null)
-            {
-                return instance;
-            }
-
-            instance = FindFirstObjectByType<BreakoutSoundController>();
-            if (instance != null)
-            {
-                return instance;
-            }
-
-            GameObject go = new GameObject("BreakoutSoundController");
-            instance = go.AddComponent<BreakoutSoundController>();
-            return instance;
-        }
-    }
+    public static BreakoutSoundController Instance => TryGetExistingInstance();
 
     public float MasterVolume
     {
@@ -94,87 +76,87 @@ public class BreakoutSoundController : MonoBehaviour
 
     public static void PlayBasicBrickHitSfx()
     {
-        Instance.PlayEvent(Instance.basicBrickHit);
+        PlayConfiguredEvent(controller => controller.basicBrickHit);
     }
 
     public static void PlaySuperEffectiveBrickHitSfx()
     {
-        Instance.PlayEvent(Instance.superEffectiveBrickHit);
+        PlayConfiguredEvent(controller => controller.superEffectiveBrickHit);
     }
 
     public static void PlayBrickDestroyedSfx()
     {
-        Instance.PlayEvent(Instance.brickDestroyed);
+        PlayConfiguredEvent(controller => controller.brickDestroyed);
     }
 
     public static void PlayWallHitSfx()
     {
-        Instance.PlayEvent(Instance.wallHit);
+        PlayConfiguredEvent(controller => controller.wallHit);
     }
 
     public static void PlayPaddleHitSfx()
     {
-        Instance.PlayEvent(Instance.paddleHit);
+        PlayConfiguredEvent(controller => controller.paddleHit);
     }
 
     public static void PlayItemPickupSfx()
     {
-        Instance.PlayEvent(Instance.itemPickup);
+        PlayConfiguredEvent(controller => controller.itemPickup);
     }
 
     public static void PlayScrapPickupSfx()
     {
-        Instance.PlayEvent(Instance.scrapPickup);
+        PlayConfiguredEvent(controller => controller.scrapPickup);
     }
 
     public static void PlayBallDispenseSfx()
     {
-        Instance.PlayEvent(Instance.ballDispense);
+        PlayConfiguredEvent(controller => controller.ballDispense);
     }
 
     public static void PlayLevelWinSfx()
     {
-        Instance.PlayEvent(Instance.levelWin);
+        PlayConfiguredEvent(controller => controller.levelWin);
     }
 
     public static void PlayDamageTakenSfx()
     {
-        Instance.PlayEvent(Instance.damageTaken);
+        PlayConfiguredEvent(controller => controller.damageTaken);
     }
 
     public static void PlayHealedSfx()
     {
-        Instance.PlayEvent(Instance.healed);
+        PlayConfiguredEvent(controller => controller.healed);
     }
 
     public static void PlayPauseMenuOpenSfx()
     {
-        Instance.PlayEvent(Instance.pauseMenuOpen);
+        PlayConfiguredEvent(controller => controller.pauseMenuOpen);
     }
 
     public static void PlayPauseResumeCountdownTickSfx()
     {
-        Instance.PlayEvent(Instance.pauseResumeCountdownTick);
+        PlayConfiguredEvent(controller => controller.pauseResumeCountdownTick);
     }
 
     public static void PlayItemSoldSfx()
     {
-        Instance.PlayEvent(Instance.itemSold);
+        PlayConfiguredEvent(controller => controller.itemSold);
     }
 
     public static void PlayItemBoughtSfx()
     {
-        Instance.PlayEvent(Instance.itemBought);
+        PlayConfiguredEvent(controller => controller.itemBought);
     }
 
     public static void PlayShopRerollSfx()
     {
-        Instance.PlayEvent(Instance.shopReroll);
+        PlayConfiguredEvent(controller => controller.shopReroll);
     }
 
     public static void PlayLifeLostSfx()
     {
-        Instance.PlayEvent(Instance.lifeLost);
+        PlayConfiguredEvent(controller => controller.lifeLost);
     }
 
     public static void SetPauseMuffled(bool isMuffled)
@@ -193,14 +175,21 @@ public class BreakoutSoundController : MonoBehaviour
     {
         if (instance != null && instance != this)
         {
-            Destroy(gameObject);
+            Destroy(this);
             return;
         }
 
         instance = this;
-        DontDestroyOnLoad(gameObject);
         EnsurePoolInitialized();
         PreloadReferencedClips();
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this)
+        {
+            instance = null;
+        }
     }
 
     private void PreloadReferencedClips()
@@ -344,6 +333,17 @@ public class BreakoutSoundController : MonoBehaviour
 
         instance = FindFirstObjectByType<BreakoutSoundController>();
         return instance;
+    }
+
+    private static void PlayConfiguredEvent(System.Func<BreakoutSoundController, OneShotSoundEvent> eventSelector)
+    {
+        BreakoutSoundController existingInstance = TryGetExistingInstance();
+        if (existingInstance == null || eventSelector == null)
+        {
+            return;
+        }
+
+        existingInstance.PlayEvent(eventSelector(existingInstance));
     }
 
     private void ApplyPauseMuffleToAllSources()

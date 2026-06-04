@@ -16,6 +16,7 @@ public class FactorySoundController : MonoBehaviour
         public float Volume => volume;
         public float PitchMin => pitchMin;
         public float PitchMax => pitchMax;
+
     }
 
     [System.Serializable]
@@ -36,6 +37,7 @@ public class FactorySoundController : MonoBehaviour
         public float Volume => volume;
         public float FadeInSpeed => fadeInSpeed;
         public float FadeOutSpeed => fadeOutSpeed;
+
     }
 
     private static FactorySoundController instance;
@@ -75,26 +77,7 @@ public class FactorySoundController : MonoBehaviour
     private bool isFactoryClearFadeActive;
     private bool isPauseMuffled;
 
-    public static FactorySoundController Instance
-    {
-        get
-        {
-            if (instance != null)
-            {
-                return instance;
-            }
-
-            instance = FindFirstObjectByType<FactorySoundController>();
-            if (instance != null)
-            {
-                return instance;
-            }
-
-            GameObject go = new GameObject("FactorySoundController");
-            instance = go.AddComponent<FactorySoundController>();
-            return instance;
-        }
-    }
+    public static FactorySoundController Instance => TryGetExistingInstance();
 
     public float MasterVolume
     {
@@ -116,59 +99,77 @@ public class FactorySoundController : MonoBehaviour
 
     public static void PlayBuildingPlacedSfx(BuildingDefinition.PlacementSoundSize placementSize)
     {
+        FactorySoundController existingInstance = TryGetExistingInstance();
+        if (existingInstance == null)
+        {
+            return;
+        }
+
         switch (placementSize)
         {
             case BuildingDefinition.PlacementSoundSize.Small:
-                Instance.PlayEvent(Instance.smallBuildingPlaced);
+                existingInstance.PlayEvent(existingInstance.smallBuildingPlaced);
                 break;
             case BuildingDefinition.PlacementSoundSize.Medium:
-                Instance.PlayEvent(Instance.mediumBuildingPlaced);
+                existingInstance.PlayEvent(existingInstance.mediumBuildingPlaced);
                 break;
             default:
-                Instance.PlayEvent(Instance.largeBuildingPlaced);
+                existingInstance.PlayEvent(existingInstance.largeBuildingPlaced);
                 break;
         }
     }
 
     public static void PlayBuildingRemovedSfx(BuildingDefinition.PlacementSoundSize placementSize)
     {
+        FactorySoundController existingInstance = TryGetExistingInstance();
+        if (existingInstance == null)
+        {
+            return;
+        }
+
         switch (placementSize)
         {
             case BuildingDefinition.PlacementSoundSize.Small:
-                Instance.PlayEvent(Instance.smallBuildingRemoved);
+                existingInstance.PlayEvent(existingInstance.smallBuildingRemoved);
                 break;
             case BuildingDefinition.PlacementSoundSize.Medium:
-                Instance.PlayEvent(Instance.mediumBuildingRemoved);
+                existingInstance.PlayEvent(existingInstance.mediumBuildingRemoved);
                 break;
             default:
-                Instance.PlayEvent(Instance.largeBuildingRemoved);
+                existingInstance.PlayEvent(existingInstance.largeBuildingRemoved);
                 break;
         }
     }
 
     public static void PlayUiClickSfx()
     {
-        Instance.PlayEvent(Instance.uiClick, ignorePauseMuffle: true);
+        PlayConfiguredEvent(controller => controller.uiClick, ignorePauseMuffle: true);
     }
 
     public static void PlayBallCreatedSfx()
     {
-        Instance.PlayEvent(Instance.ballCreated);
+        PlayConfiguredEvent(controller => controller.ballCreated);
     }
 
     public static void PlayPauseMenuOpenSfx()
     {
-        Instance.PlayEvent(Instance.pauseMenuOpen);
+        PlayConfiguredEvent(controller => controller.pauseMenuOpen);
     }
 
     public static void PlayFactoryClearedSfx()
     {
-        Instance.PlayEvent(Instance.factoryCleared);
+        PlayConfiguredEvent(controller => controller.factoryCleared);
     }
 
     public static void BeginFactoryClearAmbientFade()
     {
-        Instance.isFactoryClearFadeActive = true;
+        FactorySoundController existingInstance = TryGetExistingInstance();
+        if (existingInstance == null)
+        {
+            return;
+        }
+
+        existingInstance.isFactoryClearFadeActive = true;
     }
 
     public static void SetPauseMuffled(bool isMuffled)
@@ -187,15 +188,22 @@ public class FactorySoundController : MonoBehaviour
     {
         if (instance != null && instance != this)
         {
-            Destroy(gameObject);
+            Destroy(this);
             return;
         }
 
         instance = this;
-        DontDestroyOnLoad(gameObject);
         EnsurePoolInitialized();
         EnsureAmbientSourcesInitialized();
         PreloadReferencedClips();
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this)
+        {
+            instance = null;
+        }
     }
 
     private void Update()
@@ -469,6 +477,17 @@ public class FactorySoundController : MonoBehaviour
 
         instance = FindFirstObjectByType<FactorySoundController>();
         return instance;
+    }
+
+    private static void PlayConfiguredEvent(System.Func<FactorySoundController, OneShotSoundEvent> eventSelector, bool ignorePauseMuffle = false)
+    {
+        FactorySoundController existingInstance = TryGetExistingInstance();
+        if (existingInstance == null || eventSelector == null)
+        {
+            return;
+        }
+
+        existingInstance.PlayEvent(eventSelector(existingInstance), ignorePauseMuffle);
     }
 
     private void ApplyPauseMuffleToSources()

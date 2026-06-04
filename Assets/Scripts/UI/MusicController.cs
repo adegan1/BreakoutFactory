@@ -47,7 +47,23 @@ public class MusicController : MonoBehaviour
     {
         if (instance != null && instance != this)
         {
-            Destroy(gameObject);
+            if (!instance.persistAcrossScenes)
+            {
+                instance = this;
+                EnsureAudioSource();
+                ConfigureSource();
+                ApplyPauseMuffle(isPauseMuffled);
+
+                if (persistAcrossScenes)
+                {
+                    DontDestroyOnLoad(gameObject);
+                }
+
+                return;
+            }
+
+            instance.CopyConfigurationFrom(this);
+            Destroy(this);
             return;
         }
 
@@ -61,6 +77,46 @@ public class MusicController : MonoBehaviour
         EnsureAudioSource();
         ConfigureSource();
         ApplyPauseMuffle(isPauseMuffled);
+    }
+
+    private void CopyConfigurationFrom(MusicController other)
+    {
+        if (other == null)
+        {
+            return;
+        }
+
+        musicClip = other.musicClip;
+        playOnStart = other.playOnStart;
+        loop = other.loop;
+        targetVolume = other.targetVolume;
+        fadeInDuration = other.fadeInDuration;
+        fadeOutDuration = other.fadeOutDuration;
+        enablePauseMuffle = other.enablePauseMuffle;
+        pauseMuffleLowPassCutoff = other.pauseMuffleLowPassCutoff;
+
+        EnsureAudioSource();
+        ConfigureSource();
+        ApplyPauseMuffle(isPauseMuffled);
+
+        if (playOnStart && musicClip != null)
+        {
+            PlayWithFadeIn();
+            return;
+        }
+
+        if (fadeRoutine != null)
+        {
+            StopCoroutine(fadeRoutine);
+            fadeRoutine = null;
+        }
+
+        if (musicSource != null)
+        {
+            musicSource.Stop();
+            musicSource.clip = musicClip;
+            musicSource.volume = 0f;
+        }
     }
 
     private void Start()

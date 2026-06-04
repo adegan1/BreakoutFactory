@@ -16,6 +16,17 @@ public class UISoundController : MonoBehaviour
         public float Volume => volume;
         public float PitchMin => pitchMin;
         public float PitchMax => pitchMax;
+
+        public OneShotSoundEvent Clone()
+        {
+            return new OneShotSoundEvent
+            {
+                clips = clips != null ? (AudioClip[])clips.Clone() : null,
+                volume = volume,
+                pitchMin = pitchMin,
+                pitchMax = pitchMax
+            };
+        }
     }
 
     private static UISoundController instance;
@@ -33,26 +44,7 @@ public class UISoundController : MonoBehaviour
 
     private readonly List<AudioSource> sourcePool = new List<AudioSource>();
 
-    public static UISoundController Instance
-    {
-        get
-        {
-            if (instance != null)
-            {
-                return instance;
-            }
-
-            instance = FindFirstObjectByType<UISoundController>();
-            if (instance != null)
-            {
-                return instance;
-            }
-
-            GameObject go = new GameObject("UISoundController");
-            instance = go.AddComponent<UISoundController>();
-            return instance;
-        }
-    }
+    public static UISoundController Instance => TryGetExistingInstance();
 
     public float MasterVolume
     {
@@ -68,19 +60,24 @@ public class UISoundController : MonoBehaviour
 
     public static void PlayButtonClickSfx()
     {
-        Instance.PlayEvent(Instance.buttonClick);
+        UISoundController existingInstance = TryGetExistingInstance();
+        if (existingInstance == null)
+        {
+            return;
+        }
+
+        existingInstance.PlayEvent(existingInstance.buttonClick);
     }
 
     private void Awake()
     {
         if (instance != null && instance != this)
         {
-            Destroy(gameObject);
+            Destroy(this);
             return;
         }
 
         instance = this;
-        DontDestroyOnLoad(gameObject);
         EnsurePoolInitialized();
         PreloadReferencedClips();
     }
@@ -195,6 +192,25 @@ public class UISoundController : MonoBehaviour
         source.volume = Mathf.Clamp01(masterVolume) * Mathf.Clamp01(sfxVolume) * Mathf.Clamp01(soundEvent.Volume);
         source.clip = clip;
         source.Play();
+    }
+
+    private static UISoundController TryGetExistingInstance()
+    {
+        if (instance != null)
+        {
+            return instance;
+        }
+
+        instance = FindFirstObjectByType<UISoundController>();
+        return instance;
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this)
+        {
+            instance = null;
+        }
     }
 
     private static AudioClip PickRandomClip(AudioClip[] clips)

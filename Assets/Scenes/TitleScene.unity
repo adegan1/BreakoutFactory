@@ -603,7 +603,7 @@ MonoBehaviour:
   musicClip: {fileID: 8300000, guid: 9d20566bb50de344888c1550f45ae046, type: 3}
   playOnStart: 1
   loop: 1
-  targetVolume: 0.2
+  targetVolume: 0.15
   fadeInDuration: 1
   fadeOutDuration: 0.25
   persistAcrossScenes: 0

@@ -73,13 +73,7 @@ public class BuildingInstance : MonoBehaviour
         targetSpriteRenderer.sprite = buildingDefinition.BuildingSprite;
         targetSpriteRenderer.color = buildingDefinition.BuildingColor;
 
-        // Fall back to the definition's footprint when our own hasn't been set yet
-        // (e.g. when ApplyDefinitionVisuals runs from Awake before SetGridPosition).
-        Vector2Int effectiveFootprint = (footprintSize.x > 0 && footprintSize.y > 0)
-            ? footprintSize
-            : buildingDefinition.FootprintSize;
-
-        Vector2 visualScale = buildingDefinition.GetVisualScale(effectiveFootprint, rotationQuarterTurns);
+        Vector2 visualScale = buildingDefinition.GetVisualScale(buildingDefinition.FootprintSize, rotationQuarterTurns);
         targetSpriteRenderer.transform.localScale = new Vector3(visualScale.x * tileSize, visualScale.y * tileSize, 1f);
     }
 }
