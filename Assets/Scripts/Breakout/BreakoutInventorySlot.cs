@@ -74,9 +74,9 @@ public class BreakoutInventorySlot : MonoBehaviour
 
         if (tooltipTrigger != null)
         {
-            tooltipTrigger.SetContent(
-                def != null ? def.LocalizedDisplayName : string.Empty,
-                def != null ? def.LocalizedDescription : string.Empty);
+            tooltipTrigger.SetContentProviders(
+                () => def != null ? def.LocalizedDisplayName : string.Empty,
+                () => def != null ? def.LocalizedDescription : string.Empty);
         }
     }
 

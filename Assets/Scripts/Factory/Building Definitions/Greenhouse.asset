@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
   displayName: Greenhouse
   description: Generates the life element
+  japaneseDisplayName: "\u6E29\u5BA4"
+  japaneseDescription: "\u751F\u547D\u306E\u5143\u7D20\u3092\u751F\u6210\u3059\u308B"
   buildingSprite: {fileID: -5028776882928821352, guid: 411922ac544f66d488a570f437721d82, type: 3}
   buildingColor: {r: 0.16406034, g: 0.6698113, b: 0.13585795, a: 1}
   footprintWidth: 2

@@ -19,6 +19,8 @@ MonoBehaviour:
   displayName: Lightning
   description: Causes "Chain Lightning" on brick hit. Chain lightning damages random
     bricks around the initial brick.
+  japaneseDisplayName: "\u96F7"
+  japaneseDescription: "\u30EC\u30F3\u30AC\u306B\u547D\u4E2D\u3059\u308B\u3068\u300C\u9023\u9396\u96F7\u300D\u304C\u767A\u751F\u3057\u307E\u3059\u3002\u9023\u9396\u96F7\u306F\u3001\u6700\u521D\u306E\u30EC\u30F3\u30AC\u306E\u5468\u56F2\u306B\u3042\u308B\u30E9\u30F3\u30C0\u30E0\u306A\u30EC\u30F3\u30AC\u306B\u30C0\u30E1\u30FC\u30B8\u3092\u4E0E\u3048\u307E\u3059\u3002"
   trailColor: {r: 1, g: 1, b: 1, a: 1}
   trailColors:
   - {r: 1, g: 0.973436, b: 0.495283, a: 1}

@@ -292,10 +292,10 @@ public class BallTypeData : ScriptableObject
     public BallElement SecondarySourceElement => secondarySourceElement;
     public ComboEffectProfile PrimaryEffectProfile => primaryEffectProfile;
     public ComboEffectProfile SecondaryEffectProfile => secondaryEffectProfile;
-    public string DisplayName => displayName;
-    public string Description => description;
-    public string LocalizedDisplayName => LocalizationManager.Localize(displayName, japaneseDisplayName);
-    public string LocalizedDescription => LocalizationManager.Localize(description, japaneseDescription);
+    public string DisplayName => ResolveDisplayName(displayName, name);
+    public string Description => ResolveDescription(description);
+    public string LocalizedDisplayName => LocalizationManager.Localize(DisplayName, ResolveOverride(japaneseDisplayName));
+    public string LocalizedDescription => LocalizationManager.Localize(Description, ResolveOverride(japaneseDescription));
     public Color TrailColor => trailColorMode == TrailColorMode.ManualCycle && trailColors != null && trailColors.Length > 0
         ? trailColors[0]
         : trailColor;
@@ -1034,5 +1034,48 @@ public class BallTypeData : ScriptableObject
 
         primarySourceElement = a.Elements is { Length: > 0 } ? a.Elements[0] : BallElement.Basic;
         secondarySourceElement = b.Elements is { Length: > 0 } ? b.Elements[0] : BallElement.Basic;
+    }
+
+    private static string ResolveDisplayName(string value, string fallback)
+    {
+        string trimmed = value != null ? value.Trim() : string.Empty;
+        if (!string.IsNullOrEmpty(trimmed) && !IsPlaceholderText(trimmed))
+        {
+            return trimmed;
+        }
+
+        return string.IsNullOrWhiteSpace(fallback) ? string.Empty : fallback.Trim();
+    }
+
+    private static string ResolveDescription(string value)
+    {
+        string trimmed = value != null ? value.Trim() : string.Empty;
+        if (string.IsNullOrEmpty(trimmed) || IsPlaceholderText(trimmed))
+        {
+            return string.Empty;
+        }
+
+        return trimmed;
+    }
+
+    private static string ResolveOverride(string value)
+    {
+        string trimmed = value != null ? value.Trim() : string.Empty;
+        return IsPlaceholderText(trimmed) ? string.Empty : trimmed;
+    }
+
+    private static bool IsPlaceholderText(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        return string.Equals(value, "Item Name", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Item Description", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Building Name", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Building Description", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Ball Name", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Ball Description", System.StringComparison.OrdinalIgnoreCase);
     }
 }

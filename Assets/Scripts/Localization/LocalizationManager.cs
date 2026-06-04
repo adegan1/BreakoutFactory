@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -22,6 +23,9 @@ public class LocalizationManager : MonoBehaviour
 
     [Header("Diagnostics")]
     [SerializeField] private bool logMissingJapaneseTranslations;
+
+    [Header("Refresh Timing")]
+    [SerializeField, Min(0)] private int delayedRefreshFrames = 2;
 
     private readonly HashSet<string> missingJapaneseLogs = new HashSet<string>(StringComparer.Ordinal);
 
@@ -56,22 +60,29 @@ public class LocalizationManager : MonoBehaviour
         { "You have unused ball molds!", "未使用のボールモールドがあります！" },
         { "Must Keep at Least One Ball Mold", "少なくとも1つのボールモールドを残してください" },
         { "Insufficient Scrap", "スクラップ不足" },
+        { "Level Complete!", "レベルクリア！" },
+        { "Level Complete", "レベルクリア" },
         { "Out of Balls!", "ボールがありません！" },
+        { "Out of Balls", "ボールがありません" },
+        { "Out of Health!", "体力がありません！" },
+        { "Out of Health", "体力がありません" },
         { "Open Shop", "ショップを開く" },
         { "Open Inventory", "インベントリを開く" },
         { "Shop", "ショップ" },
         { "Inventory", "インベントリ" },
         { "Reroll", "再抽選" },
         { "Sell Selected", "選択を売却" },
+        { "Buy", "購入" },
         { "Select Items to Sell!", "売却するアイテムを選択してください" },
-        { "Item Name", "アイテム名" },
-        { "Item Description", "アイテム説明" },
         { "Balls Created:", "作成ボール:" },
         { "Machines:", "機械:" },
         { "Machines Collected:", "回収した機械:" },
         { "Lives:", "ライフ:" },
+        { "Lives", "ライフ" },
         { "Health:", "体力:" },
         { "Score:", "スコア:" },
+        { "Score", "スコア" },
+        { "x", "x" },
         { "-1 Life", "ライフ -1" },
         { "- Place", "- 設置" },
         { "- Remove", "- 撤去" },
@@ -80,7 +91,19 @@ public class LocalizationManager : MonoBehaviour
         { "- Show Info", "- 情報表示" },
         { "- Speed Up", "- 速度アップ" },
         { "- Play/Pause", "- 再生/一時停止" },
-        { "Error Text", "エラーテキスト" }
+        { "Error Text", "エラーテキスト" },
+
+        { "Scrap", "スクラップ" },
+        /*{ "Conveyor", "コンベア" },
+        { "Ball Mold", "ボールモールド" },
+        { "Fusion Reactor", "融合炉" },
+        { "Compounder", "コンパウンダー" },
+        { "Aero-Turbine", "エアロタービン" },
+        { "Deep Drill", "ディープドリル" },
+        { "Glacial Melter", "グレイシャルメルター" },
+        { "Greenhouse", "温室" },
+        { "Tesla Coil", "テスラコイル" },
+        { "Thermal Condenser", "サーマルコンデンサー" },*/
     };
 
     private static readonly Dictionary<string, string> EnglishByJapaneseTranslations = BuildEnglishByJapaneseMap();
@@ -178,6 +201,7 @@ public class LocalizationManager : MonoBehaviour
     private void Start()
     {
         ApplyLocalizationToAllTexts();
+        StartCoroutine(ApplyLocalizationDelayed());
     }
 
     private void HandleLanguageChanged(GameSettings.Language _)
@@ -188,6 +212,18 @@ public class LocalizationManager : MonoBehaviour
     private void HandleSceneLoaded(Scene _, LoadSceneMode __)
     {
         ApplyLocalizationToAllTexts();
+        StartCoroutine(ApplyLocalizationDelayed());
+    }
+
+    private IEnumerator ApplyLocalizationDelayed()
+    {
+        // Some UI text is initialized one or more frames after scene load.
+        int refreshCount = Mathf.Max(0, delayedRefreshFrames);
+        for (int i = 0; i < refreshCount; i++)
+        {
+            yield return null;
+            ApplyLocalizationToAllTexts();
+        }
     }
 
     private void HandleTextChanged(Object changedObject)
@@ -344,11 +380,26 @@ public class LocalizationManager : MonoBehaviour
             return english;
         }
 
+        if (ContainsRichTextTags(english))
+        {
+            return LocalizeRichTextString(english);
+        }
+
+        return LocalizePlainJapaneseString(english, logMissing: true);
+    }
+
+    private static string LocalizePlainJapaneseString(string english, bool logMissing)
+    {
+        if (string.IsNullOrEmpty(english))
+        {
+            return english;
+        }
+
         string lookupText = NormalizeForLookup(english);
 
         if (TryGetTranslation(lookupText, out string directTranslation))
         {
-            return directTranslation;
+            return ReapplyOuterWhitespace(english, directTranslation);
         }
 
         int colonIndex = lookupText.IndexOf(':');
@@ -357,21 +408,104 @@ public class LocalizationManager : MonoBehaviour
             string prefix = lookupText.Substring(0, colonIndex + 1);
             if (TryGetTranslation(prefix, out string localizedPrefix))
             {
-                return localizedPrefix + lookupText.Substring(colonIndex + 1);
+                return ReapplyOuterWhitespace(english, localizedPrefix + lookupText.Substring(colonIndex + 1));
             }
         }
 
         if (TryLocalizeTrailingQuantity(lookupText, out string localizedWithQuantity))
         {
-            return localizedWithQuantity;
+            return ReapplyOuterWhitespace(english, localizedWithQuantity);
         }
 
-        if (instance != null)
+        if (logMissing && instance != null)
         {
             instance.LogMissingJapaneseTranslation(lookupText);
         }
 
         return english;
+    }
+
+    private static bool ContainsRichTextTags(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return false;
+        }
+
+        int openIndex = text.IndexOf('<');
+        if (openIndex < 0)
+        {
+            return false;
+        }
+
+        return text.IndexOf('>', openIndex + 1) > openIndex;
+    }
+
+    private static string LocalizeRichTextString(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return text;
+        }
+
+        System.Text.StringBuilder output = new System.Text.StringBuilder(text.Length + 16);
+        int index = 0;
+        while (index < text.Length)
+        {
+            int tagStart = text.IndexOf('<', index);
+            if (tagStart < 0)
+            {
+                string trailingPlain = text.Substring(index);
+                output.Append(LocalizePlainJapaneseString(trailingPlain, logMissing: false));
+                break;
+            }
+
+            if (tagStart > index)
+            {
+                string plainSegment = text.Substring(index, tagStart - index);
+                output.Append(LocalizePlainJapaneseString(plainSegment, logMissing: false));
+            }
+
+            int tagEnd = text.IndexOf('>', tagStart + 1);
+            if (tagEnd < 0)
+            {
+                // Malformed tag: localize the remainder as plain text.
+                string remainingPlain = text.Substring(tagStart);
+                output.Append(LocalizePlainJapaneseString(remainingPlain, logMissing: false));
+                break;
+            }
+
+            output.Append(text.Substring(tagStart, tagEnd - tagStart + 1));
+            index = tagEnd + 1;
+        }
+
+        return output.ToString();
+    }
+
+    private static string ReapplyOuterWhitespace(string originalText, string translatedCore)
+    {
+        if (string.IsNullOrEmpty(originalText))
+        {
+            return translatedCore;
+        }
+
+        int leadingCount = 0;
+        while (leadingCount < originalText.Length && char.IsWhiteSpace(originalText[leadingCount]))
+        {
+            leadingCount++;
+        }
+
+        int trailingCount = 0;
+        int trailingIndex = originalText.Length - 1;
+        while (trailingIndex >= 0 && char.IsWhiteSpace(originalText[trailingIndex]))
+        {
+            trailingCount++;
+            trailingIndex--;
+        }
+
+        string leading = leadingCount > 0 ? originalText.Substring(0, leadingCount) : string.Empty;
+        string trailing = trailingCount > 0 ? originalText.Substring(originalText.Length - trailingCount, trailingCount) : string.Empty;
+        return leading + translatedCore + trailing;
     }
 
     private static string ResolveEnglishSourceFromLiveText(string liveText, GameSettings.Language language)

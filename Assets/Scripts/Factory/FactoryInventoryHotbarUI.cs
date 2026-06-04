@@ -332,7 +332,9 @@ public class FactoryInventoryHotbarUI : MonoBehaviour
 
         if (slot.TooltipTrigger != null)
         {
-            slot.TooltipTrigger.SetContent(definition.LocalizedDisplayName, definition.LocalizedDescription);
+            slot.TooltipTrigger.SetContentProviders(
+                () => definition.LocalizedDisplayName,
+                () => definition.LocalizedDescription);
         }
     }
 

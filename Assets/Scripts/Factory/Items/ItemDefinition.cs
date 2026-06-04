@@ -28,10 +28,10 @@ public class ItemDefinition : ScriptableObject
     [System.NonSerialized] private BallTypeData runtimeBallType;
 
     public string ItemId => itemId;
-    public string DisplayName => displayName;
-    public string Description => description;
-    public string LocalizedDisplayName => LocalizationManager.Localize(displayName, japaneseDisplayName);
-    public string LocalizedDescription => LocalizationManager.Localize(description, japaneseDescription);
+    public string DisplayName => ResolveDisplayName(displayName, name);
+    public string Description => ResolveDescription(description);
+    public string LocalizedDisplayName => LocalizationManager.Localize(DisplayName, ResolveOverride(japaneseDisplayName));
+    public string LocalizedDescription => LocalizationManager.Localize(Description, ResolveOverride(japaneseDescription));
     public Sprite Icon => icon;
     public Color Tint => tint;
     public int BaseValue => baseValue;
@@ -88,5 +88,48 @@ public class ItemDefinition : ScriptableObject
 
         itemId = itemId.Trim();
         baseValue = Mathf.Max(0, baseValue);
+    }
+
+    private static string ResolveDisplayName(string value, string fallback)
+    {
+        string trimmed = value != null ? value.Trim() : string.Empty;
+        if (!string.IsNullOrEmpty(trimmed) && !IsPlaceholderText(trimmed))
+        {
+            return trimmed;
+        }
+
+        return string.IsNullOrWhiteSpace(fallback) ? string.Empty : fallback.Trim();
+    }
+
+    private static string ResolveDescription(string value)
+    {
+        string trimmed = value != null ? value.Trim() : string.Empty;
+        if (string.IsNullOrEmpty(trimmed) || IsPlaceholderText(trimmed))
+        {
+            return string.Empty;
+        }
+
+        return trimmed;
+    }
+
+    private static string ResolveOverride(string value)
+    {
+        string trimmed = value != null ? value.Trim() : string.Empty;
+        return IsPlaceholderText(trimmed) ? string.Empty : trimmed;
+    }
+
+    private static bool IsPlaceholderText(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        return string.Equals(value, "Item Name", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Item Description", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Building Name", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Building Description", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Ball Name", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Ball Description", System.StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -6,6 +6,8 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
 {
     private SerializedProperty displayNameProperty;
     private SerializedProperty descriptionProperty;
+    private SerializedProperty japaneseDisplayNameProperty;
+    private SerializedProperty japaneseDescriptionProperty;
     private SerializedProperty buildingSpriteProperty;
     private SerializedProperty buildingColorProperty;
     private SerializedProperty footprintWidthProperty;
@@ -32,6 +34,8 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
     {
         displayNameProperty = FindProperty("displayName");
         descriptionProperty = FindProperty("description");
+        japaneseDisplayNameProperty = FindProperty("japaneseDisplayName");
+        japaneseDescriptionProperty = FindProperty("japaneseDescription");
         buildingSpriteProperty = FindProperty("buildingSprite");
         buildingColorProperty = FindProperty("buildingColor");
         footprintWidthProperty = FindProperty("footprintWidth");
@@ -59,7 +63,14 @@ public class BuildingDefinitionEditor : BreakoutDataEditorBase
     {
         serializedObject.Update();
 
-        DrawSection("Display", displayNameProperty, descriptionProperty, buildingSpriteProperty, buildingColorProperty);
+        DrawSection(
+            "Display",
+            displayNameProperty,
+            descriptionProperty,
+            japaneseDisplayNameProperty,
+            japaneseDescriptionProperty,
+            buildingSpriteProperty,
+            buildingColorProperty);
         DrawSection("Placement", footprintWidthProperty, footprintHeightProperty, placementSoundSizeProperty);
         DrawSection("Behavior", behaviorPrefabProperty);
 

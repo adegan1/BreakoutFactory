@@ -22,6 +22,8 @@ MonoBehaviour:
     Passes through bricks. Releases a
     "Mist Wave" on collision with the paddle or side walls that travel directly in
     the opposite direction, damaging bricks in its path.'
+  japaneseDisplayName: "\u9727"
+  japaneseDescription: "\u300C\u30AA\u30FC\u30B7\u30E3\u30F3\u30FB\u30D6\u30EA\u30FC\u30BA\u300D\u3068\u3044\u3046\u80FD\u529B\u3092\u6301\u3064\uFF1A\n\u30EC\u30F3\u30AC\u3092\u901A\u308A\u629C\u3051\u308B\u3002\u30D1\u30C9\u30EB\u3084\u5074\u58C1\u306B\u885D\u7A81\u3059\u308B\u3068\u300C\u30DF\u30B9\u30C8\u30A6\u30A7\u30FC\u30D6\u300D\u3092\u653E\u3061\u3001\u305D\u308C\u304C\u771F\u9006\u306E\u65B9\u5411\u3078\u76F4\u9032\u3057\u3001\u305D\u306E\u9032\u8DEF\u4E0A\u306E\u30EC\u30F3\u30AC\u306B\u30C0\u30E1\u30FC\u30B8\u3092\u4E0E\u3048\u308B\u3002"
   trailColor: {r: 1, g: 1, b: 1, a: 1}
   trailColors:
   - {r: 0.7714489, g: 0.8091465, b: 0.8301887, a: 1}

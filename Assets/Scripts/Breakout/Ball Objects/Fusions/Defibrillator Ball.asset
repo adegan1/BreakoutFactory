@@ -22,6 +22,8 @@ MonoBehaviour:
     When bouncing off of the paddle or
     any wall, a random number of bricks are shocked and the player is healed some
     health.'
+  japaneseDisplayName: "\u9664\u7D30\u52D5\u5668"
+  japaneseDescription: "\u300C\u30B7\u30E7\u30C3\u30AF\u30BB\u30E9\u30D4\u30FC\u300D\u3068\u3044\u3046\u80FD\u529B\u3092\u6301\u3064\uFF1A\n\u30D1\u30C9\u30EB\u3084\u58C1\u306B\u8DF3\u306D\u8FD4\u3063\u305F\u969B\u3001\u30E9\u30F3\u30C0\u30E0\u306A\u6570\u306E\u30EC\u30F3\u30AC\u306B\u96FB\u6483\u304C\u8D70\u308A\u3001\u30D7\u30EC\u30A4\u30E4\u30FC\u306E\u4F53\u529B\u304C\u56DE\u5FA9\u3059\u308B\u3002"
   trailColor: {r: 1, g: 1, b: 1, a: 1}
   trailColors:
   - {r: 0.9716981, g: 0.40792987, b: 0.40792987, a: 1}

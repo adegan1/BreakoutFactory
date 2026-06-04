@@ -21,6 +21,8 @@ MonoBehaviour:
 
     Passes through bricks. When hitting
     burning bricks or fire bricks, burning is amplified and spread to nearby bricks.'
+  japaneseDisplayName: "\u30D5\u30A7\u30FC\u30F3\u98A8"
+  japaneseDescription: "\u300C\u706B\u306E\u5E83\u304C\u308A\u300D\u3068\u3044\u3046\u80FD\u529B\u3092\u6301\u3064\uFF1A\n\u30EC\u30F3\u30AC\u3092\u8CAB\u901A\u3059\u308B\u3002\u71C3\u3048\u3066\u3044\u308B\u30EC\u30F3\u30AC\u3084\u706B\u306E\u30EC\u30F3\u30AC\u306B\u5F53\u305F\u308B\u3068\u3001\u708E\u304C\u3055\u3089\u306B\u5F37\u307E\u308A\u3001\u5468\u56F2\u306E\u30EC\u30F3\u30AC\u3078\u3068\u5E83\u304C\u3063\u3066\u3044\u304F\u3002"
   trailColor: {r: 1, g: 1, b: 1, a: 1}
   trailColors:
   - {r: 1, g: 0.61083066, b: 0.41037738, a: 1}

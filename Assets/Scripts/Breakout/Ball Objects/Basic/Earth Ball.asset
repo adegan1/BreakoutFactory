@@ -19,6 +19,8 @@ MonoBehaviour:
   displayName: Earth
   description: Cracks bricks on hit. Cracked bricks shatter when hit by any source
     of damage, damaging bricks around them.
+  japaneseDisplayName: "\u571F"
+  japaneseDescription: "\u653B\u6483\u3092\u53D7\u3051\u308B\u3068\u30EC\u30F3\u30AC\u306B\u3072\u3073\u304C\u5165\u308B\u3002\u3072\u3073\u304C\u5165\u3063\u305F\u30EC\u30F3\u30AC\u306F\u3001\u3044\u304B\u306A\u308B\u30C0\u30E1\u30FC\u30B8\u3092\u53D7\u3051\u3066\u3082\u7C89\u3005\u306B\u306A\u308A\u3001\u5468\u56F2\u306E\u30EC\u30F3\u30AC\u306B\u3082\u30C0\u30E1\u30FC\u30B8\u3092\u4E0E\u3048\u308B\u3002"
   trailColor: {r: 0.5377358, g: 0.335619, b: 0.19023673, a: 1}
   trailColors:
   - {r: 1, g: 1, b: 1, a: 1}

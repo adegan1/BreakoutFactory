@@ -18,6 +18,8 @@ MonoBehaviour:
   secondaryEffectProfile: 0
   displayName: Basic Ball
   description: Has no special effects.
+  japaneseDisplayName: "\u30D9\u30FC\u30B7\u30C3\u30AF\u30DC\u30FC\u30EB"
+  japaneseDescription: "\u7279\u6B8A\u52B9\u679C\u306F\u3042\u308A\u307E\u305B\u3093\u3002"
   trailColor: {r: 0.78221786, g: 0.85871917, b: 0.8867924, a: 1}
   trailColors:
   - {r: 1, g: 1, b: 1, a: 1}

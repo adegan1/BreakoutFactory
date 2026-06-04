@@ -55,10 +55,10 @@ public class BuildingDefinition : ScriptableObject
     [SerializeField, Min(1)] private int minShopBuyAmount = 1;
     [SerializeField, Min(1)] private int maxShopBuyAmount = 1;
 
-    public string DisplayName => displayName;
-    public string Description => description;
-    public string LocalizedDisplayName => LocalizationManager.Localize(displayName, japaneseDisplayName);
-    public string LocalizedDescription => LocalizationManager.Localize(description, japaneseDescription);
+    public string DisplayName => ResolveDisplayName(displayName, name);
+    public string Description => ResolveDescription(description);
+    public string LocalizedDisplayName => LocalizationManager.Localize(DisplayName, ResolveOverride(japaneseDisplayName));
+    public string LocalizedDescription => LocalizationManager.Localize(Description, ResolveOverride(japaneseDescription));
     public Sprite BuildingSprite => buildingSprite;
     public Color BuildingColor => buildingColor;
     public int FootprintWidth => footprintWidth;
@@ -82,6 +82,47 @@ public class BuildingDefinition : ScriptableObject
     public Vector2 CustomSpriteScale => customSpriteScale;
 
     public Vector2Int FootprintSize => new Vector2Int(footprintWidth, footprintHeight);
+
+    private static string ResolveDisplayName(string value, string fallback)
+    {
+        string trimmed = value != null ? value.Trim() : string.Empty;
+        if (!string.IsNullOrEmpty(trimmed) && !IsPlaceholderText(trimmed))
+        {
+            return trimmed;
+        }
+
+        return string.IsNullOrWhiteSpace(fallback) ? string.Empty : fallback.Trim();
+    }
+
+    private static string ResolveDescription(string value)
+    {
+        string trimmed = value != null ? value.Trim() : string.Empty;
+        if (string.IsNullOrEmpty(trimmed) || IsPlaceholderText(trimmed))
+        {
+            return string.Empty;
+        }
+
+        return trimmed;
+    }
+
+    private static string ResolveOverride(string value)
+    {
+        string trimmed = value != null ? value.Trim() : string.Empty;
+        return IsPlaceholderText(trimmed) ? string.Empty : trimmed;
+    }
+
+    private static bool IsPlaceholderText(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        return string.Equals(value, "Item Name", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Item Description", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Building Name", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "Building Description", System.StringComparison.OrdinalIgnoreCase);
+    }
 
     public int GetConveyorAnimationFrameIndex(float animationTime)
     {

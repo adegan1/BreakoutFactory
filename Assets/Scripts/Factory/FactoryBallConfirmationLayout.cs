@@ -253,9 +253,9 @@ public class FactoryBallConfirmationLayout : MonoBehaviour
         TooltipTrigger tooltip = iconImage.GetComponent<TooltipTrigger>();
         if (tooltip != null)
         {
-            tooltip.SetContent(
-                ballType != null ? ballType.LocalizedDisplayName : string.Empty,
-                ballType != null ? ballType.LocalizedDescription : string.Empty);
+            tooltip.SetContentProviders(
+                () => ballType != null ? ballType.LocalizedDisplayName : string.Empty,
+                () => ballType != null ? ballType.LocalizedDescription : string.Empty);
         }
     }
 

@@ -22,6 +22,8 @@ MonoBehaviour:
     Spawns "Fertile Patches" over time.
     Fertile patches slowly move upward, cracking bricks and rooting several nearby
     bricks.'
+  japaneseDisplayName: "\u80A5\u6599"
+  japaneseDescription: "\u300C\u80A5\u6C83\u306A\u571F\u5730\u300D\u3068\u3044\u3046\u80FD\u529B\u3092\u6301\u3064\uFF1A\n\u6642\u9593\u306E\u7D4C\u904E\u3068\u3068\u3082\u306B\u300C\u80A5\u6C83\u306A\u533A\u753B\u300D\u304C\u51FA\u73FE\u3059\u308B\u3002\u80A5\u6C83\u306A\u533A\u753B\u306F\u3086\u3063\u304F\u308A\u3068\u4E0A\u3078\u79FB\u52D5\u3057\u3001\u30EC\u30F3\u30AC\u3092\u5272\u3063\u3066\u3001\u8FD1\u304F\u306E\u8907\u6570\u306E\u30EC\u30F3\u30AC\u306B\u6839\u3092\u5F35\u308B\u3002"
   trailColor: {r: 1, g: 1, b: 1, a: 1}
   trailColors:
   - {r: 0.1480585, g: 0.6509434, b: 0.14431292, a: 1}

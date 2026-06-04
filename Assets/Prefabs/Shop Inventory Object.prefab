@@ -288,13 +288,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6918d82953e2f444aa81d8093b648ab1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UISoundController
-  masterVolume: 1
-  sfxVolume: 1
   initialSourcePoolSize: 4
   maxSimultaneousSfx: 12
   buttonClick:
     clips:
     - {fileID: 8300000, guid: 7382a3d69a6e44a4ab597d4ce9df69ff, type: 3}
+    volumeBus: 1
     volume: 0.6
     pitchMin: 0.9
     pitchMax: 1.1
@@ -789,6 +788,7 @@ GameObject:
   - component: {fileID: 658774919129637967}
   - component: {fileID: 8526756819638493005}
   - component: {fileID: 3620254216960080595}
+  - component: {fileID: 3400922533430712989}
   m_Layer: 5
   m_Name: Quantity Text
   m_TagString: Untagged
@@ -915,6 +915,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3400922533430712989
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6880110638402038682}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &7124236135631926535
 GameObject:
   m_ObjectHideFlags: 0
@@ -1269,6 +1283,7 @@ GameObject:
   - component: {fileID: 4248459620597018449}
   - component: {fileID: 7088369240861787744}
   - component: {fileID: 6395245065518283246}
+  - component: {fileID: 7289923342084382946}
   m_Layer: 5
   m_Name: Sell Amount Text
   m_TagString: Untagged
@@ -1395,3 +1410,17 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7289923342084382946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9062358706272257402}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1

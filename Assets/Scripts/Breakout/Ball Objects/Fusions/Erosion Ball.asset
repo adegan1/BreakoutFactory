@@ -22,6 +22,8 @@ MonoBehaviour:
     When a brick is hit, that brick and some
     surrounding bricks become "Weakened". Weakened bricks take double damage from
     all sources.'
+  japaneseDisplayName: "\u6D78\u98DF"
+  japaneseDescription: "\u300C\u5D29\u58CA\u300D\u3068\u3044\u3046\u80FD\u529B\u3092\u6301\u3064\uFF1A\n\u30EC\u30F3\u30AC\u304C\u653B\u6483\u3092\u53D7\u3051\u308B\u3068\u3001\u305D\u306E\u30EC\u30F3\u30AC\u3068\u5468\u56F2\u306E\u3044\u304F\u3064\u304B\u306E\u30EC\u30F3\u30AC\u304C\u300C\u5F31\u4F53\u5316\u300D\u72B6\u614B\u306B\u306A\u308B\u3002\u5F31\u4F53\u5316\u3057\u305F\u30EC\u30F3\u30AC\u306F\u3001\u3042\u3089\u3086\u308B\u653B\u6483\u304B\u3089\u53D7\u3051\u308B\u30C0\u30E1\u30FC\u30B8\u304C2\u500D\u306B\u306A\u308B\u3002"
   trailColor: {r: 0.6226415, g: 0.41237995, b: 0.33775365, a: 1}
   trailColors:
   - {r: 0.5566038, g: 0.3608917, b: 0.29142934, a: 1}

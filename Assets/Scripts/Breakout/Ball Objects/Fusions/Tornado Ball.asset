@@ -21,6 +21,8 @@ MonoBehaviour:
 
     Passes through bricks. Deals several instances
     of damage to hit bricks. Tornado Ball curves chaotically.'
+  japaneseDisplayName: "\u7ADC\u5DFB"
+  japaneseDescription: "\u300C\u30B5\u30A4\u30AF\u30ED\u30F3\u300D\u3068\u3044\u3046\u80FD\u529B\u3092\u6301\u3064\uFF1A\n\u30EC\u30F3\u30AC\u3092\u8CAB\u901A\u3059\u308B\u3002\u547D\u4E2D\u3057\u305F\u30EC\u30F3\u30AC\u306B\u8907\u6570\u56DE\u306E\u30C0\u30E1\u30FC\u30B8\u3092\u4E0E\u3048\u308B\u3002\u30C8\u30EB\u30CD\u30FC\u30C9\u30DC\u30FC\u30EB\u306F\u4E0D\u898F\u5247\u306B\u66F2\u304C\u308B\u3002"
   trailColor: {r: 1, g: 1, b: 1, a: 1}
   trailColors:
   - {r: 0.616545, g: 0.7322195, b: 0.8018868, a: 1}

@@ -49,6 +49,7 @@ public class BreakoutHudController : MonoBehaviour
     private readonly List<Image> levelCompleteMachineIconPool = new List<Image>();
     private readonly List<TextMeshProUGUI> levelCompleteMachineCountLabelPool = new List<TextMeshProUGUI>();
     private readonly List<CollectedMachineDisplayEntry> collectedMachineDisplayEntries = new List<CollectedMachineDisplayEntry>();
+    private BreakoutGameController.LevelEndReason currentLevelEndReason = BreakoutGameController.LevelEndReason.LevelComplete;
 
     private void Awake()
     {
@@ -84,6 +85,8 @@ public class BreakoutHudController : MonoBehaviour
             PlayerStats.Instance.ScrapChanged += HandleScrapChanged;
         }
 
+        GameSettings.LanguageChanged += HandleLanguageChanged;
+
         RefreshAll();
     }
 
@@ -103,6 +106,17 @@ public class BreakoutHudController : MonoBehaviour
             PlayerStats.Instance.HealthChanged -= HandleHealthChanged;
             PlayerStats.Instance.LivesChanged -= HandleLivesChanged;
             PlayerStats.Instance.ScrapChanged -= HandleScrapChanged;
+        }
+
+        GameSettings.LanguageChanged -= HandleLanguageChanged;
+    }
+
+    private void HandleLanguageChanged(GameSettings.Language _)
+    {
+        RefreshAll();
+        if (levelCompletePopup != null && levelCompletePopup.activeSelf)
+        {
+            UpdateLevelEndTitle(currentLevelEndReason);
         }
     }
 
@@ -128,6 +142,8 @@ public class BreakoutHudController : MonoBehaviour
 
     private void HandleLevelEnded(BreakoutGameController.LevelEndReason reason)
     {
+        currentLevelEndReason = reason;
+
         if (levelCompletePopup != null)
         {
             levelCompletePopup.SetActive(true);
@@ -181,7 +197,8 @@ public class BreakoutHudController : MonoBehaviour
             return;
         }
 
-        scoreText.text = scoreLabel + ": " + currentScore;
+        string localizedLabel = LocalizationManager.Localize(scoreLabel);
+        scoreText.text = localizedLabel + ": " + currentScore;
     }
 
     private void UpdateScrapText(int currentScrap)
@@ -211,7 +228,8 @@ public class BreakoutHudController : MonoBehaviour
             return;
         }
 
-        livesText.text = livesLabel + ": " + current;
+        string localizedLabel = LocalizationManager.Localize(livesLabel);
+        livesText.text = localizedLabel + ": " + current;
     }
 
     private void UpdateLevelEndTitle(BreakoutGameController.LevelEndReason reason)
@@ -231,7 +249,7 @@ public class BreakoutHudController : MonoBehaviour
             title = outOfHealthTitle;
         }
 
-        levelEndTitleText.text = title;
+        levelEndTitleText.text = LocalizationManager.Localize(title);
     }
 
     private void UpdateQueueIcons()
@@ -267,9 +285,10 @@ public class BreakoutHudController : MonoBehaviour
             TooltipTrigger tooltip = iconImage.GetComponent<TooltipTrigger>();
             if (tooltip != null)
             {
-                tooltip.SetContent(
-                    ballType != null ? ballType.LocalizedDisplayName : string.Empty,
-                    ballType != null ? ballType.LocalizedDescription : string.Empty);
+                BallTypeData tooltipBallType = ballType;
+                tooltip.SetContentProviders(
+                    () => tooltipBallType != null ? tooltipBallType.LocalizedDisplayName : string.Empty,
+                    () => tooltipBallType != null ? tooltipBallType.LocalizedDescription : string.Empty);
             }
         }
     }
@@ -397,9 +416,10 @@ public class BreakoutHudController : MonoBehaviour
             TooltipTrigger tooltip = iconImage.GetComponent<TooltipTrigger>();
             if (tooltip != null)
             {
-                tooltip.SetContent(
-                    entry.Definition != null ? entry.Definition.LocalizedDisplayName : string.Empty,
-                    entry.Definition != null ? entry.Definition.LocalizedDescription : string.Empty);
+                BuildingDefinition definition = entry.Definition;
+                tooltip.SetContentProviders(
+                    () => definition != null ? definition.LocalizedDisplayName : string.Empty,
+                    () => definition != null ? definition.LocalizedDescription : string.Empty);
             }
 
             TextMeshProUGUI countLabel = labelPool[i];

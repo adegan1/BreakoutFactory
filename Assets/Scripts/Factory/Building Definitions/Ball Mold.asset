@@ -16,6 +16,8 @@ MonoBehaviour:
   description: 'A mold for turning resources into balls.
 
     Default: Basic Ball'
+  japaneseDisplayName: "\u30DC\u30FC\u30EB\u30E2\u30FC\u30EB\u30C9"
+  japaneseDescription: "\u8CC7\u6E90\u3092\u30DC\u30FC\u30EB\u3078\u3068\u52A0\u5DE5\u3059\u308B\u305F\u3081\u306E\u578B\u3002\r\n\u30C7\u30D5\u30A9\u30EB\u30C8\uFF1A\u30D9\u30FC\u30B7\u30C3\u30AF\u30DC\u30FC\u30EB"
   buildingSprite: {fileID: 5155672322358715378, guid: 8ea17fb2e2c9ba945853fc936d948745, type: 3}
   buildingColor: {r: 0.7169812, g: 0.7169812, b: 0.7169812, a: 1}
   footprintWidth: 2

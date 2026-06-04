@@ -21,6 +21,8 @@ MonoBehaviour:
 
     Occasionally deals damage to every brick
     on screen.'
+  japaneseDisplayName: "\u904E\u8CA0\u8377"
+  japaneseDescription: "\u300C\u505C\u96FB\u300D\u3068\u3044\u3046\u80FD\u529B\u3092\u6301\u3064\uFF1A\n\u6642\u6298\u3001\u753B\u9762\u4E0A\u306E\u3059\u3079\u3066\u306E\u30EC\u30F3\u30AC\u306B\u30C0\u30E1\u30FC\u30B8\u3092\u4E0E\u3048\u308B\u3002"
   trailColor: {r: 1, g: 1, b: 1, a: 1}
   trailColors:
   - {r: 1, g: 0.52053434, b: 0.15566039, a: 1}

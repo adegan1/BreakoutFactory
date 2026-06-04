@@ -22,6 +22,8 @@ MonoBehaviour:
     Applies "Pressure" on brick
     hit. When bricks reach max pressure (5), they burst into 4 pressure-applying
     water droplets.'
+  japaneseDisplayName: "\u30C7\u30A3\u30FC\u30D7\u30FB\u30D6\u30EB\u30FC"
+  japaneseDescription: "\u300C\u52A0\u5727\u30B9\u30D7\u30E9\u30C3\u30B7\u30E5\u300D\u3068\u3044\u3046\u80FD\u529B\u3092\u6301\u3064\uFF1A\n\u30D6\u30ED\u30C3\u30AF\u306B\u5F53\u305F\u308B\u3068\u300C\u5727\u529B\u300D\u3092\u4ED8\u4E0E\u3059\u308B\u3002\u30D6\u30ED\u30C3\u30AF\u304C\u6700\u5927\u5727\u529B\uFF085\uFF09\u306B\u9054\u3059\u308B\u3068\u30014\u3064\u306E\u5727\u529B\u4ED8\u4E0E\u6C34\u6EF4\u306B\u7834\u88C2\u3059\u308B\u3002"
   trailColor: {r: 1, g: 1, b: 1, a: 1}
   trailColors:
   - {r: 0.014239941, g: 0.18708995, b: 0.6037736, a: 1}

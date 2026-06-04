@@ -181,8 +181,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: x15
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 759ea2e917ddbd748bbae914312e50db, type: 2}
+  m_sharedMaterial: {fileID: -3856265422800084489, guid: 759ea2e917ddbd748bbae914312e50db, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -206,7 +206,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 21.4
+  m_fontSize: 17.15
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -441,13 +441,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6918d82953e2f444aa81d8093b648ab1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UISoundController
-  masterVolume: 1
-  sfxVolume: 1
   initialSourcePoolSize: 4
   maxSimultaneousSfx: 12
   buttonClick:
     clips:
     - {fileID: 8300000, guid: 7382a3d69a6e44a4ab597d4ce9df69ff, type: 3}
+    volumeBus: 1
     volume: 0.6
     pitchMin: 0.9
     pitchMax: 1.1
@@ -539,6 +538,7 @@ GameObject:
   - component: {fileID: 6698774521222502858}
   - component: {fileID: 2574415681306079807}
   - component: {fileID: 8571040540124024104}
+  - component: {fileID: 8439205381774568633}
   m_Layer: 5
   m_Name: Price Text
   m_TagString: Untagged
@@ -665,6 +665,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8439205381774568633
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5076224655772746719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0373e9f4259dd54fb4f4760f4c06934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationTextExclusion
+  excludeTranslation: 1
+  excludeFontSwap: 1
 --- !u!1 &5435010388195926255
 GameObject:
   m_ObjectHideFlags: 0

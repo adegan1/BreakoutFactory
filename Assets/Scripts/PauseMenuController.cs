@@ -14,10 +14,15 @@ public class PauseMenuController : MonoBehaviour
     private bool isResumingWithCountdown;
     private Coroutine resumeCountdownRoutine;
     private bool isBreakoutLevel;
+    private ItemShop breakoutItemShop;
 
     private void Awake()
     {
         isBreakoutLevel = FindAnyObjectByType<BreakoutGameController>() != null;
+        if (isBreakoutLevel)
+        {
+            breakoutItemShop = FindAnyObjectByType<ItemShop>();
+        }
 
         if (resumeCountdownText != null)
         {
@@ -73,7 +78,7 @@ public class PauseMenuController : MonoBehaviour
             return;
         }
 
-        if (isBreakoutLevel)
+        if (isBreakoutLevel && !IsShopOpen())
         {
             resumeCountdownRoutine = StartCoroutine(ResumeWithCountdownCoroutine());
             return;
@@ -152,5 +157,15 @@ public class PauseMenuController : MonoBehaviour
         MusicController.SetPauseMuffled(isMuffled);
         BreakoutSoundController.SetPauseMuffled(isMuffled);
         FactorySoundController.SetPauseMuffled(isMuffled);
+    }
+
+    private bool IsShopOpen()
+    {
+        if (breakoutItemShop == null)
+        {
+            breakoutItemShop = FindAnyObjectByType<ItemShop>();
+        }
+
+        return breakoutItemShop != null && breakoutItemShop.IsOpen;
     }
 }

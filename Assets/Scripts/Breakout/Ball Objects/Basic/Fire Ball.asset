@@ -18,6 +18,8 @@ MonoBehaviour:
   secondaryEffectProfile: 0
   displayName: Fire
   description: Burns bricks on hit. Burning bricks take damage over time.
+  japaneseDisplayName: "\u706B"
+  japaneseDescription: "\u547D\u4E2D\u3059\u308B\u3068\u30EC\u30F3\u30AC\u306B\u706B\u304C\u3064\u304F\u3002\u71C3\u3048\u3066\u3044\u308B\u30EC\u30F3\u30AC\u306F\u3001\u6642\u9593\u7D4C\u904E\u3068\u3068\u3082\u306B\u30C0\u30E1\u30FC\u30B8\u3092\u53D7\u3051\u308B\u3002"
   trailColor: {r: 1, g: 0.7018227, b: 0.3160377, a: 1}
   trailColors:
   - {r: 1, g: 0.74242145, b: 0.28773582, a: 1}

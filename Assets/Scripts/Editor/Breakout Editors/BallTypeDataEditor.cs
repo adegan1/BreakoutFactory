@@ -10,6 +10,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
     private SerializedProperty secondaryEffectProfileProperty;
     private SerializedProperty displayNameProperty;
     private SerializedProperty descriptionProperty;
+    private SerializedProperty japaneseDisplayNameProperty;
+    private SerializedProperty japaneseDescriptionProperty;
     private SerializedProperty trailColorProperty;
     private SerializedProperty trailColorsProperty;
     private SerializedProperty trailColorCycleRateProperty;
@@ -217,6 +219,8 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         secondaryEffectProfileProperty = FindProperty("secondaryEffectProfile");
         displayNameProperty = FindProperty("displayName");
         descriptionProperty = FindProperty("description");
+        japaneseDisplayNameProperty = FindProperty("japaneseDisplayName");
+        japaneseDescriptionProperty = FindProperty("japaneseDescription");
         trailColorProperty = FindProperty("trailColor");
         trailColorsProperty = FindProperty("trailColors");
         trailColorCycleRateProperty = FindProperty("trailColorCycleRate");
@@ -422,7 +426,17 @@ public class BallTypeDataEditor : BreakoutDataEditorBase
         serializedObject.Update();
 
         DrawSection("Recipe", primarySourceElementProperty, secondarySourceElementProperty, primaryEffectProfileProperty, secondaryEffectProfileProperty);
-        DrawSection("Display", displayNameProperty, descriptionProperty, trailColorModeProperty, ballSpriteProperty, ballMaterialProperty, sizeProperty, animateTextureProperty);
+        DrawSection(
+            "Display",
+            displayNameProperty,
+            descriptionProperty,
+            japaneseDisplayNameProperty,
+            japaneseDescriptionProperty,
+            trailColorModeProperty,
+            ballSpriteProperty,
+            ballMaterialProperty,
+            sizeProperty,
+            animateTextureProperty);
         DrawConditionalGroup(animateTextureProperty, animFrameColumnsProperty, animFrameRowsProperty, animFrameRateProperty);
         if (trailColorModeProperty.enumValueIndex == 0)
         {

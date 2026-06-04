@@ -14,10 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
   displayName: Conveyor
   description: Moves items from place to place
+  japaneseDisplayName: "\u30B3\u30F3\u30D9\u30A2"
+  japaneseDescription: "\u7269\u54C1\u3092\u3042\u3061\u3053\u3061\u3078\u79FB\u52D5\u3055\u305B\u308B"
   buildingSprite: {fileID: -7874262641381568579, guid: b3af6ca1930b7964e907e68f05c4c380, type: 3}
   buildingColor: {r: 1, g: 1, b: 1, a: 1}
   footprintWidth: 1
   footprintHeight: 1
+  placementSoundSize: 0
   behaviorPrefab: {fileID: 1276502763047268258, guid: da22c3addc64f564b8ec6d423e674f2d, type: 3}
   generatorSettings: {fileID: 0}
   isConveyor: 1
