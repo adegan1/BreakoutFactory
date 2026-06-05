@@ -20456,6 +20456,10 @@ MonoBehaviour:
     quantity: 10
   - buildingDefinition: {fileID: 11400000, guid: a163862e1e67beb41880159dba5f80d9, type: 2}
     quantity: 3
+  - buildingDefinition: {fileID: 11400000, guid: 85db426e8d942384285a483aff32176a, type: 2}
+    quantity: 3
+  - buildingDefinition: {fileID: 11400000, guid: 0a925421f591623439df52242c47b281, type: 2}
+    quantity: 3
   buildingInventory: []
   buildingHotbarSlots: []
   buildingStoredResourceStacks: []

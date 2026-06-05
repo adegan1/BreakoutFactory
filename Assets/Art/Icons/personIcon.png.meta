@@ -1,13 +1,13 @@
 fileFormatVersion: 2
-guid: 3a7c29b8e9a246448979529f6c6221ba
+guid: 09e340dce7aaae84e92676f824453529
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2840336364714655594
-    second: QuestionMark_0
+      213: 4019653486654252984
+    second: personIcon_0
   - first:
-      213: -718934261332416602
-    second: QuestionMark_1
+      213: 5479654489836535473
+    second: personIcon_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -54,7 +54,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 64
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -129,13 +129,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: QuestionMark_0
+      name: personIcon_0
       rect:
         serializedVersion: 2
-        x: 139
-        y: 186
-        width: 233
-        height: 274
+        x: 71
+        y: 236
+        width: 178
+        height: 176
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -144,20 +144,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a6ff07dffd6ea6720800000000000000
-      internalID: 2840336364714655594
+      spriteID: 8b7ef209c8da8c730800000000000000
+      internalID: 4019653486654252984
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: QuestionMark_1
+      name: personIcon_1
       rect:
         serializedVersion: 2
-        x: 205
-        y: 52
-        width: 91
-        height: 91
+        x: 0
+        y: 0
+        width: 320
+        height: 232
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -166,8 +166,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6a76c603915d506f0800000000000000
-      internalID: -718934261332416602
+      spriteID: 1beb49ed9b4ab0c40800000000000000
+      internalID: 5479654489836535473
       vertices: []
       indices: 
       edges: []
@@ -186,8 +186,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      QuestionMark_0: 2840336364714655594
-      QuestionMark_1: -718934261332416602
+      personIcon_0: 4019653486654252984
+      personIcon_1: 5479654489836535473
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

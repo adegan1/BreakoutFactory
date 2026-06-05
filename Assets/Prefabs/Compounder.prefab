@@ -326,7 +326,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 3a7c29b8e9a246448979529f6c6221ba, type: 3}
+  m_Sprite: {fileID: 21300000, guid: e926a1e0ea2961f4689ca00eaa90be25, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -388,7 +388,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MachineRadialProgressView
   radialFillImage: {fileID: 6715973741324709327}
   statusIconImage: {fileID: 5244355776711180168}
-  questionMarkSprite: {fileID: 21300000, guid: 3a7c29b8e9a246448979529f6c6221ba, type: 3}
+  questionMarkSprite: {fileID: 21300000, guid: e926a1e0ea2961f4689ca00eaa90be25, type: 3}
   resolveProviderFromParents: 1
   tileManager: {fileID: 0}
   smoothFill: 1
