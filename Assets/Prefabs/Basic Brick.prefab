@@ -250,7 +250,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9159a89de82d72c4faea310bffaaa9e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpriteStacker
-  layers: 5
+  layers: 4
   totalDepth: 0.06
   direction: {x: 0.2, y: -0.6}
   edgeBrightness: 0.5

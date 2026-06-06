@@ -21,6 +21,9 @@ public class LocalizationManager : MonoBehaviour
     [SerializeField] private TMP_FontAsset japaneseFont;
     [SerializeField] private bool keepOriginalEnglishFont = true;
 
+    [Header("Translation Tables")]
+    [SerializeField] private List<LocalizationTable> localizationTables = new List<LocalizationTable>();
+
     [Header("Refresh Timing")]
     [SerializeField, Min(0)] private int delayedRefreshFrames = 2;
 
@@ -94,6 +97,8 @@ public class LocalizationManager : MonoBehaviour
     private static readonly Dictionary<string, string> EnglishByJapaneseTranslations = BuildEnglishByJapaneseMap();
     private static readonly Dictionary<string, string> JapaneseOverridesByEnglish = new Dictionary<string, string>(StringComparer.Ordinal);
     private static readonly Dictionary<string, string> EnglishByJapaneseOverrides = new Dictionary<string, string>(StringComparer.Ordinal);
+    private static readonly Dictionary<string, string> JapaneseTableTranslations = new Dictionary<string, string>(StringComparer.Ordinal);
+    private static readonly Dictionary<string, string> EnglishByJapaneseTableTranslations = new Dictionary<string, string>(StringComparer.Ordinal);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
@@ -112,6 +117,20 @@ public class LocalizationManager : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
 
+        RebuildTableTranslations();
+    }
+
+    private void OnValidate()
+    {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+
+        if (instance == this)
+        {
+            RebuildTableTranslations();
+        }
     }
 
     public static void ConfigureFonts(TMP_FontAsset english, TMP_FontAsset japanese, bool preserveOriginalEnglishFont = true)
@@ -518,6 +537,11 @@ public class LocalizationManager : MonoBehaviour
             return englishFromOverride;
         }
 
+        if (language == GameSettings.Language.Japanese && EnglishByJapaneseTableTranslations.TryGetValue(normalized, out string englishFromTable))
+        {
+            return englishFromTable;
+        }
+
         if (language == GameSettings.Language.Japanese && EnglishByJapaneseTranslations.TryGetValue(normalized, out string englishFromJapanese))
         {
             return englishFromJapanese;
@@ -548,6 +572,11 @@ public class LocalizationManager : MonoBehaviour
             return true;
         }
 
+        if (JapaneseTableTranslations.TryGetValue(key, out translation))
+        {
+            return true;
+        }
+
         if (JapaneseTranslations.TryGetValue(key, out translation))
         {
             return true;
@@ -559,7 +588,17 @@ public class LocalizationManager : MonoBehaviour
             return true;
         }
 
+        if (key.EndsWith("!", StringComparison.Ordinal) && JapaneseTableTranslations.TryGetValue(key.Substring(0, key.Length - 1), out translation))
+        {
+            return true;
+        }
+
         if (key.EndsWith("?", StringComparison.Ordinal) && JapaneseTranslations.TryGetValue(key.Substring(0, key.Length - 1), out translation))
+        {
+            return true;
+        }
+
+        if (key.EndsWith("?", StringComparison.Ordinal) && JapaneseTableTranslations.TryGetValue(key.Substring(0, key.Length - 1), out translation))
         {
             return true;
         }
@@ -593,6 +632,7 @@ public class LocalizationManager : MonoBehaviour
         }
 
         if (EnglishByJapaneseOverrides.TryGetValue(localizedBase, out string englishBase)
+            || EnglishByJapaneseTableTranslations.TryGetValue(localizedBase, out englishBase)
             || EnglishByJapaneseTranslations.TryGetValue(localizedBase, out englishBase))
         {
             englishText = englishBase + " " + quantitySuffix;
@@ -674,6 +714,47 @@ public class LocalizationManager : MonoBehaviour
             .Replace("\r\n", "\n")
             .Replace('\u2019', '\'')
             .Trim();
+    }
+
+    private void RebuildTableTranslations()
+    {
+        JapaneseTableTranslations.Clear();
+        EnglishByJapaneseTableTranslations.Clear();
+
+        for (int tableIndex = 0; tableIndex < localizationTables.Count; tableIndex++)
+        {
+            LocalizationTable table = localizationTables[tableIndex];
+            if (table == null || table.Entries == null)
+            {
+                continue;
+            }
+
+            IReadOnlyList<LocalizationTable.Entry> entries = table.Entries;
+            for (int entryIndex = 0; entryIndex < entries.Count; entryIndex++)
+            {
+                LocalizationTable.Entry entry = entries[entryIndex];
+                if (entry == null)
+                {
+                    continue;
+                }
+
+                string english = entry.english != null ? entry.english.Trim() : string.Empty;
+                string japanese = entry.japanese != null ? entry.japanese.Trim() : string.Empty;
+
+                string normalizedEnglish = NormalizeForLookup(english);
+                string normalizedJapanese = NormalizeForLookup(japanese);
+                if (string.IsNullOrEmpty(normalizedEnglish) || string.IsNullOrEmpty(normalizedJapanese))
+                {
+                    continue;
+                }
+
+                JapaneseTableTranslations[normalizedEnglish] = japanese;
+                if (!EnglishByJapaneseTableTranslations.ContainsKey(normalizedJapanese))
+                {
+                    EnglishByJapaneseTableTranslations[normalizedJapanese] = english;
+                }
+            }
+        }
     }
 
 }

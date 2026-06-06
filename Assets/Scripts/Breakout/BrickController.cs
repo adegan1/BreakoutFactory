@@ -44,6 +44,7 @@ public class BrickController : MonoBehaviour
     private const float FollowDistanceThresholdMultiplier = 1.05f;
     private const float MinimumFollowGap = 0.02f;
     private const int StrongAgainstDamageMultiplier = 2;
+    private static int closestBrickBelowCacheVersion = 1;
 
     [SerializeField] private BrickTypeData typeData;
 
@@ -161,6 +162,11 @@ public class BrickController : MonoBehaviour
     private readonly List<BrickController> seedSpreadCandidatesBuffer = new List<BrickController>();
     private bool inDangerSequence;
     private Vector3 dangerBasePosition;
+    private BrickController cachedClosestBrickBelow;
+    private int cachedClosestBrickBelowVersion = -1;
+    private bool hasCachedClosestBrickBelow;
+    private int cachedDownwardSpeedFrame = -1;
+    private float cachedDownwardSpeed;
 
     public static event System.Action<BrickController, int> BrickDestroyed;
     public static event System.Action<BrickController> BrickRemovedByDanger;
@@ -177,6 +183,8 @@ public class BrickController : MonoBehaviour
 
     private void Awake()
     {
+        InvalidateClosestBrickBelowCache();
+
         targetScale = transform.localScale;
         transform.localScale = new Vector3(0f, 0f, 1f);
         isGrowing = true;
@@ -252,6 +260,7 @@ public class BrickController : MonoBehaviour
         {
             moveDownward = false;
             downwardSpeed = 0f;
+            InvalidateDownwardSpeedCache();
             return;
         }
 
@@ -262,6 +271,7 @@ public class BrickController : MonoBehaviour
     public void SetDownwardSpeed(float speed)
     {
         downwardSpeed = Mathf.Max(0f, speed);
+        InvalidateDownwardSpeedCache();
     }
 
     public bool BeginDangerSequence(float waitBeforeShakeSeconds, float shakeDurationSeconds, float shakeMagnitude)
@@ -275,6 +285,7 @@ public class BrickController : MonoBehaviour
         moveDownward = false;
         downwardSpeed = 0f;
         dangerBasePosition = transform.position;
+        InvalidateDownwardSpeedCache();
 
         if (dangerSequenceRoutine != null)
         {
@@ -683,6 +694,8 @@ public class BrickController : MonoBehaviour
 
     private void OnDestroy()
     {
+        InvalidateClosestBrickBelowCache();
+
         if (dangerSequenceRoutine != null)
         {
             StopCoroutine(dangerSequenceRoutine);
@@ -1349,13 +1362,28 @@ public class BrickController : MonoBehaviour
 
     private float GetCurrentDownwardSpeed()
     {
+        if (cachedDownwardSpeedFrame == Time.frameCount)
+        {
+            return cachedDownwardSpeed;
+        }
+
+        float currentSpeed = 0f;
+
         if (IsPinnedInPlace)
+        {
+            cachedDownwardSpeed = 0f;
+            cachedDownwardSpeedFrame = Time.frameCount;
             return 0f;
+        }
 
         if (IsBlockedBelowByStoppedBrick())
+        {
+            cachedDownwardSpeed = 0f;
+            cachedDownwardSpeedFrame = Time.frameCount;
             return 0f;
+        }
 
-        float currentSpeed = downwardSpeed * GetAppliedSpeedMultiplier();
+        currentSpeed = downwardSpeed * GetAppliedSpeedMultiplier();
         float followGapThreshold = Mathf.Max(MinimumFollowGap, GetRowSpacingEstimate() * FollowDistanceThresholdMultiplier);
 
         if (TryGetClosestBrickBelow(followGapThreshold, out BrickController brickAhead, out float _))
@@ -1363,7 +1391,9 @@ public class BrickController : MonoBehaviour
             currentSpeed = Mathf.Min(currentSpeed, brickAhead.GetCurrentDownwardSpeed());
         }
 
-        return Mathf.Max(0f, currentSpeed);
+        cachedDownwardSpeed = Mathf.Max(0f, currentSpeed);
+        cachedDownwardSpeedFrame = Time.frameCount;
+        return cachedDownwardSpeed;
     }
 
     private float GetColumnTolerance()
@@ -1395,6 +1425,22 @@ public class BrickController : MonoBehaviour
 
         float clampedMaxGap = Mathf.Max(MinimumFollowGap, maxGap);
         float xTolerance = GetColumnTolerance();
+
+        if (cachedClosestBrickBelowVersion == closestBrickBelowCacheVersion)
+        {
+            if (!hasCachedClosestBrickBelow)
+            {
+                return false;
+            }
+
+            if (IsValidCachedBrickBelow(cachedClosestBrickBelow, clampedMaxGap, xTolerance, out float cachedGap))
+            {
+                closestBrick = cachedClosestBrickBelow;
+                verticalGap = cachedGap;
+                return true;
+            }
+        }
+
         float closestGap = float.PositiveInfinity;
 
         for (int i = 0; i < transform.parent.childCount; i++)
@@ -1421,10 +1467,52 @@ public class BrickController : MonoBehaviour
         }
 
         if (closestBrick == null)
+        {
+            cachedClosestBrickBelow = null;
+            hasCachedClosestBrickBelow = false;
+            cachedClosestBrickBelowVersion = closestBrickBelowCacheVersion;
             return false;
+        }
 
         verticalGap = closestGap;
+        cachedClosestBrickBelow = closestBrick;
+        hasCachedClosestBrickBelow = true;
+        cachedClosestBrickBelowVersion = closestBrickBelowCacheVersion;
         return true;
+    }
+
+    private bool IsValidCachedBrickBelow(BrickController candidate, float maxGap, float xTolerance, out float verticalGap)
+    {
+        verticalGap = 0f;
+
+        if (candidate == null || candidate == this || candidate.currentHitPoints <= 0 || candidate.transform.parent != transform.parent)
+        {
+            return false;
+        }
+
+        verticalGap = transform.position.y - candidate.transform.position.y;
+        if (verticalGap <= 0f || verticalGap > maxGap)
+        {
+            return false;
+        }
+
+        return Mathf.Abs(candidate.transform.position.x - transform.position.x) <= xTolerance;
+    }
+
+    private static void InvalidateClosestBrickBelowCache()
+    {
+        if (closestBrickBelowCacheVersion == int.MaxValue)
+        {
+            closestBrickBelowCacheVersion = 1;
+            return;
+        }
+
+        closestBrickBelowCacheVersion++;
+    }
+
+    private void InvalidateDownwardSpeedCache()
+    {
+        cachedDownwardSpeedFrame = -1;
     }
 
     private float GetRowSpacingEstimate()
